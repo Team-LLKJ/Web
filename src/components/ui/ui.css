@@ -1,0 +1,231 @@
+.button {
+  padding: 10px 26px;
+  border-radius: 10px;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+.neutral {
+  background: #f4f4f4;
+}
+.danger {
+  background: #ffd4d3;
+  color: #ff0500;
+}
+.primary {
+  background: var(--primary);
+  color: white;
+}
+.search {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  background: #f4f4f4;
+  border-radius: 10px;
+  padding: 10px 20px;
+  color: var(--muted);
+}
+.search input {
+  min-width: 0;
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  padding: 0;
+  color: #000;
+}
+.search input::placeholder {
+  color: var(--muted);
+}
+.search svg {
+  flex-shrink: 0;
+}
+.avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-weight: 400;
+}
+.badge {
+  padding: 5px 7.5px;
+  border-radius: 10px;
+  background: #aeaeb2;
+  color: white;
+  font-size: 12px;
+  line-height: 17px;
+}
+.badge.submitted {
+  background: var(--primary);
+}
+.badge.warning {
+  background: #ff0500;
+}
+.question-tabs {
+  display: flex;
+  gap: 20px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+}
+.question-tabs button {
+  width: 75px;
+  padding: 5px 0;
+  border-bottom: 2.5px solid transparent;
+}
+.question-tabs button.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+.detail-tabs {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 35px;
+  border-bottom: 1px solid var(--border);
+  gap: 5px;
+}
+.detail-tabs button {
+  padding: 12.5px 0;
+  border-radius: 10px;
+  width: 100px;
+  flex-shrink: 0;
+  color: #48484a;
+  font-size: 14px;
+  line-height: 20px;
+}
+.detail-tabs button.active {
+  background: #e2f0ff;
+  color: var(--primary);
+}
+.avatar.small {
+  width: 25px;
+  height: 25px;
+  font-size: 12px;
+}
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.button--small {
+  font-size: 14px;
+  padding: 10px 19px;
+  border-radius: 8px;
+}
+.button--large {
+  font-size: 18px;
+  padding: 10px 30px;
+  border-radius: 12px;
+}
+.button--danger {
+  background: #ff0500;
+  color: #fff;
+}
+.button--white-primary {
+  background: #e2f0ff;
+  color: #007bff;
+}
+.button--white-danger {
+  background: #ffd4d3;
+  color: #ff0500;
+}
+.button--ghost {
+  background: #fff;
+  color: #000;
+  border: 1px solid #c6c6c6;
+}
+.button--text {
+  background: transparent;
+  color: #000;
+}
+.button:not(:disabled):hover {
+  filter: brightness(0.96);
+}
+.button:disabled {
+  background: #c6c6c6;
+  color: #8e8e93;
+  cursor: not-allowed;
+}
+.student-row:not(.selected):hover {
+  background: #f4f4f4;
+  border-color: #c6c6c6;
+}
+.avatar-large {
+  width: 50px;
+  height: 50px;
+  font-size: 18px;
+  font-weight: 500;
+}
+.text-input-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+}
+.text-input {
+  display: flex;
+  gap: 10px;
+  padding: 10px 15px;
+  border: 1px solid #c6c6c6;
+  border-radius: 10px;
+  background: #fff;
+}
+.text-input input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+}
+.text-input:focus-within {
+  border-color: #007bff;
+}
+.text-input--under-bar {
+  border-radius: 0;
+  border-width: 0 0 1px;
+}
+.text-input[data-error="true"] {
+  border-color: #ff0500;
+}
+.input-error {
+  font-size: 12px;
+  color: #ff0500;
+}
+.modal {
+  border: 0;
+  color: inherit;
+  min-width: 300px;
+  padding: 20px;
+  border-radius: 20px;
+  max-width: calc(100vw - 40px);
+}
+.modal::backdrop {
+  background: rgba(0, 0, 0, 0.3);
+}
+.modal-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.modal-heading h2 {
+  font-size: 24px;
+  line-height: 1.3;
+  font-weight: 600;
+  white-space: normal;
+}
+.modal-close {
+  display: flex;
+  padding: 0;
+  flex-shrink: 0;
+}
+.modal-actions {
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+.modal-actions .button {
+  width: 100%;
+}
