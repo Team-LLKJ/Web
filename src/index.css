@@ -1,11 +1,25 @@
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css");
 :root {
-  font-family:
-    Pretendard,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
+  --font-family-base: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-title-lg: 50px;
+  --font-title-md: 38px;
+  --font-title-sm: 26px;
+  --font-test-lg: 20px;
+  --font-text-md: 18px;
+  --font-text-sm: 16px;
+  --font-caption: 14px;
+  --line-title-lg: 1.2;
+  --line-title-md: 1.2;
+  --line-title-sm: 1.3;
+  --line-test-lg: 1.4;
+  --line-text-md: 1.4;
+  --line-text-sm: 1.4;
+  --line-caption: 1.4;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  font-family: var(--font-family-base);
   color: #000;
   background: #f6faff;
   font-synthesis: none;
@@ -13,8 +27,8 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-weight: 400;
-  font-size: 16px;
-  line-height: 1.4;
+  font-size: var(--font-text-sm);
+  line-height: var(--line-text-sm);
 }
 * {
   box-sizing: border-box;
