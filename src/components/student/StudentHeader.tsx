@@ -4,13 +4,17 @@ import { IconButton } from "../ui/IconButton";
 import { Icon } from "../ui/Icon";
 export function StudentHeader({
   submitted,
+  disabledSubmit = false,
   onLeave,
   onSubmit,
+  onPolicy,
   onNotice,
 }: {
   submitted: boolean;
+  disabledSubmit?: boolean;
   onLeave: () => void;
   onSubmit: () => void;
+  onPolicy: () => void;
   onNotice: (title: string) => void;
 }) {
   return (
@@ -29,13 +33,13 @@ export function StudentHeader({
         >
           <Icon name="bell" />
         </IconButton>
-        <IconButton label="설정" onClick={() => onNotice("평가 설정")}>
+        <IconButton label="AI 사용 정책" onClick={onPolicy}>
           <Icon name="settings" />
         </IconButton>
         <Button variant="secondary" onClick={onLeave}>
           나가기
         </Button>
-        <Button onClick={onSubmit} disabled={submitted}>
+        <Button onClick={onSubmit} disabled={submitted || disabledSubmit}>
           {submitted ? "제출 완료" : "제출하기"}
         </Button>
       </nav>

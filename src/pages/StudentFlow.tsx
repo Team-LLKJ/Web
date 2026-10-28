@@ -1,12 +1,26 @@
-import { useEffect, useState } from "react";
-import { questions, type Student } from "../data/grading";
+import { useCallback, useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { ApiError, apiErrorMessage } from "../api/client";
 import {
-  emptySession,
-  readSession,
-  saveSession,
-  type StudentSession,
-} from "../data/studentSession";
-import { useNavigate } from "react-router-dom";
+  askQuestion,
+  confirmSubmission,
+  getConversations,
+  getStudentLearningEvents,
+  getStudentQuestion,
+  getStudentState,
+  getStudentWorkspace,
+  getSubmission,
+  getSubmissionPreview,
+  joinEvaluation,
+  leaveEvaluation,
+  saveStudentAnswer,
+  sendHeartbeat,
+  verifyPin,
+} from "../api/evaluations";
+import type { AnswerSource, ApiQuestion, Review, StudentScreen, Turn, Workspace } from "../api/types";
+import { useAuth } from "../auth/AuthProvider";
+import { emptySession, readSession, saveSession, clearSession, getParticipantToken, saveParticipantCredentials, type StudentSession } from "../data/studentSession";
+import type { Message, Student } from "../data/grading";
 import { PinJoinForm } from "../components/student/PinJoinForm";
 import { NicknameForm } from "../components/student/NicknameForm";
 import { WaitingRoom } from "../components/student/WaitingRoom";
@@ -14,163 +28,513 @@ import { StudentHeader } from "../components/student/StudentHeader";
 import { StudentWorkspace } from "../components/student/StudentWorkspace";
 import { AnswerEditor } from "../components/student/AnswerEditor";
 import { StudentChatPanel } from "../components/student/StudentChatPanel";
-import {
-  StudentDialogs,
-  type StudentDialog,
-} from "../components/student/StudentDialogs";
+import { StudentDialogs, type StudentDialog } from "../components/student/StudentDialogs";
 import "../components/student/student.css";
+
+function screenFor(lobby: { screen?: StudentScreen; state: string }): StudentScreen {
+  if (lobby.screen) return lobby.screen;
+  if (lobby.state === "WAITING") return "WAITING";
+  if (lobby.state === "STARTED") return "SOLVING";
+  return "ENDED";
+}
+
+function toChatMessages(turns: Turn[]): Message[] {
+  return [...turns]
+    .sort((left, right) => new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime())
+    .flatMap((turn) => [
+      { id: `${turn.requestId}-question`, role: "user" as const, content: turn.questionText },
+      {
+        id: `${turn.requestId}-answer`,
+        role: "ai" as const,
+        content: turn.answerText ?? (turn.state === "PENDING" ? "응답을 생성하고 있습니다…" : `응답을 완료하지 못했습니다. (${turn.errorCode ?? "AI_PROVIDER_ERROR"})`),
+      },
+    ]);
+}
+
+function upsertTurn(current: Turn[], next: Turn) {
+  const found = current.some((turn) => turn.requestId === next.requestId);
+  return found ? current.map((turn) => turn.requestId === next.requestId ? next : turn) : [...current, next];
+}
+
+const pause = (duration: number) => new Promise((resolve) => window.setTimeout(resolve, duration));
+
 export function StudentFlow({ route }: { route: string }) {
   const navigate = useNavigate();
-  const [session, setSession] = useState(() => {
-    const saved = readSession();
-    return route === "/student/solve" && !saved.pin
-      ? {
-          ...saved,
-          nickname: saved.nickname || "이하랑",
-          messages: saved.messages.length
-            ? saved.messages
-            : Array.from({ length: 8 }, (_, index) => ({
-                id: `preview-${index}`,
-                role: index % 2 === 0 ? ("user" as const) : ("ai" as const),
-                content: "답변 내용 입력",
-              })),
-        }
-      : saved;
-  });
-  const [questionId, setQuestionId] = useState(questions[0]?.id ?? 0);
+  const location = useLocation();
+  const { user } = useAuth();
+  const [session, setSession] = useState<StudentSession>(() => readSession());
+  const [workspace, setWorkspace] = useState<Workspace | null>(null);
+  const [questions, setQuestions] = useState<ApiQuestion[]>([]);
+  const [questionId, setQuestionId] = useState("");
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [versions, setVersions] = useState<Record<string, number>>({});
+  const [dirtyAnswers, setDirtyAnswers] = useState<Record<string, boolean>>({});
+  const [sourceByQuestion, setSourceByQuestion] = useState<Record<string, AnswerSource>>({});
+  const [aiRequestByQuestion, setAiRequestByQuestion] = useState<Record<string, string>>({});
+  const [turns, setTurns] = useState<Turn[]>([]);
   const [dialog, setDialog] = useState<StudentDialog>("");
   const [notice, setNotice] = useState("");
+  const [editorNotice, setEditorNotice] = useState("");
   const [chatNotice, setChatNotice] = useState("");
+  const [preview, setPreview] = useState<Review | null>(null);
+  const [dialogError, setDialogError] = useState("");
+  const [loadingWorkspace, setLoadingWorkspace] = useState(false);
+  const [savingQuestionId, setSavingQuestionId] = useState("");
+  const [aiBusy, setAiBusy] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [privacyMasked, setPrivacyMasked] = useState(false);
+
   const isSolving = route === "/student/solve";
-  const update = (next: StudentSession) => {
+  const isWaiting = route === "/student/wait";
+  const readOnly = workspace?.readOnly ?? false;
+
+  function updateSession(next: StudentSession) {
     setSession(next);
     saveSession(next);
-  };
-  const student: Student = {
-    id: "participant",
-    name: session.nickname || "이하랑",
-    color: "#ffbb76",
-    status: session.submittedAt ? "제출완료" : "작성중",
-    submittedAt: session.submittedAt,
-    answers: [],
-    messages: session.messages,
-    activities: [],
-    rubric: [],
-  };
+  }
+
+  const redirectForParticipantAuthError = useCallback((error: unknown) => {
+    if (!(error instanceof ApiError) || (error.status !== 401 && !error.code.startsWith("PARTICIPANT_TOKEN"))) return false;
+    clearSession();
+    setSession(emptySession);
+    setNotice("참가 인증 정보가 만료되었습니다. 같은 주소에서 PIN과 닉네임으로 다시 참가해주세요.");
+    navigate("/student/join", { replace: true });
+    return true;
+  }, [navigate]);
+
   useEffect(() => {
-    if (route !== "/student/wait") return;
-    const start = () => navigate("/student/solve");
-    window.addEventListener("lit:evaluation-started", start);
-    return () => window.removeEventListener("lit:evaluation-started", start);
-  }, [route, navigate]);
+    if ((isWaiting || isSolving) && (!session.evaluationId || !getParticipantToken(session.evaluationId))) {
+      if (session.evaluationId) {
+        setNotice("참가 인증 정보가 없거나 만료되었습니다. 같은 주소에서 PIN과 닉네임으로 다시 참가해주세요.");
+      }
+      clearSession();
+      setSession(emptySession);
+      navigate("/student/join", { replace: true });
+    }
+  }, [isWaiting, isSolving, session.evaluationId, navigate]);
+
   useEffect(() => {
-    if (!isSolving || session.submittedAt) return;
-    const detect = () => {
-      if (document.visibilityState === "hidden") setDialog("warning");
+    if (!isWaiting && !isSolving) return;
+    if (!session.evaluationId) return;
+    let active = true;
+    const syncState = async () => {
+      try {
+        const next = await getStudentState(session.evaluationId);
+        if (!active) return;
+        const screen = screenFor(next);
+        if (screen === "WAITING" && isSolving) navigate("/student/wait", { replace: true });
+        if (screen !== "WAITING" && isWaiting) navigate("/student/solve", { replace: true });
+      } catch (error) {
+        if (active && !redirectForParticipantAuthError(error)) setNotice(apiErrorMessage(error, "평가 상태를 불러오지 못했습니다."));
+      }
     };
-    document.addEventListener("visibilitychange", detect);
-    return () => document.removeEventListener("visibilitychange", detect);
-  }, [isSolving, session.submittedAt]);
-  const leave = () => {
+    void syncState();
+    const stateTimer = window.setInterval(() => void syncState(), 4000);
+    const heartbeatTimer = window.setInterval(() => {
+      void sendHeartbeat(session.evaluationId).catch((error) => {
+        if (active && !redirectForParticipantAuthError(error)) setNotice(apiErrorMessage(error, "연결 상태를 갱신하지 못했습니다."));
+      });
+    }, 10000);
+    return () => {
+      active = false;
+      window.clearInterval(stateTimer);
+      window.clearInterval(heartbeatTimer);
+    };
+  }, [isWaiting, isSolving, session.evaluationId, navigate, redirectForParticipantAuthError]);
+
+  useEffect(() => {
+    if (!isSolving || !session.evaluationId) return;
+    let active = true;
+    void (async () => {
+      setLoadingWorkspace(true);
+      setNotice("");
+      try {
+        const loaded = await getStudentWorkspace(session.evaluationId);
+        if (!active) return;
+        if (!loaded.readOnly && sessionStorage.getItem(`lit:policy-accepted:${session.evaluationId}`) !== "true") {
+          setDialog("policy");
+        }
+        const ordered = [...loaded.questions].sort((left, right) => left.question.position - right.question.position);
+        setWorkspace(loaded);
+        setQuestions(ordered.map((row) => row.question));
+        setAnswers(Object.fromEntries(ordered.map(({ question, answer }) => [question.id, answer.content])));
+        setVersions(Object.fromEntries(ordered.map(({ question, answer }) => [question.id, answer.version])));
+        setDirtyAnswers({});
+        setQuestionId((current) => current && ordered.some((row) => row.question.id === current) ? current : ordered[0]?.question.id ?? "");
+
+        try {
+          const events = await getStudentLearningEvents(session.evaluationId, 0, 200);
+          if (!active) return;
+          const sources: Record<string, AnswerSource> = {};
+          const references: Record<string, string> = {};
+          for (const event of events) {
+            if (event.type !== "ANSWER_SAVED" || !event.questionId) continue;
+            const source = event.details.source;
+            const requestId = event.details.aiRequestId;
+            if (source === "DIRECT" || source === "AI_REFERENCED" || source === "AI_USED") sources[event.questionId] = source;
+            if (typeof requestId === "string") references[event.questionId] = requestId;
+          }
+          setSourceByQuestion(sources);
+          setAiRequestByQuestion(references);
+        } catch {
+          // Answer editing still works if the optional history read is unavailable.
+        }
+        if (loaded.status === "SUBMITTED") {
+          try {
+            await getSubmission(session.evaluationId);
+          } catch {
+            // Workspace status is sufficient to keep the editor read-only.
+          }
+        }
+      } catch (error) {
+        if (active && !redirectForParticipantAuthError(error)) setNotice(apiErrorMessage(error, "문항을 불러오지 못했습니다."));
+      } finally {
+        if (active) setLoadingWorkspace(false);
+      }
+    })();
+    return () => { active = false; };
+  }, [isSolving, session.evaluationId, redirectForParticipantAuthError]);
+
+  useEffect(() => {
+    if (!isSolving || !session.evaluationId || !questionId) return;
+    let active = true;
+    void Promise.all([
+      getStudentQuestion(session.evaluationId, questionId),
+      getConversations(session.evaluationId, { questionId, afterId: 0, limit: 200 }),
+    ]).then(([questionAnswer, history]) => {
+      if (!active) return;
+      setWorkspace((current) => current ? {
+        ...current,
+        questions: current.questions.map((row) => row.question.id === questionId ? questionAnswer : row),
+      } : current);
+      setAnswers((current) => current[questionId] !== undefined ? current : { ...current, [questionId]: questionAnswer.answer.content });
+      setVersions((current) => ({ ...current, [questionId]: questionAnswer.answer.version }));
+      setTurns(history);
+    }).catch((error) => {
+      if (active) setChatNotice(apiErrorMessage(error, "문항 기록을 불러오지 못했습니다."));
+    });
+    return () => { active = false; };
+  }, [isSolving, session.evaluationId, questionId]);
+
+  useEffect(() => {
+    if (!isSolving) return;
+    const obscureScreen = () => {
+      setPrivacyMasked(true);
+      setDialog("warning");
+    };
+    const detectVisibilityChange = () => {
+      if (document.visibilityState === "hidden") obscureScreen();
+    };
+    const interceptShortcuts = (event: KeyboardEvent) => {
+      const key = event.key.toLowerCase();
+      const printShortcut = (event.ctrlKey || event.metaKey) && key === "p";
+      const screenshotShortcut = key === "printscreen"
+        || (event.metaKey && event.shiftKey && ["3", "4", "5"].includes(key));
+      if (printShortcut) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        setNotice("수행평가 화면의 인쇄는 제한되어 있습니다.");
+        setDialog("notice");
+      } else if (screenshotShortcut) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        obscureScreen();
+      }
+    };
+    document.addEventListener("visibilitychange", detectVisibilityChange);
+    window.addEventListener("blur", obscureScreen);
+    window.addEventListener("keydown", interceptShortcuts, true);
+    return () => {
+      document.removeEventListener("visibilitychange", detectVisibilityChange);
+      window.removeEventListener("blur", obscureScreen);
+      window.removeEventListener("keydown", interceptShortcuts, true);
+    };
+  }, [isSolving]);
+
+  async function saveAnswer(id: string): Promise<boolean> {
+    if (!workspace || readOnly || !dirtyAnswers[id]) return true;
+    const currentAnswer = workspace.questions.find((row) => row.question.id === id)?.answer;
+    const source = sourceByQuestion[id] ?? "DIRECT";
+    const aiRequestId = aiRequestByQuestion[id] ?? "";
+    if (source !== "DIRECT" && !aiRequestId) {
+      setEditorNotice("AI를 참고하거나 사용한 경우 완료된 AI 대화를 선택해주세요.");
+      return false;
+    }
+    setSavingQuestionId(id);
+    setEditorNotice("");
+    try {
+      const saved = await saveStudentAnswer(session.evaluationId, id, {
+        content: answers[id] ?? currentAnswer?.content ?? "",
+        expectedVersion: versions[id] ?? currentAnswer?.version ?? 0,
+        source,
+        aiRequestId: source === "DIRECT" ? null : aiRequestId,
+      });
+      setVersions((current) => ({ ...current, [id]: saved.version }));
+      setWorkspace((current) => current ? {
+        ...current,
+        questions: current.questions.map((row) => row.question.id === id ? { ...row, answer: saved } : row),
+      } : current);
+      setDirtyAnswers((current) => ({ ...current, [id]: false }));
+      return true;
+    } catch (error) {
+      if (error instanceof ApiError && error.code === "ANSWER_VERSION_CONFLICT") {
+        try {
+          const latest = await getStudentQuestion(session.evaluationId, id);
+          setVersions((current) => ({ ...current, [id]: latest.answer.version }));
+          setWorkspace((current) => current ? {
+            ...current,
+            questions: current.questions.map((row) => row.question.id === id ? latest : row),
+          } : current);
+          setEditorNotice("서버의 답안이 바뀌었습니다. 현재 입력을 확인한 뒤 다시 저장해주세요.");
+        } catch {
+          setEditorNotice(apiErrorMessage(error));
+        }
+      } else {
+        setEditorNotice(apiErrorMessage(error, "답안을 저장하지 못했습니다."));
+      }
+      return false;
+    } finally {
+      setSavingQuestionId("");
+    }
+  }
+
+  async function selectQuestion(nextId: string) {
+    if (nextId === questionId) return;
+    if (questionId && !(await saveAnswer(questionId))) return;
+    setQuestionId(nextId);
+    setChatNotice("");
+  }
+
+  async function sendAiQuestion(text: string) {
+    if (!session.evaluationId || !questionId || !workspace || workspace.aiPolicy === "DISABLED" || readOnly) return;
+    const requestId = crypto.randomUUID();
+    const pending: Turn = {
+      id: Date.now(), requestId, questionId, questionText: text, answerText: null, state: "PENDING",
+      errorCode: null, provider: "", model: "", aiPolicy: workspace.aiPolicy,
+      answerVersion: versions[questionId] ?? 0, createdAt: new Date().toISOString(), completedAt: null,
+    };
+    setTurns((current) => upsertTurn(current, pending));
+    setChatNotice("");
+    setAiBusy(true);
+    try {
+      let turn = await askQuestion(session.evaluationId, questionId, requestId, text);
+      setTurns((current) => upsertTurn(current, turn));
+      if (turn.state === "PENDING") {
+        for (let attempt = 0; attempt < 30; attempt += 1) {
+          await pause(1500);
+          const history = await getConversations(session.evaluationId, { questionId, afterId: 0, limit: 200 });
+          const updated = history.find((item) => item.requestId === requestId);
+          if (updated) {
+            turn = updated;
+            setTurns((current) => upsertTurn(current, updated));
+            if (updated.state !== "PENDING") break;
+          }
+        }
+      }
+      if (turn.state === "PENDING") setChatNotice("응답이 아직 처리 중입니다. 대화 기록을 새로 불러와 확인해주세요.");
+      else if (turn.state === "FAILED") setChatNotice(`AI 응답을 완료하지 못했습니다. (${turn.errorCode ?? "AI_PROVIDER_ERROR"})`);
+    } catch (error) {
+      setTurns((current) => upsertTurn(current, {
+        ...pending,
+        state: "FAILED",
+        errorCode: error instanceof ApiError ? error.code : "AI_PROVIDER_ERROR",
+        completedAt: new Date().toISOString(),
+      }));
+      setChatNotice(apiErrorMessage(error, "AI 질문을 전송하지 못했습니다."));
+    } finally {
+      setAiBusy(false);
+    }
+  }
+
+  async function openSubmissionPreview() {
+    if (!session.evaluationId) return;
+    setDialogError("");
+    if (questionId && !(await saveAnswer(questionId))) return;
+    try {
+      setPreview(await getSubmissionPreview(session.evaluationId));
+      setDialog("submit");
+    } catch (error) {
+      setDialogError(apiErrorMessage(error, "제출 내용을 확인하지 못했습니다."));
+      setNotice(apiErrorMessage(error));
+      setDialog("notice");
+    }
+  }
+
+  async function submitFinalAnswer() {
+    if (!session.evaluationId || !preview?.canConfirm) return;
+    setSubmitting(true);
+    setDialogError("");
+    try {
+      await confirmSubmission(session.evaluationId, preview.reviewToken);
+      setWorkspace((current) => current ? { ...current, status: "SUBMITTED", readOnly: true } : current);
+      setDialog("submitted");
+      setPreview(null);
+    } catch (error) {
+      if (error instanceof ApiError && error.code === "REVIEW_CHANGED") {
+        try {
+          const latest = await getSubmissionPreview(session.evaluationId);
+          setPreview(latest);
+          setDialogError("답안이나 대화 기록이 바뀌었습니다. 최신 제출 내용을 다시 확인해주세요.");
+        } catch (refreshError) {
+          setDialogError(apiErrorMessage(refreshError, "제출 미리보기를 새로 불러오지 못했습니다."));
+        }
+      } else {
+        setDialogError(apiErrorMessage(error, "답안을 제출하지 못했습니다."));
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function leave() {
     setDialog("");
-    navigate("/student/join");
-  };
-  if (route === "/student/wait")
-    return (
-      <WaitingRoom
-        nickname={session.nickname || "정서진"}
-        onLeave={() => navigate("/student/join")}
-      />
-    );
-  if (!isSolving)
+    try {
+      if (session.evaluationId) await leaveEvaluation(session.evaluationId);
+      clearSession();
+      setSession(emptySession);
+      navigate("/student/join", { replace: true });
+    } catch (error) {
+      setNotice(apiErrorMessage(error, "평가에서 나가지 못했습니다."));
+      setDialog("notice");
+    }
+  }
+
+  function closeDialog() {
+    if (dialog === "policy" && session.evaluationId) {
+      sessionStorage.setItem(`lit:policy-accepted:${session.evaluationId}`, "true");
+    }
+    if (dialog === "warning") setPrivacyMasked(false);
+    setDialog("");
+  }
+
+  if (route === "/student/wait") {
+    return <WaitingRoom nickname={session.nickname || user?.name || "학생"} onLeave={() => setDialog("leave")} notice={notice} />;
+  }
+
+  if (!isSolving) {
+    const queryPin = new URLSearchParams(location.search).get("pin") ?? "";
     return (
       <main className="student-join">
         {route === "/student/nickname" ? (
           <NicknameForm
             initialNickname={session.nickname}
-            onJoin={(nickname) => {
-              update({ ...session, nickname });
-              navigate("/student/wait");
+            onJoin={async (nickname) => {
+              if (!session.pin || !session.evaluationId) throw new Error("먼저 평가 PIN을 확인해주세요.");
+              const joined = await joinEvaluation({ pin: session.pin, nickname });
+              if (!joined.participantToken) throw new Error("참가 토큰을 받지 못했습니다. PIN 입력부터 다시 시도해주세요.");
+              const joinedEvaluationId = joined.lobby?.evaluationId || session.evaluationId;
+              saveParticipantCredentials(joined.participantToken, joinedEvaluationId);
+              if (!getParticipantToken(joinedEvaluationId)) throw new Error("이 브라우저 탭에 참가 토큰을 저장하지 못했습니다. PIN과 닉네임으로 다시 참가해주세요.");
+              updateSession({ ...session, evaluationId: joinedEvaluationId, nickname, participantId: joined.participantId });
+              navigate("/student/wait", { replace: true });
             }}
           />
         ) : (
           <PinJoinForm
-            initialPin={session.pin}
-            onJoin={(pin) => {
-              update(pin === session.pin ? session : { ...emptySession, pin });
-              navigate("/student/nickname");
+            initialPin={queryPin || session.pin}
+            onJoin={async (pin) => {
+              const evaluation = await verifyPin(pin);
+              clearSession();
+              updateSession({ ...emptySession, pin, evaluationId: evaluation.id, evaluationTitle: evaluation.title });
+              navigate("/student/nickname", { replace: true });
             }}
           />
         )}
+        {notice && <p className="student-flow-notice" role="status">{notice}</p>}
+        <StudentDialogs kind={dialog} notice={notice} preview={preview} aiPolicy={workspace?.aiPolicy ?? null} submitting={submitting} error={dialogError} onClose={closeDialog} onLeave={() => void leave()} onSubmit={() => void submitFinalAnswer()} />
       </main>
     );
+  }
+
+  if (loadingWorkspace && !workspace) return <main className="student-workspace-loading" role="status">평가 문항을 불러오고 있습니다…</main>;
+  if (!workspace) return <main className="student-workspace-loading" role="alert">{notice || "평가 정보를 불러오지 못했습니다."}<button type="button" onClick={() => navigate("/student/join")}>PIN 입력으로 돌아가기</button></main>;
+
+  const messages = toChatMessages(turns);
+  const displayStudent: Student = {
+    id: workspace.participantId,
+    name: session.nickname || user?.name || "학생",
+    color: "#ffbb76",
+    status: workspace.status === "SUBMITTED" ? "제출완료" : "작성중",
+    submittedAt: null,
+    answers: [],
+    messages,
+    activities: [],
+    rubric: [],
+  };
+  const selectedQuestion = questions.find((question) => question.id === questionId);
+
   return (
-    <div className="student-solving compact-workspace">
+    <div className="student-solving compact-workspace" onCopy={(event) => event.preventDefault()}>
       <StudentHeader
-        submitted={!!session.submittedAt}
+        submitted={workspace.status === "SUBMITTED"}
+        disabledSubmit={readOnly}
         onLeave={() => setDialog("leave")}
-        onSubmit={() => setDialog("submit")}
-        onNotice={(title) => {
-          setNotice(title);
-          setDialog("notice");
-        }}
+        onSubmit={() => void openSubmissionPreview()}
+        onPolicy={() => setDialog("policy")}
+        onNotice={(title) => { setNotice(title); setDialog("notice"); }}
       />
+      {privacyMasked && (
+        <div className="student-screen-mask" role="status" aria-live="polite">
+          <p>화면 보호를 위해 수행평가 내용을 가렸습니다.</p>
+          <span>경고를 확인한 뒤 계속할 수 있습니다.</span>
+        </div>
+      )}
       <StudentWorkspace
         editor={
           <main className="student-writing">
             <AnswerEditor
               questions={questions}
               questionId={questionId}
-              answers={session.answers}
-              readOnly={!!session.submittedAt}
-              onQuestion={setQuestionId}
+              answers={answers}
+              readOnly={readOnly}
+              sourceByQuestion={sourceByQuestion}
+              aiRequestByQuestion={aiRequestByQuestion}
+              completedTurns={turns}
+              savingQuestionId={savingQuestionId}
+              notice={editorNotice}
+              onQuestion={(id) => void selectQuestion(id)}
               onAnswer={(id, text) => {
-                if (session.submittedAt) return;
-                update({
-                  ...session,
-                  answers: { ...session.answers, [id]: text },
-                });
+                setAnswers((current) => ({ ...current, [id]: text }));
+                setDirtyAnswers((current) => ({ ...current, [id]: true }));
+                setEditorNotice("");
+              }}
+              onSave={(id) => void saveAnswer(id)}
+              onSourceChange={(id, source) => {
+                setSourceByQuestion((current) => ({ ...current, [id]: source }));
+                setDirtyAnswers((current) => ({ ...current, [id]: true }));
+              }}
+              onAiRequestChange={(id, requestId) => {
+                setAiRequestByQuestion((current) => ({ ...current, [id]: requestId }));
+                setDirtyAnswers((current) => ({ ...current, [id]: true }));
               }}
             />
           </main>
         }
         chat={
           <StudentChatPanel
-            student={student}
-            messages={session.messages}
-            disabled={!!session.submittedAt}
-            notice={
-              session.submittedAt
-                ? "제출 완료 후에는 AI에게 질문할 수 없습니다."
-                : chatNotice
-            }
-            onSend={(text) => {
-              if (session.submittedAt) return;
-              update({
-                ...session,
-                messages: [
-                  ...session.messages,
-                  { id: crypto.randomUUID(), role: "user", content: text },
-                ],
-              });
-              setChatNotice("AI 응답 서비스가 아직 연결되지 않았습니다.");
-            }}
+            student={displayStudent}
+            messages={messages}
+            disabled={readOnly || workspace.aiPolicy === "DISABLED"}
+            busy={aiBusy}
+            notice={readOnly ? "제출 또는 평가 종료 후에는 AI 질문을 할 수 없습니다." : workspace.aiPolicy === "DISABLED" ? "이 평가에서는 AI 사용이 허용되지 않았습니다." : chatNotice}
+            onSend={(text) => void sendAiQuestion(text)}
           />
         }
       />
+      {notice && <p className="student-runtime-notice" role="status">{notice}</p>}
       <StudentDialogs
         kind={dialog}
         notice={notice}
-        onClose={() => setDialog("")}
-        onLeave={leave}
-        onSubmit={() => {
-          update({
-            ...session,
-            submittedAt: new Date().toLocaleDateString("ko-KR"),
-          });
-          setDialog("submitted");
-        }}
+        preview={preview}
+        aiPolicy={workspace.aiPolicy}
+        submitting={submitting}
+        error={dialogError}
+        onClose={closeDialog}
+        onLeave={() => void leave()}
+        onSubmit={() => void submitFinalAnswer()}
       />
+      {selectedQuestion && <span className="sr-only" aria-live="polite">현재 {selectedQuestion.title}입니다.</span>}
+      <div className="student-print-protection">수행평가 화면은 인쇄할 수 없습니다.</div>
     </div>
   );
 }

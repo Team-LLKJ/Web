@@ -6,14 +6,14 @@ export function JoinCard({
 }: {
   title: string;
   children: ReactNode;
-  onSubmit: () => void;
+  onSubmit: () => void | Promise<void>;
 }) {
   return (
     <form
       className="join-card"
       onSubmit={(e) => {
         e.preventDefault();
-        onSubmit();
+        void onSubmit();
       }}
     >
       <h1>{title}</h1>

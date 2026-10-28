@@ -29,12 +29,12 @@ export function LandingHero() {
             </p>
           </div>
           <div className="landing-actions">
-            <Link to={paths.join} className="button button--small primary">
+            <Link to={paths.join} className="button button--large primary">
               수행평가 참여하기
             </Link>
             <Link
               to={paths.login}
-              className="button button--small landing-outline"
+              className="button button--large landing-outline"
             >
               수행평가 만들기
             </Link>

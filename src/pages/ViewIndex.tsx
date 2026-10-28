@@ -18,7 +18,8 @@ export function ViewIndex() {
         <Link to="/student/nickname">학생 참가 · 닉네임</Link>
         <Link to="/student/wait">학생 대기</Link>
         <Link to="/student/solve">학생 풀이</Link>
-        <Link to="/teacher/grading">선생님 채점</Link>
+        <Link to="/teacher/evaluations">내 수행평가</Link>
+        <Link to="/teacher/evaluations/new">선생님 평가 만들기</Link>
       </nav>
     </main>
   );

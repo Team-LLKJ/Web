@@ -6,12 +6,14 @@ export function StudentChatPanel({
   student,
   messages,
   disabled,
+  busy = false,
   notice,
   onSend,
 }: {
   student: Student;
   messages: Message[];
   disabled: boolean;
+  busy?: boolean;
   notice: string;
   onSend: (text: string) => void;
 }) {
@@ -37,7 +39,7 @@ export function StudentChatPanel({
           </p>
         )}
       </div>
-      <ChatComposer disabled={disabled} onSend={onSend} />
+      <ChatComposer disabled={disabled || busy} onSend={onSend} />
     </aside>
   );
 }
