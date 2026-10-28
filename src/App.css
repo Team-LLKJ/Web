@@ -4,6 +4,12 @@
   --muted: #8e8e93;
   --surface: #f6faff;
 }
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
 .app-shell {
   min-width: 1200px;
   min-height: 100vh;
