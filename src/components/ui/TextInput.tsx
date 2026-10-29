@@ -1,7 +1,8 @@
-import { useId, type InputHTMLAttributes, type ReactNode } from "react";
+import { useId, type InputHTMLAttributes, type ReactNode, type Ref } from "react";
 type Props = InputHTMLAttributes<HTMLInputElement> & {
   leadingIcon?: ReactNode;
   trailingAction?: ReactNode;
+  inputRef?: Ref<HTMLInputElement>;
   variant?: "box" | "under-bar" | "search";
   label?: string;
   floatingLabel?: boolean;
@@ -10,6 +11,7 @@ type Props = InputHTMLAttributes<HTMLInputElement> & {
 export function TextInput({
   leadingIcon,
   trailingAction,
+  inputRef,
   variant = "box",
   label,
   floatingLabel = false,
@@ -34,6 +36,7 @@ export function TextInput({
       >
         {leadingIcon}
         <input
+          ref={inputRef}
           id={inputId}
           placeholder={placeholder}
           aria-invalid={!!error}

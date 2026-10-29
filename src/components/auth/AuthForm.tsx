@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ApiError, apiErrorMessage } from "../../api/client";
 import type { LoginRequest, StudentSignup, TeacherSignup, UserRole } from "../../api/types";
 import { Button } from "../ui/Button";
@@ -30,6 +30,8 @@ function loginErrorMessage(error: unknown) {
 }
 
 export function AuthForm({ mode, onSubmit }: Props) {
+  const formRef = useRef<HTMLFormElement>(null);
+  const usernameInputRef = useRef<HTMLInputElement>(null);
   const [signupStep, setSignupStep] = useState<1 | 2>(1);
   const [role, setRole] = useState<UserRole>("STUDENT");
   const [username, setUsername] = useState("");
@@ -45,6 +47,34 @@ export function AuthForm({ mode, onSubmit }: Props) {
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const isLogin = mode === "login";
+
+  useEffect(() => {
+    if (!isLogin) return;
+    const form = formRef.current;
+    if (!form) return;
+
+    const syncBrowserCredentials = () => {
+      const formData = new FormData(form);
+      const savedUsername = String(formData.get("username") ?? "");
+      const savedPassword = String(formData.get("password") ?? "");
+      if (savedUsername) setUsername((current) => current || savedUsername);
+      if (savedPassword) setPassword((current) => current || savedPassword);
+    };
+
+    const initialSync = window.setTimeout(syncBrowserCredentials, 0);
+    const interval = window.setInterval(syncBrowserCredentials, 100);
+    const timeout = window.setTimeout(() => window.clearInterval(interval), 2000);
+    form.addEventListener("input", syncBrowserCredentials, true);
+    form.addEventListener("change", syncBrowserCredentials, true);
+
+    return () => {
+      window.clearInterval(interval);
+      window.clearTimeout(timeout);
+      window.clearTimeout(initialSync);
+      form.removeEventListener("input", syncBrowserCredentials, true);
+      form.removeEventListener("change", syncBrowserCredentials, true);
+    };
+  }, [isLogin]);
 
   async function completeSignup() {
     setNotice("");
@@ -134,7 +164,7 @@ export function AuthForm({ mode, onSubmit }: Props) {
   }
 
   return (
-    <form className={`auth-form auth-form--${mode}`} noValidate onSubmit={(event) => void submit(event)}>
+    <form ref={formRef} className={`auth-form auth-form--${mode}`} noValidate onSubmit={(event) => void submit(event)}>
       <h1>{isLogin ? "로그인" : "회원가입"}</h1>
       <div className="auth-fields">
         <TextInput
@@ -149,7 +179,8 @@ export function AuthForm({ mode, onSubmit }: Props) {
           autoCorrect="off"
           spellCheck={false}
           maxLength={isLogin ? 100 : 30}
-          value={username}
+          {...(isLogin ? {} : { value: username })}
+          {...(isLogin ? { inputRef: usernameInputRef, className: username ? "text-input-field--filled" : "" } : {})}
           required
           disabled={busy}
           onChange={(event) => { setUsername(event.target.value); setNotice(""); }}
@@ -159,7 +190,11 @@ export function AuthForm({ mode, onSubmit }: Props) {
               type="button"
               aria-label="아이디 지우기"
               onMouseDown={(event) => event.preventDefault()}
-              onClick={() => { setUsername(""); setNotice(""); }}
+              onClick={() => {
+                if (usernameInputRef.current) usernameInputRef.current.value = "";
+                setUsername("");
+                setNotice("");
+              }}
             >
               ×
             </button>
@@ -176,7 +211,8 @@ export function AuthForm({ mode, onSubmit }: Props) {
             placeholder="비밀번호"
             autoComplete={isLogin ? "current-password" : "new-password"}
             maxLength={128}
-            value={password}
+            {...(isLogin ? {} : { value: password })}
+            {...(isLogin ? { className: password ? "text-input-field--filled" : "" } : {})}
             required
             disabled={busy}
             onChange={(event) => { setPassword(event.target.value); setNotice(""); }}
