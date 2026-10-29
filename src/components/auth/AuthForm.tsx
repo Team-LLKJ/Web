@@ -199,12 +199,22 @@ export function AuthForm({ mode, onSubmit }: Props) {
       </div>
       <div className="auth-submit">
         <div className="auth-submit-actions">
-          <Button type="submit" size="large" disabled={busy}>{busy ? "처리 중…" : isLogin ? "로그인" : "회원가입"}</Button>
+          <Button
+            type="submit"
+            size="large"
+            className={isLogin ? "auth-login-button" : ""}
+            disabled={busy}
+            aria-busy={isLogin ? busy : undefined}
+          >
+            {isLogin && busy && <span className="auth-loading-spinner" aria-hidden="true" />}
+            {isLogin ? "로그인" : busy ? "처리 중…" : "회원가입"}
+          </Button>
           {isLogin && (
             <Button
               variant="ghost"
               size="large"
               className="auth-google-button"
+              disabled={busy}
               icon={<img src="/auth-assets/google-logo.png" alt="" width="22" height="23" />}
               onClick={() => setNotice("현재 API 명세에는 Google OAuth 로그인 경로가 없습니다.")}
             >
