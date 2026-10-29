@@ -104,11 +104,17 @@
   opacity: 1;
   transition: top 150ms ease, transform 150ms ease, font-size 150ms ease, color 150ms ease, opacity 150ms ease;
 }
-.auth-form .text-input-field--floating:not(:focus-within):not(.text-input-field--filled) > label {
+.auth-form .text-input-field--floating:not(:focus-within):not(.text-input-field--filled):not(:has(.text-input input:not(:placeholder-shown))) > label {
   opacity: 0;
 }
 .auth-form .text-input-field--floating:focus-within > label,
 .auth-form .text-input-field--floating.text-input-field--filled > label {
+  top: 4px;
+  transform: none;
+  font-size: var(--font-caption);
+  line-height: var(--line-caption);
+}
+.auth-form .text-input-field--floating:has(.text-input input:not(:placeholder-shown)) > label {
   top: 4px;
   transform: none;
   font-size: var(--font-caption);
@@ -165,6 +171,7 @@
   background: transparent;
 }
 .auth-form .auth-clear-action {
+  display: none;
   width: 22px;
   height: 22px;
   flex-basis: 22px;
@@ -173,6 +180,10 @@
   background: #8e8e93;
   font-size: 18px;
   line-height: 1;
+}
+.auth-form .text-input-field--filled .auth-clear-action,
+.auth-form .text-input-field--floating:has(.text-input input:not(:placeholder-shown)) .auth-clear-action {
+  display: inline-flex;
 }
 .auth-form .auth-password-action svg {
   width: 22px;

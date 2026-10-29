@@ -88,18 +88,28 @@ export function AuthForm({ mode, onSubmit }: Props) {
     event.preventDefault();
     setNotice("");
 
-    if (!username.trim() || !password) {
+    const formData = new FormData(event.currentTarget);
+    const submittedUsername = isLogin
+      ? String(formData.get("username") ?? username)
+      : username;
+    const submittedPassword = isLogin
+      ? String(formData.get("password") ?? password)
+      : password;
+
+    if (!submittedUsername.trim() || !submittedPassword) {
       setNotice("아이디와 비밀번호를 입력해주세요.");
       return;
     }
     if (isLogin) {
-      if (username.trim().length > 100 || password.length > 128) {
+      if (submittedUsername.trim().length > 100 || submittedPassword.length > 128) {
         setNotice("아이디는 100자, 비밀번호는 128자 이내로 입력해주세요.");
         return;
       }
+      setUsername(submittedUsername);
+      setPassword(submittedPassword);
       setBusy(true);
       try {
-        await onSubmit({ username: username.trim().toLowerCase(), password });
+        await onSubmit({ username: submittedUsername.trim().toLowerCase(), password: submittedPassword });
       } catch (error) {
         setNotice(loginErrorMessage(error));
       } finally {
@@ -129,6 +139,7 @@ export function AuthForm({ mode, onSubmit }: Props) {
       <div className="auth-fields">
         <TextInput
           id={`${mode}-username`}
+          name="username"
           label="아이디"
           floatingLabel
           variant="under-bar"
@@ -142,7 +153,7 @@ export function AuthForm({ mode, onSubmit }: Props) {
           required
           disabled={busy}
           onChange={(event) => { setUsername(event.target.value); setNotice(""); }}
-          trailingAction={isLogin && username ? (
+          trailingAction={isLogin ? (
             <button
               className="auth-input-action auth-clear-action"
               type="button"
@@ -157,6 +168,7 @@ export function AuthForm({ mode, onSubmit }: Props) {
         <div className="auth-password-field">
           <TextInput
             id={`${mode}-password`}
+            name="password"
             label="비밀번호"
             floatingLabel
             variant="under-bar"
