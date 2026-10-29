@@ -3,12 +3,19 @@
   background: #f6faff;
   color: #181818;
 }
-.teacher-page-loading {
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  color: #555;
-}
+.teacher-loading-header-actions { display: flex; align-items: center; gap: 12px; }
+.teacher-loading-header-actions .skeleton { width: 92px; height: 38px; }
+.teacher-loading-header-actions .skeleton:first-child { width: 120px; }
+.teacher-detail-skeleton, .teacher-results-skeleton { display: block; }
+.teacher-skeleton-eyebrow { border-radius: 999px; }
+.teacher-card-skeleton { display: grid; align-content: start; gap: 14px; }
+.teacher-skeleton-participants { align-content: start; }
+.teacher-loading-skeleton-pair { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.teacher-evaluation-list-skeleton { display: grid; gap: 12px; }
+.teacher-evaluation-skeleton-meta { display: flex; flex-wrap: wrap; gap: 8px 24px; }
+.teacher-evaluation-skeleton-actions { display: flex; flex-shrink: 0; gap: 8px; }
+.teacher-loading-event-row { display: grid; grid-template-columns: minmax(80px, 1fr) auto; gap: 10px 14px; padding: 14px; border-radius: 10px; background: #f7f9fb; }
+.teacher-event-list-skeleton { display: grid; gap: 12px; }
 .teacher-page-header {
   min-height: 74px;
   padding: 12px clamp(20px, 5vw, 72px);
@@ -150,6 +157,7 @@
   .teacher-list-title-row { align-items: flex-start; flex-direction: column; }
   .teacher-evaluation-item { align-items: stretch; flex-direction: column; }
   .teacher-evaluation-item-actions { flex-wrap: wrap; }
+  .teacher-evaluation-skeleton-actions { flex-wrap: wrap; }
 }
 @media print {
   .teacher-page { min-height: 0; background: #fff; }

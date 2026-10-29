@@ -5,6 +5,7 @@ import { getMyEvaluations } from "../api/evaluations";
 import type { PageResponse, TeacherEvaluationSummary } from "../api/types";
 import { useAuth } from "../auth/AuthProvider";
 import { Button } from "../components/ui/Button";
+import { Skeleton, SkeletonStatus } from "../components/ui/Skeleton";
 import "../components/teacher/teacher.css";
 
 const PAGE_SIZE = 20;
@@ -74,7 +75,26 @@ export function MyEvaluationsPage() {
         </div>
 
         {notice && <p className="teacher-notice" role="alert">{notice}</p>}
-        {loading ? <p className="teacher-list-state" role="status">수행평가를 불러오고 있습니다…</p>
+        {loading ? (
+          <SkeletonStatus className="teacher-evaluation-list teacher-evaluation-list-skeleton" label="수행평가 목록을 불러오고 있습니다.">
+            {Array.from({ length: 3 }, (_, index) => (
+              <article className="teacher-card teacher-evaluation-item" key={index} aria-hidden="true">
+                <div className="teacher-evaluation-item-main" aria-hidden="true">
+                  <Skeleton style={{ width: 72, height: 22, borderRadius: 999 }} />
+                  <Skeleton style={{ width: "min(360px, 70vw)", height: 24, margin: "12px 0" }} />
+                  <div className="teacher-evaluation-skeleton-meta">
+                    <Skeleton style={{ width: 170, height: 14 }} />
+                    <Skeleton style={{ width: 170, height: 14 }} />
+                  </div>
+                </div>
+                <div className="teacher-evaluation-skeleton-actions" aria-hidden="true">
+                  <Skeleton style={{ width: 94, height: 40 }} />
+                  <Skeleton style={{ width: 94, height: 40 }} />
+                </div>
+              </article>
+            ))}
+          </SkeletonStatus>
+        )
           : items.length ? (
             <>
               <p className="teacher-list-count">총 {result?.totalElements ?? items.length}개</p>
