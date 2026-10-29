@@ -29,6 +29,7 @@ import { StudentWorkspace } from "../components/student/StudentWorkspace";
 import { AnswerEditor } from "../components/student/AnswerEditor";
 import { StudentChatPanel } from "../components/student/StudentChatPanel";
 import { StudentDialogs, type StudentDialog } from "../components/student/StudentDialogs";
+import { Skeleton, SkeletonStatus } from "../components/ui/Skeleton";
 import "../components/student/student.css";
 
 function screenFor(lobby: { screen?: StudentScreen; state: string }): StudentScreen {
@@ -47,6 +48,7 @@ function toChatMessages(turns: Turn[]): Message[] {
         id: `${turn.requestId}-answer`,
         role: "ai" as const,
         content: turn.answerText ?? (turn.state === "PENDING" ? "응답을 생성하고 있습니다…" : `응답을 완료하지 못했습니다. (${turn.errorCode ?? "AI_PROVIDER_ERROR"})`),
+        pending: turn.state === "PENDING" && !turn.answerText,
       },
     ]);
 }
@@ -79,6 +81,7 @@ export function StudentFlow({ route }: { route: string }) {
   const [preview, setPreview] = useState<Review | null>(null);
   const [dialogError, setDialogError] = useState("");
   const [loadingWorkspace, setLoadingWorkspace] = useState(false);
+  const [loadingQuestionData, setLoadingQuestionData] = useState(false);
   const [savingQuestionId, setSavingQuestionId] = useState("");
   const [aiBusy, setAiBusy] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -196,8 +199,12 @@ export function StudentFlow({ route }: { route: string }) {
   }, [isSolving, session.evaluationId, redirectForParticipantAuthError]);
 
   useEffect(() => {
-    if (!isSolving || !session.evaluationId || !questionId) return;
+    if (!isSolving || !session.evaluationId || !questionId) {
+      setLoadingQuestionData(false);
+      return;
+    }
     let active = true;
+    setLoadingQuestionData(true);
     void Promise.all([
       getStudentQuestion(session.evaluationId, questionId),
       getConversations(session.evaluationId, { questionId, afterId: 0, limit: 200 }),
@@ -212,6 +219,8 @@ export function StudentFlow({ route }: { route: string }) {
       setTurns(history);
     }).catch((error) => {
       if (active) setChatNotice(apiErrorMessage(error, "문항 기록을 불러오지 못했습니다."));
+    }).finally(() => {
+      if (active) setLoadingQuestionData(false);
     });
     return () => { active = false; };
   }, [isSolving, session.evaluationId, questionId]);
@@ -302,6 +311,8 @@ export function StudentFlow({ route }: { route: string }) {
     if (nextId === questionId) return;
     if (questionId && !(await saveAnswer(questionId))) return;
     setQuestionId(nextId);
+    setLoadingQuestionData(true);
+    setTurns([]);
     setChatNotice("");
   }
 
@@ -446,7 +457,85 @@ export function StudentFlow({ route }: { route: string }) {
     );
   }
 
-  if (loadingWorkspace && !workspace) return <main className="student-workspace-loading" role="status">평가 문항을 불러오고 있습니다…</main>;
+  if (loadingWorkspace && !workspace) return (
+    <SkeletonStatus className="student-solving compact-workspace student-workspace-skeleton" label="평가 문항을 불러오고 있습니다.">
+      <header className="header student-header student-workspace-skeleton-header" aria-hidden="true">
+        <Skeleton className="student-workspace-skeleton-logo" />
+        <nav>
+          <Skeleton className="student-workspace-skeleton-icon-button" />
+          <Skeleton className="student-workspace-skeleton-icon-button" />
+          <Skeleton className="student-workspace-skeleton-header-button" />
+          <Skeleton className="student-workspace-skeleton-header-button" />
+        </nav>
+      </header>
+      <div className="student-solving-body student-workspace-skeleton-body" aria-hidden="true">
+        <main className="student-writing">
+          <section className="student-editor student-workspace-skeleton-card">
+            <Skeleton className="student-workspace-skeleton-title" />
+            <div className="question-tabs student-workspace-skeleton-tabs">
+              <Skeleton />
+              <span />
+            </div>
+            <section className="question-box student-workspace-skeleton-question">
+              <Skeleton className="student-workspace-skeleton-question-title" />
+              <Skeleton className="student-workspace-skeleton-question-line" />
+              <Skeleton className="student-workspace-skeleton-question-line is-short" />
+            </section>
+            <div className="answer-rich-editor student-workspace-skeleton-rich-editor">
+              <div className="answer-toolbar-scroll">
+                <div className="student-workspace-skeleton-toolbar">
+                  <Skeleton />
+                  <Skeleton />
+                  <Skeleton />
+                  <i />
+                  <Skeleton />
+                  <Skeleton />
+                  <Skeleton />
+                  <i />
+                  <Skeleton />
+                  <Skeleton />
+                  <Skeleton />
+                </div>
+              </div>
+              <div className="student-answer-content student-workspace-skeleton-answer">
+                <Skeleton />
+                <Skeleton />
+                <Skeleton />
+              </div>
+              <div className="answer-rich-status">
+                <Skeleton />
+                <Skeleton />
+              </div>
+            </div>
+            <div className="student-workspace-skeleton-source">
+              <Skeleton />
+              <Skeleton />
+            </div>
+          </section>
+        </main>
+        <div className="student-sidebar-divider student-workspace-skeleton-divider" />
+        <div className="workspace-sidebar">
+          <aside className="student-chat student-workspace-skeleton-chat">
+            <h2><Skeleton /></h2>
+            <div className="student-chat-history student-workspace-skeleton-chat-history">
+              <div className="student-workspace-skeleton-chat-message">
+                <div><Skeleton /><Skeleton /></div>
+                <Skeleton />
+                <Skeleton />
+              </div>
+              <div className="student-workspace-skeleton-chat-message is-user">
+                <div><Skeleton /><Skeleton /></div>
+                <Skeleton />
+              </div>
+            </div>
+            <div className="student-chat-composer student-workspace-skeleton-composer">
+              <div><Skeleton /><Skeleton /></div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </SkeletonStatus>
+  );
   if (!workspace) return <main className="student-workspace-loading" role="alert">{notice || "평가 정보를 불러오지 못했습니다."}<button type="button" onClick={() => navigate("/student/join")}>PIN 입력으로 돌아가기</button></main>;
 
   const messages = toChatMessages(turns);
@@ -514,6 +603,7 @@ export function StudentFlow({ route }: { route: string }) {
           <StudentChatPanel
             student={displayStudent}
             messages={messages}
+            loadingHistory={loadingQuestionData}
             disabled={readOnly || workspace.aiPolicy === "DISABLED"}
             busy={aiBusy}
             notice={readOnly ? "제출 또는 평가 종료 후에는 AI 질문을 할 수 없습니다." : workspace.aiPolicy === "DISABLED" ? "이 평가에서는 AI 사용이 허용되지 않았습니다." : chatNotice}
