@@ -15,6 +15,9 @@ a {
   min-height: 100vh;
 }
 .header {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 1000;
   height: 81px;
   padding: 15px 50px;
   background: white;
@@ -459,6 +462,7 @@ h3 {
   .compact-workspace {
     --workspace-viewport-height: calc(100dvh / 0.75);
     zoom: 0.75;
+    padding-top: 81px;
     min-height: var(--workspace-viewport-height);
   }
   .compact-workspace > .student-solving-body {

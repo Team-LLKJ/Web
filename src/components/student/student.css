@@ -189,11 +189,6 @@
 .student-workspace-skeleton-chat-message.is-user > .skeleton { width: 42%; }
 .student-workspace-skeleton-composer > div > .skeleton:first-child { flex: 1; height: 20px; }
 .student-workspace-skeleton-composer > div > .skeleton:last-child { width: 40px; height: 40px; flex: 0 0 40px; border-radius: 10px; }
-.student-solving > .student-header {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
 .student-solving-body {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 1px clamp(

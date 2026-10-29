@@ -1,5 +1,6 @@
 .teacher-page {
   min-height: 100vh;
+  padding-top: 74px;
   background: #f6faff;
   color: #181818;
 }
@@ -17,6 +18,9 @@
 .teacher-loading-event-row { display: grid; grid-template-columns: minmax(80px, 1fr) auto; gap: 10px 14px; padding: 14px; border-radius: 10px; background: #f7f9fb; }
 .teacher-event-list-skeleton { display: grid; gap: 12px; }
 .teacher-page-header {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 1000;
   min-height: 74px;
   padding: 12px clamp(20px, 5vw, 72px);
   display: flex;
@@ -160,7 +164,7 @@
   .teacher-evaluation-skeleton-actions { flex-wrap: wrap; }
 }
 @media print {
-  .teacher-page { min-height: 0; background: #fff; }
+  .teacher-page { min-height: 0; padding-top: 0; background: #fff; }
   .teacher-page-header, .no-print { display: none !important; }
   .teacher-page-content { width: 100%; padding: 0; }
   .teacher-results-summary { grid-template-columns: repeat(4, 1fr); }
