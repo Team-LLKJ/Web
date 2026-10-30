@@ -1,7 +1,7 @@
 export type StudentStatus = "제출완료" | "작성중" | "경고";
 export type Question = { id: number; title: string; content: string };
 export type Answer = { questionId: number; paragraphs: string[] };
-export type Message = { id: string; role: "user" | "ai"; content: string };
+export type Message = { id: string; role: "user" | "ai"; content: string; pending?: boolean };
 export type Activity = { id: string; time: string; description: string };
 export type Rubric = {
   id: string;

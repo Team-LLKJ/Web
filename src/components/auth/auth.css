@@ -104,11 +104,19 @@
   opacity: 1;
   transition: top 150ms ease, transform 150ms ease, font-size 150ms ease, color 150ms ease, opacity 150ms ease;
 }
-.auth-form .text-input-field--floating:not(:focus-within):not(.text-input-field--filled) > label {
+.auth-form .text-input-field--floating:not(:focus-within):not(.text-input-field--filled):not(:has(.text-input input:not(:placeholder-shown))):not(:has(.text-input input:autofill)):not(:has(.text-input input:-webkit-autofill)) > label {
   opacity: 0;
 }
 .auth-form .text-input-field--floating:focus-within > label,
 .auth-form .text-input-field--floating.text-input-field--filled > label {
+  top: 4px;
+  transform: none;
+  font-size: var(--font-caption);
+  line-height: var(--line-caption);
+}
+.auth-form .text-input-field--floating:has(.text-input input:not(:placeholder-shown)) > label,
+.auth-form .text-input-field--floating:has(.text-input input:autofill) > label,
+.auth-form .text-input-field--floating:has(.text-input input:-webkit-autofill) > label {
   top: 4px;
   transform: none;
   font-size: var(--font-caption);
@@ -133,6 +141,16 @@
   padding: 0;
   color: #000;
 }
+.auth-form .text-input input:autofill,
+.auth-form .text-input input:-webkit-autofill,
+.auth-form .text-input input:-webkit-autofill:hover,
+.auth-form .text-input input:-webkit-autofill:focus,
+.auth-form .text-input input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #fff inset;
+  -webkit-text-fill-color: #000;
+  caret-color: #000;
+  transition: background-color 9999s ease-out 0s;
+}
 .auth-form .text-input input::placeholder {
   color: #8e8e93;
 }
@@ -155,6 +173,7 @@
   background: transparent;
 }
 .auth-form .auth-clear-action {
+  display: none;
   width: 22px;
   height: 22px;
   flex-basis: 22px;
@@ -163,6 +182,12 @@
   background: #8e8e93;
   font-size: 18px;
   line-height: 1;
+}
+.auth-form .text-input-field--filled .auth-clear-action,
+.auth-form .text-input-field--floating:has(.text-input input:not(:placeholder-shown)) .auth-clear-action,
+.auth-form .text-input-field--floating:has(.text-input input:autofill) .auth-clear-action,
+.auth-form .text-input-field--floating:has(.text-input input:-webkit-autofill) .auth-clear-action {
+  display: inline-flex;
 }
 .auth-form .auth-password-action svg {
   width: 22px;
@@ -203,6 +228,26 @@
 }
 .auth-submit-actions > .button {
   width: 100%;
+}
+.auth-form .auth-login-button:disabled {
+  background: #007bff;
+  color: #fff;
+  cursor: wait;
+}
+.auth-loading-spinner {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: auth-loading-spin 700ms linear infinite;
+}
+@keyframes auth-loading-spin {
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-loading-spinner { animation: none; }
 }
 .auth-form .auth-google-button {
   min-height: 48px;

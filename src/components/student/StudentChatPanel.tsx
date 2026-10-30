@@ -2,9 +2,11 @@ import { useEffect, useRef } from "react";
 import type { Message, Student } from "../../data/grading";
 import { ChatMessage } from "../grading/ChatMessage";
 import { ChatComposer } from "./ChatComposer";
+import { Skeleton, SkeletonStatus } from "../ui/Skeleton";
 export function StudentChatPanel({
   student,
   messages,
+  loadingHistory = false,
   disabled,
   busy = false,
   notice,
@@ -12,6 +14,7 @@ export function StudentChatPanel({
 }: {
   student: Student;
   messages: Message[];
+  loadingHistory?: boolean;
   disabled: boolean;
   busy?: boolean;
   notice: string;
@@ -25,12 +28,22 @@ export function StudentChatPanel({
     <aside className="student-chat">
       <h2>AI 대화창</h2>
       <div className="student-chat-history" ref={list}>
-        {messages.map((message) => (
+        {loadingHistory ? (
+          <SkeletonStatus className="student-chat-loading-list" label="대화 기록을 불러오고 있습니다.">
+            {Array.from({ length: 3 }, (_, index) => (
+              <div className={`student-chat-loading-message ${index % 2 ? "is-user" : ""}`} key={index} aria-hidden="true">
+                <div className="student-chat-loading-author"><Skeleton style={{ width: 25, height: 25, borderRadius: "50%" }} /><Skeleton style={{ width: 56, height: 13 }} /></div>
+                <Skeleton style={{ width: index % 2 ? "54%" : "72%", height: 48, borderRadius: 10 }} />
+              </div>
+            ))}
+          </SkeletonStatus>
+        ) : messages.map((message) => (
           <ChatMessage
             key={message.id}
             student={student}
             role={message.role}
             content={message.content}
+            pending={message.pending}
           />
         ))}
         {notice && (
