@@ -889,3 +889,68 @@
     flex-direction: column;
   }
 }
+
+/* Evaluation management: a tidy two-column dashboard (details | invite + participants). */
+.teacher-card {
+  border-color: #c6c6c6;
+  box-shadow: none;
+}
+.teacher-dashboard-grid:not([aria-hidden]) {
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+  grid-template-areas:
+    "details invite"
+    "details participants"
+    "events events"
+    "questions questions"
+    "memo memo"
+    "danger danger";
+  gap: 20px;
+  align-items: stretch;
+}
+.teacher-dashboard-grid:not([aria-hidden]) > :nth-child(1) {
+  grid-area: details;
+}
+.teacher-dashboard-grid:not([aria-hidden]) > :nth-child(2) {
+  grid-area: invite;
+}
+.teacher-dashboard-grid:not([aria-hidden]) > :nth-child(3) {
+  grid-area: participants;
+}
+.teacher-dashboard-grid:not([aria-hidden]) > :nth-child(4) {
+  grid-area: events;
+}
+.teacher-dashboard-grid:not([aria-hidden]) > :nth-child(5) {
+  grid-area: questions;
+}
+.teacher-dashboard-grid:not([aria-hidden]) > :nth-child(6) {
+  grid-area: memo;
+}
+.teacher-dashboard-grid:not([aria-hidden]) > :nth-child(7) {
+  grid-area: danger;
+}
+.teacher-card-heading h2 {
+  font-weight: var(--weight-semibold);
+  letter-spacing: -0.02em;
+}
+.teacher-evaluation-top p,
+.teacher-expiry {
+  font-size: var(--font-text-sm);
+  line-height: var(--line-text-sm);
+}
+.teacher-page-content > h1 {
+  font-size: var(--font-title-md);
+  line-height: var(--line-title-md);
+}
+@media (max-width: 900px) {
+  .teacher-dashboard-grid:not([aria-hidden]) {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "details"
+      "invite"
+      "participants"
+      "events"
+      "questions"
+      "memo"
+      "danger";
+  }
+}

@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ApiError, apiErrorMessage } from "../api/client";
 import {
@@ -41,6 +47,7 @@ import { NicknameForm } from "../components/student/NicknameForm";
 import { WaitingRoom } from "../components/student/WaitingRoom";
 import { StudentHeader } from "../components/student/StudentHeader";
 import { StudentWorkspace } from "../components/student/StudentWorkspace";
+import { readChatWidth } from "../components/student/chatWidth";
 import { AnswerEditor } from "../components/student/AnswerEditor";
 import { StudentChatPanel } from "../components/student/StudentChatPanel";
 import {
@@ -93,6 +100,7 @@ function upsertTurn(current: Turn[], next: Turn) {
     : [...current, next];
 }
 
+const AUTOSAVE_DELAY_MS = 3000;
 const pause = (duration: number) =>
   new Promise((resolve) => window.setTimeout(resolve, duration));
 
@@ -114,6 +122,8 @@ export function StudentFlow({ route }: { route: string }) {
     Record<string, string>
   >({});
   const [turns, setTurns] = useState<Turn[]>([]);
+  // Chat history already loaded per question, so revisiting a tab shows it instantly.
+  const turnsCache = useRef<Record<string, Turn[]>>({});
   const [dialog, setDialog] = useState<StudentDialog>("");
   const [notice, setNotice] = useState("");
   const [editorNotice, setEditorNotice] = useState("");
@@ -129,7 +139,12 @@ export function StudentFlow({ route }: { route: string }) {
 
   const isSolving = route === "/student/solve";
   const isWaiting = route === "/student/wait";
-  const readOnly = workspace?.readOnly ?? false;
+  // 제한시간이 끝나면 서버 응답을 기다리지 않고 바로 수정을 막는다.
+  const [timeUp, setTimeUp] = useState(false);
+  const serverReadOnly = workspace?.readOnly ?? false;
+  const readOnly = serverReadOnly || timeUp;
+  const forceEndRef = useRef<() => Promise<void>>(async () => undefined);
+  const endHandled = useRef(false);
 
   function updateSession(next: StudentSession) {
     setSession(next);
@@ -179,6 +194,11 @@ export function StudentFlow({ route }: { route: string }) {
         const next = await getStudentState(session.evaluationId);
         if (!active) return;
         const screen = screenFor(next);
+        if (screen === "ENDED" && isSolving && !endHandled.current) {
+          endHandled.current = true;
+          void forceEndRef.current();
+          return;
+        }
         if (screen === "WAITING" && isSolving)
           navigate("/student/wait", { replace: true });
         if (screen !== "WAITING" && isWaiting)
@@ -306,7 +326,7 @@ export function StudentFlow({ route }: { route: string }) {
       return;
     }
     let active = true;
-    setLoadingQuestionData(true);
+    setLoadingQuestionData(!turnsCache.current[questionId]);
     void Promise.all([
       getStudentQuestion(session.evaluationId, questionId),
       getConversations(session.evaluationId, {
@@ -336,6 +356,7 @@ export function StudentFlow({ route }: { route: string }) {
           ...current,
           [questionId]: questionAnswer.answer.version,
         }));
+        turnsCache.current[questionId] = history;
         setTurns(history);
       })
       .catch((error) => {
@@ -354,7 +375,9 @@ export function StudentFlow({ route }: { route: string }) {
 
   useEffect(() => {
     if (!isSolving) return;
-    const showWarning = () => setDialog("warning");
+    const showWarning = () => {
+      setDialog("warning");
+    };
     const detectVisibilityChange = () => {
       if (document.visibilityState === "hidden") showWarning();
     };
@@ -385,8 +408,35 @@ export function StudentFlow({ route }: { route: string }) {
     };
   }, [isSolving]);
 
+  // Autosave: a few seconds after the last edit, without waiting for focus to leave the editor.
+  const saveLatest = useRef<(id: string) => Promise<boolean>>(
+    async () => true,
+  );
+  useEffect(() => {
+    saveLatest.current = saveAnswer;
+  });
+  const currentDirty = Boolean(questionId && dirtyAnswers[questionId]);
+  const currentContent = questionId ? answers[questionId] : undefined;
+  useEffect(() => {
+    if (!isSolving || readOnly || !questionId || !currentDirty) return;
+    // After a save error or version conflict, wait for the next edit instead of retrying blindly.
+    if (savingQuestionId === questionId || editorNotice) return;
+    const timer = window.setTimeout(() => {
+      void saveLatest.current(questionId);
+    }, AUTOSAVE_DELAY_MS);
+    return () => window.clearTimeout(timer);
+  }, [
+    isSolving,
+    readOnly,
+    questionId,
+    currentDirty,
+    currentContent,
+    savingQuestionId,
+    editorNotice,
+  ]);
+
   async function saveAnswer(id: string): Promise<boolean> {
-    if (!workspace || readOnly || !dirtyAnswers[id]) return true;
+    if (!workspace || serverReadOnly || !dirtyAnswers[id]) return true;
     const currentAnswer = workspace.questions.find(
       (row) => row.question.id === id,
     )?.answer;
@@ -456,12 +506,51 @@ export function StudentFlow({ route }: { route: string }) {
     }
   }
 
+  // 제한시간 종료: 답안 수정을 막고, 마지막 답안을 저장·제출한 뒤 평가에서 내보낸다.
+  async function forceEnd() {
+    setTimeUp(true);
+    setDialog("");
+    let submitted = workspace?.status === "SUBMITTED";
+    if (session.evaluationId && !serverReadOnly) {
+      try {
+        if (questionId) await saveAnswer(questionId);
+        if (!submitted) {
+          const review = await getSubmissionPreview(session.evaluationId);
+          if (review.canConfirm) {
+            await confirmSubmission(session.evaluationId, review.reviewToken);
+            submitted = true;
+          }
+        }
+      } catch {
+        // 서버가 이미 종료 처리했거나 제출할 수 없는 상태면 그대로 내보낸다.
+      }
+    }
+    setNotice(
+      submitted
+        ? "제한시간이 종료되어 답안이 제출되었습니다."
+        : "제한시간이 종료되어 평가에서 나왔습니다. 저장된 답안까지만 반영됩니다.",
+    );
+    clearSession();
+    setSession(emptySession);
+    navigate("/student/join", { replace: true });
+  }
+  useEffect(() => {
+    forceEndRef.current = forceEnd;
+  });
+  // 다른 평가에 다시 참가하면 종료 상태를 초기화한다.
+  useEffect(() => {
+    endHandled.current = false;
+    setTimeUp(false);
+  }, [session.evaluationId]);
+
   async function selectQuestion(nextId: string) {
     if (nextId === questionId) return;
     if (questionId && !(await saveAnswer(questionId))) return;
+    if (questionId) turnsCache.current[questionId] = turns;
+    const cached = turnsCache.current[nextId];
     setQuestionId(nextId);
-    setLoadingQuestionData(true);
-    setTurns([]);
+    setLoadingQuestionData(!cached);
+    setTurns(cached ?? []);
     setChatNotice("");
   }
 
@@ -719,49 +808,30 @@ export function StudentFlow({ route }: { route: string }) {
         </header>
         <div
           className="student-solving-body student-workspace-skeleton-body"
+          style={
+            { "--student-chat-width": `${readChatWidth()}%` } as CSSProperties
+          }
           aria-hidden="true"
         >
           <main className="student-writing">
             <section className="student-editor student-workspace-skeleton-card">
-              <Skeleton className="student-workspace-skeleton-title" />
-              <div className="question-tabs student-workspace-skeleton-tabs">
-                <Skeleton />
+              <div className="student-workspace-skeleton-tabs">
+                <span className="is-active" />
+                <span />
+                <span />
                 <span />
               </div>
-              <section className="question-box student-workspace-skeleton-question">
-                <Skeleton className="student-workspace-skeleton-question-title" />
-                <Skeleton className="student-workspace-skeleton-question-line" />
-                <Skeleton className="student-workspace-skeleton-question-line is-short" />
-              </section>
-              <div className="answer-rich-editor student-workspace-skeleton-rich-editor">
-                <div className="answer-toolbar-scroll">
-                  <div className="student-workspace-skeleton-toolbar">
-                    <Skeleton />
-                    <Skeleton />
-                    <Skeleton />
-                    <i />
-                    <Skeleton />
-                    <Skeleton />
-                    <Skeleton />
-                    <i />
-                    <Skeleton />
-                    <Skeleton />
-                    <Skeleton />
-                  </div>
-                </div>
-                <div className="student-answer-content student-workspace-skeleton-answer">
-                  <Skeleton />
-                  <Skeleton />
-                  <Skeleton />
-                </div>
-                <div className="answer-rich-status">
-                  <Skeleton />
-                  <Skeleton />
-                </div>
+              <Skeleton className="student-workspace-skeleton-title" />
+              <Skeleton className="student-workspace-skeleton-lead" />
+              <div className="student-workspace-skeleton-block">
+                <Skeleton className="student-workspace-skeleton-heading" />
+                <Skeleton className="student-workspace-skeleton-row" />
+                <Skeleton className="student-workspace-skeleton-row" />
               </div>
-              <div className="student-workspace-skeleton-source">
-                <Skeleton />
-                <Skeleton />
+              <div className="student-workspace-skeleton-block">
+                <Skeleton className="student-workspace-skeleton-heading" />
+                <Skeleton className="student-workspace-skeleton-line" />
+                <Skeleton className="student-workspace-skeleton-line is-short" />
               </div>
             </section>
           </main>
@@ -846,13 +916,13 @@ export function StudentFlow({ route }: { route: string }) {
         editor={
           <main className="student-writing">
             <AnswerEditor
+              title={session.evaluationTitle}
+              guidelines={workspace?.guidelines ?? ""}
+              aiPolicy={workspace?.aiPolicy ?? null}
               questions={questions}
               questionId={questionId}
               answers={answers}
               readOnly={readOnly}
-              sourceByQuestion={sourceByQuestion}
-              aiRequestByQuestion={aiRequestByQuestion}
-              completedTurns={turns}
               savingQuestionId={savingQuestionId}
               notice={editorNotice}
               onQuestion={(id) => void selectQuestion(id)}
@@ -862,20 +932,6 @@ export function StudentFlow({ route }: { route: string }) {
                 setEditorNotice("");
               }}
               onSave={(id) => void saveAnswer(id)}
-              onSourceChange={(id, source) => {
-                setSourceByQuestion((current) => ({
-                  ...current,
-                  [id]: source,
-                }));
-                setDirtyAnswers((current) => ({ ...current, [id]: true }));
-              }}
-              onAiRequestChange={(id, requestId) => {
-                setAiRequestByQuestion((current) => ({
-                  ...current,
-                  [id]: requestId,
-                }));
-                setDirtyAnswers((current) => ({ ...current, [id]: true }));
-              }}
             />
           </main>
         }

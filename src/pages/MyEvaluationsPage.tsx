@@ -146,26 +146,26 @@ export function MyEvaluationsPage() {
                   aria-hidden="true"
                 >
                   <Skeleton
-                    style={{ width: 72, height: 22, borderRadius: 999 }}
+                    style={{ width: 72, height: 28, borderRadius: 999 }}
                   />
                   <Skeleton
                     style={{
                       width: "min(360px, 70vw)",
-                      height: 24,
-                      margin: "12px 0",
+                      height: 28,
+                      margin: "8px 0 12px",
                     }}
                   />
                   <div className="teacher-evaluation-skeleton-meta">
-                    <Skeleton style={{ width: 170, height: 14 }} />
-                    <Skeleton style={{ width: 170, height: 14 }} />
+                    <Skeleton style={{ width: 170, height: 20 }} />
+                    <Skeleton style={{ width: 170, height: 20 }} />
                   </div>
                 </div>
                 <div
                   className="teacher-evaluation-skeleton-actions"
                   aria-hidden="true"
                 >
-                  <Skeleton style={{ width: 94, height: 40 }} />
-                  <Skeleton style={{ width: 94, height: 40 }} />
+                  <Skeleton style={{ width: 116, height: 42, borderRadius: 10 }} />
+                  <Skeleton style={{ width: 116, height: 42, borderRadius: 10 }} />
                 </div>
               </article>
             ))}

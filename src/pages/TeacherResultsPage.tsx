@@ -127,21 +127,21 @@ export function TeacherResultsPage() {
         <div className="teacher-loading-header-actions"><Skeleton /><Skeleton /><Skeleton /></div>
       </header>
       <SkeletonStatus className="teacher-page-content teacher-results-skeleton" label="평가 학습 기록을 불러오고 있습니다.">
-        <Skeleton className="teacher-skeleton-eyebrow" style={{ width: 145, height: 16, marginBottom: 14 }} />
-        <Skeleton style={{ width: "min(500px, 72vw)", height: 48, marginBottom: 22 }} />
-        <div className="teacher-results-toolbar" aria-hidden="true"><Skeleton style={{ width: 160, height: 18 }} /><Skeleton style={{ width: 90, height: 40 }} /></div>
+        <Skeleton className="teacher-skeleton-eyebrow" style={{ width: 145, height: 20, marginBottom: 10 }} />
+        <Skeleton style={{ width: "min(500px, 72vw)", height: "clamp(46px, 4.8vw, 60px)", marginBottom: 24 }} />
+        <div className="teacher-results-toolbar" aria-hidden="true"><Skeleton style={{ width: 160, height: 22 }} /><Skeleton style={{ width: 90, height: 42, borderRadius: 10 }} /></div>
         <div className="teacher-results-summary" aria-hidden="true">
-          {Array.from({ length: 4 }, (_, index) => <section className="teacher-card" key={index}><Skeleton style={{ width: "70%", height: 14 }} /><Skeleton style={{ width: 48, height: 30 }} /></section>)}
+          {Array.from({ length: 4 }, (_, index) => <section className="teacher-card" key={index}><Skeleton style={{ width: "70%", height: 20 }} /><Skeleton style={{ width: 48, height: 34 }} /></section>)}
         </div>
         <section className="teacher-card teacher-results-card teacher-card-skeleton" aria-hidden="true">
-          <div className="teacher-loading-skeleton-pair"><Skeleton style={{ width: 95, height: 24 }} /><Skeleton style={{ width: 120, height: 16 }} /></div>
+          <div className="teacher-loading-skeleton-pair"><Skeleton style={{ width: 95, height: 28 }} /><Skeleton style={{ width: 120, height: 20 }} /></div>
           <Skeleton style={{ width: "100%", height: 42 }} />
           <Skeleton style={{ width: "100%", height: 42 }} />
           <Skeleton style={{ width: "100%", height: 42 }} />
         </section>
         <section className="teacher-card teacher-results-card teacher-card-skeleton" aria-hidden="true">
-          <Skeleton style={{ width: 210, height: 24 }} />
-          {Array.from({ length: 4 }, (_, index) => <div className="teacher-loading-event-row" key={index}><Skeleton style={{ width: 120, height: 15 }} /><Skeleton style={{ width: 150, height: 15 }} /><Skeleton style={{ gridColumn: "1 / -1", width: "74%", height: 14 }} /></div>)}
+          <Skeleton style={{ width: 210, height: 28 }} />
+          {Array.from({ length: 4 }, (_, index) => <div className="teacher-loading-event-row" key={index}><Skeleton style={{ width: 120, height: 20 }} /><Skeleton style={{ width: 150, height: 20 }} /><Skeleton style={{ gridColumn: "1 / -1", width: "74%", height: 20 }} /></div>)}
         </section>
       </SkeletonStatus>
     </main>
@@ -207,9 +207,9 @@ export function TeacherResultsPage() {
             <SkeletonStatus className="teacher-event-list-skeleton" label="학습 기록을 불러오고 있습니다.">
               {Array.from({ length: 4 }, (_, index) => (
                 <div className="teacher-loading-event-row" key={index} aria-hidden="true">
-                  <Skeleton style={{ width: 120, height: 15 }} />
-                  <Skeleton style={{ width: 150, height: 15 }} />
-                  <Skeleton style={{ gridColumn: "1 / -1", width: "74%", height: 14 }} />
+                  <Skeleton style={{ width: 120, height: 20 }} />
+                  <Skeleton style={{ width: 150, height: 20 }} />
+                  <Skeleton style={{ gridColumn: "1 / -1", width: "74%", height: 20 }} />
                 </div>
               ))}
             </SkeletonStatus>

@@ -448,32 +448,32 @@ export function TeacherEvaluationPage() {
         >
           <Skeleton
             className="teacher-skeleton-eyebrow"
-            style={{ width: 190, height: 16, marginBottom: 14 }}
+            style={{ width: 190, height: 20, marginBottom: 10 }}
           />
           <Skeleton
-            style={{ width: "min(520px, 75vw)", height: 48, marginBottom: 24 }}
+            style={{ width: "min(520px, 75vw)", height: "clamp(46px, 4.8vw, 60px)", marginBottom: 24 }}
           />
           <div className="teacher-dashboard-grid" aria-hidden="true">
             <section className="teacher-card teacher-evaluation-card teacher-card-skeleton">
               <div className="teacher-loading-skeleton-pair">
                 <Skeleton style={{ width: 150, height: 52 }} />
-                <Skeleton style={{ width: 92, height: 38 }} />
+                <Skeleton style={{ width: 92, height: 42, borderRadius: 10 }} />
               </div>
-              <Skeleton style={{ width: "72%", height: 16 }} />
-              <Skeleton style={{ width: "85%", height: 16 }} />
+              <Skeleton style={{ width: "72%", height: 22 }} />
+              <Skeleton style={{ width: "85%", height: 22 }} />
               <div className="teacher-loading-skeleton-pair">
-                <Skeleton style={{ width: 135, height: 38 }} />
-                <Skeleton style={{ width: 135, height: 38 }} />
+                <Skeleton style={{ width: 135, height: 42, borderRadius: 10 }} />
+                <Skeleton style={{ width: 135, height: 42, borderRadius: 10 }} />
               </div>
             </section>
             <section className="teacher-card teacher-card-skeleton teacher-skeleton-participants">
-              <Skeleton style={{ width: 135, height: 23 }} />
+              <Skeleton style={{ width: 135, height: 28 }} />
               <Skeleton style={{ width: "100%", height: 42 }} />
               <Skeleton style={{ width: "100%", height: 42 }} />
               <Skeleton style={{ width: "100%", height: 42 }} />
             </section>
             <section className="teacher-card teacher-config-card teacher-card-skeleton">
-              <Skeleton style={{ width: 170, height: 26 }} />
+              <Skeleton style={{ width: 170, height: 28 }} />
               <Skeleton style={{ width: "38%", height: 42 }} />
               <Skeleton style={{ width: "100%", height: 120 }} />
               <Skeleton style={{ width: "100%", height: 120 }} />
@@ -838,13 +838,13 @@ export function TeacherEvaluationPage() {
                         key={index}
                         aria-hidden="true"
                       >
-                        <Skeleton style={{ width: 120, height: 15 }} />
-                        <Skeleton style={{ width: 150, height: 15 }} />
+                        <Skeleton style={{ width: 120, height: 20 }} />
+                        <Skeleton style={{ width: 150, height: 20 }} />
                         <Skeleton
                           style={{
                             gridColumn: "1 / -1",
                             width: "74%",
-                            height: 14,
+                            height: 20,
                           }}
                         />
                       </div>

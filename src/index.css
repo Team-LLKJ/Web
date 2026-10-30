@@ -60,3 +60,8 @@ h3 {
 button:disabled {
   cursor: default;
 }
+
+textarea,
+select {
+  font-family: inherit;
+}
