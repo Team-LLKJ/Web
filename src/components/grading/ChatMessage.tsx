@@ -1,13 +1,16 @@
 import type { Student } from "../../data/grading";
 import { Avatar } from "../ui/Avatar";
+import { Skeleton } from "../ui/Skeleton";
 export function ChatMessage({
   student,
   role,
   content,
+  pending = false,
 }: {
   student: Student;
   role: "user" | "ai";
   content: string;
+  pending?: boolean;
 }) {
   return (
     <div className={`message ${role === "user" ? "user" : "ai"}`}>
@@ -19,7 +22,17 @@ export function ChatMessage({
         )}
         <span>{role === "user" ? student.name : "AI"}</span>
       </div>
-      <p>{content}</p>
+      <p className={pending ? "message-pending" : undefined} role={pending ? "status" : undefined}>
+        {pending ? (
+          <>
+            <span className="sr-only">{content}</span>
+            <span className="message-pending-skeleton" aria-hidden="true">
+              <Skeleton style={{ width: "86%", height: 10 }} />
+              <Skeleton style={{ width: "58%", height: 10 }} />
+            </span>
+          </>
+        ) : content}
+      </p>
     </div>
   );
 }

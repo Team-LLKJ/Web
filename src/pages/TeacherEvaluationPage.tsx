@@ -30,6 +30,7 @@ import type {
 import { useAuth } from "../auth/AuthProvider";
 import { DeleteEvaluationDialog } from "../components/teacher/DeleteEvaluationDialog";
 import { Button } from "../components/ui/Button";
+import { Skeleton, SkeletonStatus } from "../components/ui/Skeleton";
 import { TextInput } from "../components/ui/TextInput";
 import "../components/teacher/teacher.css";
 
@@ -142,6 +143,7 @@ export function TeacherEvaluationPage() {
   const [qrUrl, setQrUrl] = useState("");
   const [selectedParticipant, setSelectedParticipant] = useState("");
   const [events, setEvents] = useState<LearningEvent[]>([]);
+  const [eventsLoading, setEventsLoading] = useState(false);
   const [inviteCode, setInviteCode] = useState("");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
@@ -409,10 +411,13 @@ export function TeacherEvaluationPage() {
     if (!evaluationId) return;
     setSelectedParticipant(participantId);
     setEvents([]);
+    setEventsLoading(true);
     try {
       setEvents(await getTeacherLearningEvents(evaluationId, participantId));
     } catch (error) {
       setNotice(apiErrorMessage(error, "학습 기록을 불러오지 못했습니다."));
+    } finally {
+      setEventsLoading(false);
     }
   }
 
@@ -442,8 +447,53 @@ export function TeacherEvaluationPage() {
 
   if (loading)
     return (
-      <main className="teacher-page-loading" role="status">
-        평가 정보를 불러오고 있습니다…
+      <main className="teacher-page teacher-loading-page">
+        <header className="teacher-page-header" aria-hidden="true">
+          <Skeleton style={{ width: 70, height: 30 }} />
+          <div className="teacher-loading-header-actions">
+            <Skeleton />
+            <Skeleton />
+            <Skeleton />
+          </div>
+        </header>
+        <SkeletonStatus
+          className="teacher-page-content teacher-detail-skeleton"
+          label="평가 정보를 불러오고 있습니다."
+        >
+          <Skeleton
+            className="teacher-skeleton-eyebrow"
+            style={{ width: 190, height: 16, marginBottom: 14 }}
+          />
+          <Skeleton
+            style={{ width: "min(520px, 75vw)", height: 48, marginBottom: 24 }}
+          />
+          <div className="teacher-dashboard-grid" aria-hidden="true">
+            <section className="teacher-card teacher-evaluation-card teacher-card-skeleton">
+              <div className="teacher-loading-skeleton-pair">
+                <Skeleton style={{ width: 150, height: 52 }} />
+                <Skeleton style={{ width: 92, height: 38 }} />
+              </div>
+              <Skeleton style={{ width: "72%", height: 16 }} />
+              <Skeleton style={{ width: "85%", height: 16 }} />
+              <div className="teacher-loading-skeleton-pair">
+                <Skeleton style={{ width: 135, height: 38 }} />
+                <Skeleton style={{ width: 135, height: 38 }} />
+              </div>
+            </section>
+            <section className="teacher-card teacher-card-skeleton teacher-skeleton-participants">
+              <Skeleton style={{ width: 135, height: 23 }} />
+              <Skeleton style={{ width: "100%", height: 42 }} />
+              <Skeleton style={{ width: "100%", height: 42 }} />
+              <Skeleton style={{ width: "100%", height: 42 }} />
+            </section>
+            <section className="teacher-card teacher-config-card teacher-card-skeleton">
+              <Skeleton style={{ width: 170, height: 26 }} />
+              <Skeleton style={{ width: "38%", height: 42 }} />
+              <Skeleton style={{ width: "100%", height: 120 }} />
+              <Skeleton style={{ width: "100%", height: 120 }} />
+            </section>
+          </div>
+        </SkeletonStatus>
       </main>
     );
 
@@ -791,7 +841,30 @@ export function TeacherEvaluationPage() {
                 )}
               </div>
               {selectedParticipant ? (
-                events.length ? (
+                eventsLoading ? (
+                  <SkeletonStatus
+                    className="teacher-event-list-skeleton"
+                    label="학생 학습 기록을 불러오고 있습니다."
+                  >
+                    {Array.from({ length: 4 }, (_, index) => (
+                      <div
+                        className="teacher-loading-event-row"
+                        key={index}
+                        aria-hidden="true"
+                      >
+                        <Skeleton style={{ width: 120, height: 15 }} />
+                        <Skeleton style={{ width: 150, height: 15 }} />
+                        <Skeleton
+                          style={{
+                            gridColumn: "1 / -1",
+                            width: "74%",
+                            height: 14,
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </SkeletonStatus>
+                ) : events.length ? (
                   <ol className="teacher-event-list">
                     {events.map((event) => (
                       <li key={event.id}>

@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import type { Message, Student } from "../../data/grading";
 import { ChatMessage } from "../grading/ChatMessage";
+import { Skeleton, SkeletonStatus } from "../ui/Skeleton";
 import { ChatComposer } from "./ChatComposer";
 export function StudentChatPanel({
   student,
   messages,
+  loadingHistory = false,
   disabled,
   busy = false,
   expanded = false,
@@ -14,6 +16,7 @@ export function StudentChatPanel({
 }: {
   student: Student;
   messages: Message[];
+  loadingHistory?: boolean;
   disabled: boolean;
   busy?: boolean;
   expanded?: boolean;
@@ -25,7 +28,7 @@ export function StudentChatPanel({
   const [draft, setDraft] = useState("");
   useEffect(() => {
     list.current?.scrollTo({ top: list.current.scrollHeight });
-  }, [messages, expanded]);
+  }, [messages, expanded, loadingHistory]);
 
   const conversation = (
     <>
@@ -38,15 +41,45 @@ export function StudentChatPanel({
         aria-relevant="additions text"
         tabIndex={0}
       >
-        {messages.map((message) => (
-          <ChatMessage
-            key={message.id}
-            student={student}
-            role={message.role}
-            content={message.content}
-          />
-        ))}
-        {!messages.length && (
+        {loadingHistory && messages.length === 0 ? (
+          <SkeletonStatus
+            className="student-chat-loading-list"
+            label="대화 기록을 불러오고 있습니다."
+          >
+            {Array.from({ length: 3 }, (_, index) => (
+              <div
+                className={`student-chat-loading-message ${index % 2 ? "is-user" : ""}`}
+                key={index}
+                aria-hidden="true"
+              >
+                <div className="student-chat-loading-author">
+                  <Skeleton
+                    style={{ width: 25, height: 25, borderRadius: "50%" }}
+                  />
+                  <Skeleton style={{ width: 56, height: 13 }} />
+                </div>
+                <Skeleton
+                  style={{
+                    width: index % 2 ? "54%" : "72%",
+                    height: 48,
+                    borderRadius: 10,
+                  }}
+                />
+              </div>
+            ))}
+          </SkeletonStatus>
+        ) : (
+          messages.map((message) => (
+            <ChatMessage
+              key={message.id}
+              student={student}
+              role={message.role}
+              content={message.content}
+              pending={message.pending}
+            />
+          ))
+        )}
+        {!loadingHistory && !messages.length && (
           <p className="student-chat-empty">
             AI에게 질문하며 생각을 정리해보세요.
           </p>

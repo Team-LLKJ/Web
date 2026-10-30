@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from "react";
+import closeIcon from "../../assets/Icon Button.svg";
 type Props = {
   title: string;
   onClose: () => void;
@@ -40,7 +41,7 @@ export function Modal({
           aria-label="닫기"
           onClick={onClose}
         >
-          <img src="/icons/close.svg" alt="" width="35" height="35" />
+          <img src={closeIcon} alt="" width="35" height="35" />
         </button>
       </div>
       {children}

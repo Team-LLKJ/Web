@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ApiError, apiErrorMessage } from "../../api/client";
 import type { LoginRequest, StudentSignup, TeacherSignup, UserRole } from "../../api/types";
 import { Button } from "../ui/Button";
@@ -30,6 +30,8 @@ function loginErrorMessage(error: unknown) {
 }
 
 export function AuthForm({ mode, onSubmit }: Props) {
+  const formRef = useRef<HTMLFormElement>(null);
+  const usernameInputRef = useRef<HTMLInputElement>(null);
   const [signupStep, setSignupStep] = useState<1 | 2>(1);
   const [role, setRole] = useState<UserRole>("STUDENT");
   const [username, setUsername] = useState("");
@@ -45,6 +47,34 @@ export function AuthForm({ mode, onSubmit }: Props) {
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const isLogin = mode === "login";
+
+  useEffect(() => {
+    if (!isLogin) return;
+    const form = formRef.current;
+    if (!form) return;
+
+    const syncBrowserCredentials = () => {
+      const formData = new FormData(form);
+      const savedUsername = String(formData.get("username") ?? "");
+      const savedPassword = String(formData.get("password") ?? "");
+      if (savedUsername) setUsername((current) => current || savedUsername);
+      if (savedPassword) setPassword((current) => current || savedPassword);
+    };
+
+    const initialSync = window.setTimeout(syncBrowserCredentials, 0);
+    const interval = window.setInterval(syncBrowserCredentials, 100);
+    const timeout = window.setTimeout(() => window.clearInterval(interval), 2000);
+    form.addEventListener("input", syncBrowserCredentials, true);
+    form.addEventListener("change", syncBrowserCredentials, true);
+
+    return () => {
+      window.clearInterval(interval);
+      window.clearTimeout(timeout);
+      window.clearTimeout(initialSync);
+      form.removeEventListener("input", syncBrowserCredentials, true);
+      form.removeEventListener("change", syncBrowserCredentials, true);
+    };
+  }, [isLogin]);
 
   async function completeSignup() {
     setNotice("");
@@ -88,18 +118,28 @@ export function AuthForm({ mode, onSubmit }: Props) {
     event.preventDefault();
     setNotice("");
 
-    if (!username.trim() || !password) {
+    const formData = new FormData(event.currentTarget);
+    const submittedUsername = isLogin
+      ? String(formData.get("username") ?? username)
+      : username;
+    const submittedPassword = isLogin
+      ? String(formData.get("password") ?? password)
+      : password;
+
+    if (!submittedUsername.trim() || !submittedPassword) {
       setNotice("아이디와 비밀번호를 입력해주세요.");
       return;
     }
     if (isLogin) {
-      if (username.trim().length > 100 || password.length > 128) {
+      if (submittedUsername.trim().length > 100 || submittedPassword.length > 128) {
         setNotice("아이디는 100자, 비밀번호는 128자 이내로 입력해주세요.");
         return;
       }
+      setUsername(submittedUsername);
+      setPassword(submittedPassword);
       setBusy(true);
       try {
-        await onSubmit({ username: username.trim().toLowerCase(), password });
+        await onSubmit({ username: submittedUsername.trim().toLowerCase(), password: submittedPassword });
       } catch (error) {
         setNotice(loginErrorMessage(error));
       } finally {
@@ -124,11 +164,12 @@ export function AuthForm({ mode, onSubmit }: Props) {
   }
 
   return (
-    <form className={`auth-form auth-form--${mode}`} noValidate onSubmit={(event) => void submit(event)}>
+    <form ref={formRef} className={`auth-form auth-form--${mode}`} noValidate onSubmit={(event) => void submit(event)}>
       <h1>{isLogin ? "로그인" : "회원가입"}</h1>
       <div className="auth-fields">
         <TextInput
           id={`${mode}-username`}
+          name="username"
           label="아이디"
           floatingLabel
           variant="under-bar"
@@ -138,17 +179,22 @@ export function AuthForm({ mode, onSubmit }: Props) {
           autoCorrect="off"
           spellCheck={false}
           maxLength={isLogin ? 100 : 30}
-          value={username}
+          {...(isLogin ? {} : { value: username })}
+          {...(isLogin ? { inputRef: usernameInputRef, className: username ? "text-input-field--filled" : "" } : {})}
           required
           disabled={busy}
           onChange={(event) => { setUsername(event.target.value); setNotice(""); }}
-          trailingAction={isLogin && username ? (
+          trailingAction={isLogin ? (
             <button
               className="auth-input-action auth-clear-action"
               type="button"
               aria-label="아이디 지우기"
               onMouseDown={(event) => event.preventDefault()}
-              onClick={() => { setUsername(""); setNotice(""); }}
+              onClick={() => {
+                if (usernameInputRef.current) usernameInputRef.current.value = "";
+                setUsername("");
+                setNotice("");
+              }}
             >
               ×
             </button>
@@ -157,6 +203,7 @@ export function AuthForm({ mode, onSubmit }: Props) {
         <div className="auth-password-field">
           <TextInput
             id={`${mode}-password`}
+            name="password"
             label="비밀번호"
             floatingLabel
             variant="under-bar"
@@ -164,7 +211,8 @@ export function AuthForm({ mode, onSubmit }: Props) {
             placeholder="비밀번호"
             autoComplete={isLogin ? "current-password" : "new-password"}
             maxLength={128}
-            value={password}
+            {...(isLogin ? {} : { value: password })}
+            {...(isLogin ? { className: password ? "text-input-field--filled" : "" } : {})}
             required
             disabled={busy}
             onChange={(event) => { setPassword(event.target.value); setNotice(""); }}
@@ -199,12 +247,22 @@ export function AuthForm({ mode, onSubmit }: Props) {
       </div>
       <div className="auth-submit">
         <div className="auth-submit-actions">
-          <Button type="submit" size="large" disabled={busy}>{busy ? "처리 중…" : isLogin ? "로그인" : "회원가입"}</Button>
+          <Button
+            type="submit"
+            size="large"
+            className={isLogin ? "auth-login-button" : ""}
+            disabled={busy}
+            aria-busy={isLogin ? busy : undefined}
+          >
+            {isLogin && busy && <span className="auth-loading-spinner" aria-hidden="true" />}
+            {isLogin ? "로그인" : busy ? "처리 중…" : "회원가입"}
+          </Button>
           {isLogin && (
             <Button
               variant="ghost"
               size="large"
               className="auth-google-button"
+              disabled={busy}
               icon={<img src="/auth-assets/google-logo.png" alt="" width="22" height="23" />}
               onClick={() => setNotice("현재 API 명세에는 Google OAuth 로그인 경로가 없습니다.")}
             >
