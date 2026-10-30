@@ -813,7 +813,7 @@ export function StudentFlow({ route }: { route: string }) {
   const displayStudent: Student = {
     id: workspace.participantId,
     name: session.nickname || user?.name || "학생",
-    color: "#ffbb76",
+    color: "#ffd4d3",
     status: workspace.status === "SUBMITTED" ? "제출완료" : "작성중",
     submittedAt: null,
     answers: [],

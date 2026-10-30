@@ -22,7 +22,7 @@ export function ContributionChart({ value }: { value: number | null }) {
             background:
               percent === null
                 ? "#f4f4f4"
-                : `conic-gradient(#007bff ${percent}%, #ffd000 0)`,
+                : `conic-gradient(#007bff ${percent}%, #52a6ff 0)`,
           }}
         />
       )}

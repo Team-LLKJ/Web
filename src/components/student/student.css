@@ -209,7 +209,7 @@
   gap: 8px;
   padding: 5px 8px;
   border-radius: 14px;
-  background: #f0f4f9;
+  background: #f6faff;
 }
 .student-workspace-skeleton-toolbar > .skeleton {
   width: 32px;
@@ -228,7 +228,7 @@
   height: 22px;
   flex: 0 0 1px;
   margin: 0 3px;
-  background: #c4c7c5;
+  background: #c6c6c6;
 }
 .student-workspace-skeleton-answer {
   display: grid;
@@ -425,8 +425,8 @@
 .student-answer-content blockquote {
   margin: 0.75em 0;
   padding: 0.25em 0 0.25em 1em;
-  border-left: 3px solid #b8d8ff;
-  color: #555;
+  border-left: 3px solid #e2f0ff;
+  color: #48484a;
 }
 .student-answer-content table {
   width: 100%;
@@ -439,12 +439,12 @@
   min-width: 60px;
   height: 42px;
   padding: 8px 10px;
-  border: 1px solid #b8c4d3;
+  border: 1px solid #c6c6c6;
   text-align: left;
   vertical-align: top;
 }
 .student-answer-content th {
-  background: #f0f6ff;
+  background: #f6faff;
   font-weight: 600;
 }
 .answer-rich-status {
@@ -453,7 +453,7 @@
   justify-content: space-between;
   gap: 12px;
   padding-top: 5px;
-  color: #73777f;
+  color: #636366;
   font-size: var(--font-caption);
   line-height: var(--line-caption);
 }
@@ -676,19 +676,19 @@
   display: grid;
   place-items: center;
   padding: 0;
-  border: 1px solid #d1d1d1;
+  border: 1px solid #c6c6c6;
   border-right: 0;
   border-radius: 14px 0 0 14px;
-  background: #f0f0f0;
-  color: #737373;
+  background: #f4f4f4;
+  color: #636366;
   cursor: pointer;
   transition:
     background-color 150ms,
     color 150ms;
 }
 .sidebar-collapse-toggle:hover {
-  background: #e7e7e7;
-  color: #333;
+  background: #f4f4f4;
+  color: #363639;
 }
 .sidebar-collapse-toggle:focus-visible {
   outline: 2px solid #007bff;
@@ -755,13 +755,13 @@
 }
 .student-answer-content[contenteditable="false"] {
   color: #48484a;
-  background: #f8f9fb;
+  background: #f6faff;
   cursor: default;
 }
 .student-policy-copy {
   display: grid;
   gap: 12px;
-  color: #4b4f55;
+  color: #48484a;
   font-size: var(--font-text-sm);
   line-height: var(--line-text-md);
 }
@@ -774,8 +774,8 @@
 .student-policy-copy .student-policy-unavailable {
   padding: 12px;
   border-radius: 8px;
-  color: #6f5a1b;
-  background: #fff8df;
+  color: #bc0300;
+  background: #ffd4d3;
 }
 .student-print-protection {
   display: none;
@@ -795,7 +795,7 @@
     place-items: center;
     padding: 32px;
     background: #fff;
-    color: #222;
+    color: #1c1c1e;
     font-size: 24px;
     text-align: center;
   }
@@ -805,7 +805,7 @@
 .answer-ribbon {
   flex-shrink: 0;
   margin-bottom: 12px;
-  border: 1px solid #dfe3e8;
+  border: 1px solid #f4f4f4;
   border-radius: 6px;
   overflow: hidden;
   background: #fff;
@@ -816,14 +816,14 @@
   min-height: 38px;
   gap: 18px;
   padding: 0 12px;
-  border-bottom: 1px solid #e9ecf0;
+  border-bottom: 1px solid #f6faff;
 }
 .ribbon-menu-title {
   display: flex;
   align-items: center;
   padding: 0 8px;
   font-size: 12px;
-  color: #a0a8b3;
+  color: #aeaeb2;
 }
 .ribbon-menu-tabs {
   display: flex;
@@ -832,12 +832,12 @@
 .ribbon-menu-tabs button {
   position: relative;
   padding: 9px 16px;
-  color: #5c6573;
+  color: #636366;
   font-size: 13px;
   font-weight: 500;
 }
 .ribbon-menu-tabs button[aria-pressed="true"] {
-  color: #1574d6;
+  color: #007bff;
   font-weight: 600;
 }
 .ribbon-menu-tabs button[aria-pressed="true"]::after {
@@ -847,17 +847,17 @@
   left: 10px;
   height: 2px;
   content: "";
-  background: #2692e6;
+  background: #007bff;
 }
 .ribbon-menu-tabs button:hover {
-  background: #f7f9fc;
+  background: #ffffff;
 }
 .ribbon-pagination {
   display: flex;
   align-items: center;
   gap: 4px;
   margin-left: auto;
-  color: #a0a8b3;
+  color: #aeaeb2;
   font-size: 11px;
   white-space: nowrap;
 }
@@ -872,13 +872,13 @@
   height: 26px;
   padding: 4px;
   border-radius: 4px;
-  color: #727e8d;
+  color: #8e8e93;
 }
 .ribbon-pagination button:disabled {
   opacity: 0.25;
 }
 .ribbon-pagination button:hover:not(:disabled) {
-  background: #edf3fb;
+  background: #f6faff;
 }
 .editor-tool-icon {
   width: 20px;
@@ -902,7 +902,7 @@
   flex-direction: column;
   padding: 0 14px;
   gap: 8px;
-  border-right: 1px solid #e8ebef;
+  border-right: 1px solid #f4f4f4;
 }
 .ribbon-group:first-child {
   padding-left: 0;
@@ -927,13 +927,13 @@
   padding: 6px 5px;
   border: 1px solid transparent;
   border-radius: 5px;
-  color: #4d5664;
+  color: #48484a;
   cursor: pointer;
 }
 .ribbon-tool:hover {
-  border-color: #c9def5;
-  background: #eef6ff;
-  color: #1467b8;
+  border-color: #f6faff;
+  background: #f6faff;
+  color: #0059bc;
 }
 .ribbon-tool-symbol {
   display: grid;
@@ -941,7 +941,7 @@
   height: 25px;
   font-size: 21px;
   line-height: 1;
-  color: #4a607c;
+  color: #636366;
   font-family: Arial, sans-serif;
 }
 .ribbon-tool-symbol .editor-tool-icon {
@@ -958,7 +958,7 @@
   white-space: nowrap;
 }
 .ribbon-group-caption {
-  color: #a0a7b1;
+  color: #aeaeb2;
   font-size: 10px;
   line-height: 1.3;
   text-align: center;
@@ -986,7 +986,7 @@
 }
 .ribbon-spacing {
   padding-inline: 8px;
-  color: #52739a;
+  color: #636366;
 }
 .ribbon-quickbar {
   display: flex;
@@ -994,22 +994,22 @@
   flex-wrap: wrap;
   gap: 7px;
   padding: 8px 12px;
-  border-top: 1px solid #e4e8ed;
-  background: #f8f9fb;
+  border-top: 1px solid #f4f4f4;
+  background: #f6faff;
 }
 .answer-ribbon select {
   height: 30px;
   min-width: 0;
   padding: 0 24px 0 9px;
-  border: 1px solid #d8dee7;
+  border: 1px solid #c6c6c6;
   border-radius: 4px;
   background-color: #fff;
-  color: #485260;
+  color: #48484a;
   font-family: inherit;
   font-size: 12px;
 }
 .answer-ribbon select:focus-visible {
-  outline: 2px solid #9fc7f3;
+  outline: 2px solid #52a6ff;
   outline-offset: 1px;
 }
 .ribbon-style-select {
@@ -1023,7 +1023,7 @@
   flex: 0 0 auto;
   align-items: center;
   height: 30px;
-  border: 1px solid #d8dee7;
+  border: 1px solid #c6c6c6;
   border-radius: 4px;
   background: #fff;
 }
@@ -1044,7 +1044,7 @@
 }
 .ribbon-font-unit {
   padding: 0 8px 0 0;
-  color: #8b94a2;
+  color: #8e8e93;
   font-size: 11px;
   line-height: 1;
 }
@@ -1054,15 +1054,15 @@
   width: 25px;
   height: 28px;
   padding: 5px;
-  color: #6d7785;
+  color: #636366;
 }
 .ribbon-font-size button .editor-tool-icon {
   width: 13px;
   height: 13px;
 }
 .ribbon-font-size button:hover:not(:disabled) {
-  background: #edf4fd;
-  color: #196bc4;
+  background: #f6faff;
+  color: #0059bc;
 }
 .ribbon-font-size button:disabled {
   opacity: 0.3;
@@ -1072,7 +1072,7 @@
   align-items: center;
   gap: 9px;
   margin-left: auto;
-  color: #8b94a2;
+  color: #8e8e93;
   font-size: 11px;
 }
 .ribbon-zoom select {
@@ -1112,7 +1112,7 @@
   flex-shrink: 0;
   gap: 16px;
   padding: 18px 24px;
-  border-bottom: 1px solid #dce6f2;
+  border-bottom: 1px solid #f6faff;
   background: #e2f0ff;
   color: #007bff;
 }
@@ -1127,16 +1127,16 @@
   gap: 7px;
   flex-shrink: 0;
   padding: 8px 10px;
-  border: 1px solid #c5dcf7;
+  border: 1px solid #e2f0ff;
   border-radius: 8px;
   background: #ffffffb3;
-  color: #2869ba;
+  color: #0059bc;
   font-size: var(--font-caption);
   font-weight: 500;
 }
 .student-chat-expand:hover {
   background: white;
-  border-color: #8db9ec;
+  border-color: #52a6ff;
 }
 .student-chat-expand svg {
   width: 16px;
@@ -1145,7 +1145,7 @@
 .student-chat-empty {
   margin: auto;
   padding: 24px 0;
-  color: #8993a1;
+  color: #8e8e93;
   font-size: var(--font-text-sm);
   line-height: 1.6;
   text-align: center;
@@ -1166,30 +1166,30 @@
 .student-chat.is-expanded .student-chat-history {
   padding: 32px max(32px, calc((100% - 1000px) / 2));
   gap: 28px;
-  background: #fafbfd;
+  background: #f6faff;
   overscroll-behavior: contain;
 }
 .student-chat.is-expanded .message > p,
 .student-chat.is-expanded .message > .message-content {
   max-width: min(85%, 860px);
   margin-top: 0;
-  color: #202b3a;
+  color: #2c2c2e;
   line-height: 1.65;
   overflow-wrap: anywhere;
 }
 .student-chat.is-expanded .student-chat-composer {
   flex-shrink: 0;
   padding: 22px max(32px, calc((100% - 1000px) / 2));
-  border-top: 1px solid #e7ecf3;
+  border-top: 1px solid #f6faff;
   background: white;
 }
 .student-chat.is-expanded .student-chat-composer > div {
-  background: #fafbfd;
-  border-color: #dbe3ed;
+  background: #f6faff;
+  border-color: #f4f4f4;
 }
 .student-chat.is-expanded .student-chat-composer > div:focus-within {
-  border-color: #7eafe9;
-  box-shadow: 0 0 0 3px #eaf2ff;
+  border-color: #52a6ff;
+  box-shadow: 0 0 0 3px #f6faff;
 }
 @media (max-width: 600px) {
   .student-chat.is-expanded .student-chat-history,
@@ -1222,7 +1222,7 @@
 .student-answer-content hr {
   margin: 20px 0;
   border: 0;
-  border-top: 1px solid #d4dce6;
+  border-top: 1px solid #c6c6c6;
 }
 .ribbon-tool:disabled {
   opacity: 0.45;
@@ -1235,20 +1235,20 @@
   gap: 6px;
   padding: 12px 0 0;
   margin-top: 6px;
-  border-top: 1px solid #e8ebef;
+  border-top: 1px solid #f4f4f4;
 }
 .ribbon-symbol-picker button {
   display: grid;
   place-items: center;
   width: 34px;
   height: 34px;
-  border: 1px solid #dfe5ed;
+  border: 1px solid #f4f4f4;
   border-radius: 5px;
-  color: #445a75;
-  background: #fafbfd;
+  color: #636366;
+  background: #f6faff;
   font-size: 20px;
 }
 .ribbon-symbol-picker button:hover {
-  background: #edf5ff;
-  border-color: #9cc3ef;
+  background: #f6faff;
+  border-color: #52a6ff;
 }

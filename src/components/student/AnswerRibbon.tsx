@@ -23,7 +23,7 @@ function hexColor(value: string) {
           .slice(1)
           .map((v) => Number(v).toString(16).padStart(2, "0"))
           .join("")
-    : "#202124";
+    : "#1c1c1e";
 }
 export function AnswerRibbon({
   editor,
@@ -71,8 +71,8 @@ export function AnswerRibbon({
           e.getAttributes("heading").level as 1 | 2 | 3
         ] ??
           DEFAULT_FONT_SIZE),
-      color: e.getAttributes("textStyle").color || "#202124",
-      highlight: e.getAttributes("highlight").color || "#fff2cc",
+      color: e.getAttributes("textStyle").color || "#1c1c1e",
+      highlight: e.getAttributes("highlight").color || "#ffd4d3",
       line:
         e.getAttributes("heading").paragraphLineHeight ||
         e.getAttributes("paragraph").paragraphLineHeight ||

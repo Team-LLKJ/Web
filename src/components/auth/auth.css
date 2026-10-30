@@ -301,7 +301,7 @@
 .signup-profile-modal .text-input { padding: 10px; }
 .signup-profile-modal .text-input input { font-size: var(--font-text-md); }
 .signup-profile-modal .auth-number-fields { gap: 12px; }
-.signup-profile-modal .signup-profile-notice { color: #d93025; font-size: var(--font-caption); line-height: var(--line-caption); }
+.signup-profile-modal .signup-profile-notice { color: #ff0500; font-size: var(--font-caption); line-height: var(--line-caption); }
 .signup-profile-modal .modal-actions { flex-direction: row; }
 .signup-profile-modal .modal-actions .button { width: auto; flex: 1; }
 .auth-page-notice {
@@ -310,7 +310,7 @@
   top: -34px;
   right: 30px;
   margin: 0;
-  color: #245f24;
+  color: #0059bc;
   font-size: var(--font-caption);
 }
 .auth-role-select {
@@ -325,7 +325,7 @@
   padding: 0 10px;
   border: 1px solid #c6c6c6;
   border-radius: 7px;
-  color: #202124;
+  color: #1c1c1e;
   background: white;
   font: inherit;
 }
