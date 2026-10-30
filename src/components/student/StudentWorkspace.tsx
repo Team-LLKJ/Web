@@ -24,6 +24,7 @@ export function StudentWorkspace({
   storageKey = "lit:student-chat-width:v2",
   label = "AI 대화창 너비 조절",
   defaultWidth = DEFAULT_CHAT_WIDTH,
+  sidebarExpanded = false,
 }: {
   editor: ReactNode;
   chat: ReactNode;
@@ -31,6 +32,7 @@ export function StudentWorkspace({
   storageKey?: string;
   label?: string;
   defaultWidth?: number;
+  sidebarExpanded?: boolean;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{
@@ -57,7 +59,7 @@ export function StudentWorkspace({
   return (
     <div
       ref={containerRef}
-      className={`student-solving-body ${className} ${collapsed ? "is-sidebar-collapsed" : ""} ${resizing ? "is-resizing" : ""}`}
+      className={`student-solving-body ${className} ${collapsed && !sidebarExpanded ? "is-sidebar-collapsed" : ""} ${sidebarExpanded ? "is-sidebar-expanded" : ""} ${resizing ? "is-resizing" : ""}`}
       style={{ "--student-chat-width": `${width}%` } as CSSProperties}
     >
       {editor}
@@ -158,8 +160,8 @@ export function StudentWorkspace({
       </div>
       <div
         className="workspace-sidebar"
-        aria-hidden={collapsed}
-        inert={collapsed}
+        aria-hidden={collapsed && !sidebarExpanded}
+        inert={collapsed && !sidebarExpanded}
       >
         {chat}
       </div>

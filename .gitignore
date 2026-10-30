@@ -27,6 +27,7 @@ dist-ssr
 .env
 .env.local
 .env.*.local
+.env.example
 
 # 기타 제외 대상 예시
 node_modules/
