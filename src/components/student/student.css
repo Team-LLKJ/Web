@@ -438,6 +438,7 @@
 }
 .student-chat {
   min-height: 0;
+  overflow: hidden;
   background: white;
   border-left: 1px solid #c6c6c6;
   display: flex;
@@ -455,7 +456,7 @@
 }
 .student-chat-history {
   display: flex;
-  flex: 1;
+  flex: 1 1 0;
   min-height: 0;
   overflow: auto;
   flex-direction: column;
@@ -467,21 +468,30 @@
 .student-chat-loading-message.is-user { justify-items: end; }
 .student-chat-loading-author { display: flex; align-items: center; gap: 5px; }
 .student-chat-composer {
+  flex: 0 0 auto;
   padding: 20px 30px;
+  background: white;
 }
 .student-chat-composer > div {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  height: 60px;
+  min-height: 60px;
   padding: 10px 20px;
   border: 1px solid #c6c6c6;
   border-radius: 15px;
 }
-.student-chat-composer input {
+.student-chat-composer textarea {
+  display: block;
+  flex: 1;
   width: 100%;
   min-width: 0;
+  min-height: 25px;
+  max-height: 200px;
+  padding: 0;
+  overflow-y: auto;
+  resize: none;
   outline: 0;
   border: 0;
   background: transparent;
@@ -489,13 +499,14 @@
   font-size: var(--font-text-md);
   line-height: var(--line-text-md);
 }
-.student-chat-composer input::placeholder {
+.student-chat-composer textarea::placeholder {
   color: #8e8e93;
 }
 .student-chat-composer button {
   padding: 0;
   display: flex;
   flex-shrink: 0;
+  align-self: flex-end;
 }
 .student-chat-composer button:disabled {
   cursor: default;
