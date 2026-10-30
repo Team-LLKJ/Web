@@ -240,6 +240,51 @@ h3 {
 .message-content--markdown th,
 .message-content--markdown td { border: 1px solid #c6c6c6; padding: 5px 8px; text-align: left; }
 .message-content--markdown a { color: var(--primary); text-decoration: underline; }
+.message > p.message-pending {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  max-width: min(360px, 100%);
+}
+.message-pending-indicator {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 5px;
+  color: #68717d;
+  font-size: 0.82em;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.message-pending-dot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: 50%;
+  background: var(--primary);
+  animation: pending-dot-pulse 1.1s ease-in-out infinite;
+}
+.message-pending-text {
+  min-width: 0;
+  color: transparent;
+  background: linear-gradient(100deg, #9299a3 25%, #e6eaf0 45%, #9299a3 65%);
+  background-size: 220% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: message-text-shimmer 1.45s ease-in-out infinite;
+}
+@keyframes pending-dot-pulse {
+  50% { opacity: 0.4; }
+}
+@keyframes message-text-shimmer {
+  to { background-position: -220% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .message-pending-dot,
+  .message-pending-text { animation: none; }
+}
 .message.user > p {
   background: #e2f0ff;
 }

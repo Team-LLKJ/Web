@@ -466,22 +466,6 @@
 .student-chat-loading-message { display: grid; justify-items: start; gap: 6px; }
 .student-chat-loading-message.is-user { justify-items: end; }
 .student-chat-loading-author { display: flex; align-items: center; gap: 5px; }
-.message > p.message-pending { width: fit-content; max-width: min(280px, 80%); }
-.message-pending-text {
-  color: transparent;
-  background: linear-gradient(100deg, #9299a3 25%, #e6eaf0 45%, #9299a3 65%);
-  background-size: 220% 100%;
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: message-text-shimmer 1.45s ease-in-out infinite;
-}
-@keyframes message-text-shimmer {
-  to { background-position: -220% 0; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .message-pending-text { animation: none; }
-}
 .student-chat-composer {
   padding: 20px 30px;
 }
