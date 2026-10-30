@@ -18,7 +18,7 @@ import {
   verifyPin,
 } from "../api/evaluations";
 import type { AnswerSource, ApiQuestion, Review, StudentScreen, Turn, Workspace } from "../api/types";
-import { useAuth } from "../auth/AuthProvider";
+import { useAuth } from "../auth/useAuth";
 import { emptySession, readSession, saveSession, clearSession, getParticipantToken, saveParticipantCredentials, type StudentSession } from "../data/studentSession";
 import type { Message, Student } from "../data/grading";
 import { PinJoinForm } from "../components/student/PinJoinForm";

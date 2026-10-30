@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../auth/AuthProvider";
+import { useAuth } from "../auth/useAuth";
 import { AuthLayout } from "../components/auth/AuthLayout";
 import { AuthForm, type AuthFormPayload } from "../components/auth/AuthForm";
 

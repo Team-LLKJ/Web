@@ -14,7 +14,7 @@ import {
 import { createTeacherInvitation } from "../api/auth";
 import { apiErrorMessage } from "../api/client";
 import type { AiPolicy, Evaluation, LearningEvent, Lobby, QuestionInput } from "../api/types";
-import { useAuth } from "../auth/AuthProvider";
+import { useAuth } from "../auth/useAuth";
 import { Button } from "../components/ui/Button";
 import { Skeleton, SkeletonStatus } from "../components/ui/Skeleton";
 import { TextInput } from "../components/ui/TextInput";
