@@ -20,25 +20,6 @@
   border: 0;
 }
 
-.route-loading {
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  padding: 24px;
-  background: #f6faff;
-}
-
-.route-loading-card {
-  display: grid;
-  width: min(380px, 100%);
-  gap: 18px;
-  padding: 28px;
-  border: 1px solid #e1e7ef;
-  border-radius: 18px;
-  background: #fff;
-  box-shadow: 0 12px 35px rgba(37, 69, 105, .045);
-}
-
 @keyframes skeleton-shimmer {
   to { background-position: -220% 0; }
 }
