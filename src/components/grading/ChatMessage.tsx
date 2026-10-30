@@ -27,8 +27,9 @@ export function ChatMessage({
           <>
             <span className="sr-only">{content}</span>
             <span className="message-pending-skeleton" aria-hidden="true">
-              <Skeleton style={{ width: "86%", height: 10 }} />
-              <Skeleton style={{ width: "58%", height: 10 }} />
+              <Skeleton className="message-pending-skeleton-line" />
+              <Skeleton className="message-pending-skeleton-line" />
+              <Skeleton className="message-pending-skeleton-line" />
             </span>
           </>
         ) : content}

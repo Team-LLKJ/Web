@@ -466,8 +466,11 @@
 .student-chat-loading-message { display: grid; justify-items: start; gap: 6px; }
 .student-chat-loading-message.is-user { justify-items: end; }
 .student-chat-loading-author { display: flex; align-items: center; gap: 5px; }
-.message > p.message-pending { display: grid; width: min(250px, 80%); gap: 8px; }
-.message-pending-skeleton { display: grid; gap: 8px; }
+.message > p.message-pending { display: grid; width: min(280px, 80%); gap: 0; }
+.message-pending-skeleton { display: grid; gap: 6px; padding-block: 2px; }
+.message-pending-skeleton-line { width: 92%; height: 14px; border-radius: 4px; }
+.message-pending-skeleton-line:nth-child(2) { width: 76%; }
+.message-pending-skeleton-line:nth-child(3) { width: 48%; }
 .student-chat-composer {
   padding: 20px 30px;
 }
