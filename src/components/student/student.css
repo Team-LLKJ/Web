@@ -716,21 +716,6 @@
 .student-policy-copy p { margin: 0; }
 .student-policy-copy strong { color: #0059bc; }
 .student-policy-copy .student-policy-unavailable { padding: 12px; border-radius: 8px; color: #6f5a1b; background: #fff8df; }
-.student-screen-mask {
-  position: fixed;
-  z-index: 10000;
-  inset: 0;
-  display: grid;
-  align-content: center;
-  justify-items: center;
-  gap: 8px;
-  padding: 24px;
-  background: rgba(12, 24, 40, .97);
-  color: #fff;
-  text-align: center;
-}
-.student-screen-mask p { margin: 0; font-size: var(--font-title-sm); font-weight: 700; }
-.student-screen-mask span { color: #d5deea; font-size: var(--font-text-sm); }
 .student-print-protection { display: none; }
 @media print {
   body * { visibility: hidden !important; }

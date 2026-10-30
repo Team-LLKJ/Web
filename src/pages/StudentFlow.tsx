@@ -85,7 +85,6 @@ export function StudentFlow({ route }: { route: string }) {
   const [savingQuestionId, setSavingQuestionId] = useState("");
   const [aiBusy, setAiBusy] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [privacyMasked, setPrivacyMasked] = useState(false);
 
   const isSolving = route === "/student/solve";
   const isWaiting = route === "/student/wait";
@@ -227,12 +226,9 @@ export function StudentFlow({ route }: { route: string }) {
 
   useEffect(() => {
     if (!isSolving) return;
-    const obscureScreen = () => {
-      setPrivacyMasked(true);
-      setDialog("warning");
-    };
+    const showWarning = () => setDialog("warning");
     const detectVisibilityChange = () => {
-      if (document.visibilityState === "hidden") obscureScreen();
+      if (document.visibilityState === "hidden") showWarning();
     };
     const interceptShortcuts = (event: KeyboardEvent) => {
       const key = event.key.toLowerCase();
@@ -247,15 +243,15 @@ export function StudentFlow({ route }: { route: string }) {
       } else if (screenshotShortcut) {
         event.preventDefault();
         event.stopImmediatePropagation();
-        obscureScreen();
+        showWarning();
       }
     };
     document.addEventListener("visibilitychange", detectVisibilityChange);
-    window.addEventListener("blur", obscureScreen);
+    window.addEventListener("blur", showWarning);
     window.addEventListener("keydown", interceptShortcuts, true);
     return () => {
       document.removeEventListener("visibilitychange", detectVisibilityChange);
-      window.removeEventListener("blur", obscureScreen);
+      window.removeEventListener("blur", showWarning);
       window.removeEventListener("keydown", interceptShortcuts, true);
     };
   }, [isSolving]);
@@ -414,7 +410,6 @@ export function StudentFlow({ route }: { route: string }) {
     if (dialog === "policy" && session.evaluationId) {
       sessionStorage.setItem(`lit:policy-accepted:${session.evaluationId}`, "true");
     }
-    if (dialog === "warning") setPrivacyMasked(false);
     setDialog("");
   }
 
@@ -562,12 +557,6 @@ export function StudentFlow({ route }: { route: string }) {
         onPolicy={() => setDialog("policy")}
         onNotice={(title) => { setNotice(title); setDialog("notice"); }}
       />
-      {privacyMasked && (
-        <div className="student-screen-mask" role="status" aria-live="polite">
-          <p>화면 보호를 위해 수행평가 내용을 가렸습니다.</p>
-          <span>경고를 확인한 뒤 계속할 수 있습니다.</span>
-        </div>
-      )}
       <StudentWorkspace
         editor={
           <main className="student-writing">
