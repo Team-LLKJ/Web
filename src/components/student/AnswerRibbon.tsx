@@ -1,100 +1,195 @@
-import { useState, type MouseEvent, type ReactNode } from "react";
+import { useId, useState, type ReactNode } from "react";
+import { useEditorState, type Editor } from "@tiptap/react";
 import { EditorToolIcon } from "./EditorToolIcon";
+import { DEFAULT_FONT_SIZE, FONT_FAMILIES } from "./answerHtml";
 
 type Props = {
-  fontFamily: string;
-  fonts: string[];
-  fontSize: string;
-  paragraphStyle: string;
-  lineSpacing: string;
-  editorZoom: string;
-  textColor: string;
-  highlightColor: string;
-  onPreserveSelection: (event: MouseEvent<HTMLButtonElement>) => void;
-  onRememberSelection: () => void;
-  onCommand: (command: string, value?: string) => void;
-  onFont: (value: string) => void;
-  onSize: (value: string) => void;
-  onAdjustSize: (amount: number) => void;
-  onStyle: (value: string) => void;
-  onSpacing: (value: string) => void;
+  editor: Editor;
+  imageBusy: boolean;
+  zoom: string;
   onZoom: (value: string) => void;
-  onTextColor: (value: string) => void;
-  onHighlight: (value: string) => void;
   onFind: () => void;
   onLink: () => void;
-  onClear: () => void;
   onTable: () => void;
-  onRow: () => void;
-  onColumn: () => void;
   onImage: () => void;
-  imageBusy: boolean;
-  onDivider: () => void;
-  onSymbol: (symbol: string) => void;
+  onHelp: () => void;
 };
-
-function RibbonTool({
-  label,
-  children,
-  onClick,
-  onMouseDown,
-  disabled = false,
-}: {
-  label: string;
-  children: ReactNode;
-  onClick: () => void;
-  onMouseDown: Props["onPreserveSelection"];
-  disabled?: boolean;
-}) {
-  return (
+function hexColor(value: string) {
+  if (/^#[\da-f]{6}$/i.test(value)) return value;
+  const values = value.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+  return values
+    ? "#" +
+        values
+          .slice(1)
+          .map((v) => Number(v).toString(16).padStart(2, "0"))
+          .join("")
+    : "#202124";
+}
+export function AnswerRibbon({
+  editor,
+  imageBusy,
+  zoom,
+  onZoom,
+  onFind,
+  onLink,
+  onTable,
+  onImage,
+  onHelp,
+}: Props) {
+  const [page, setPage] = useState(0);
+  const [symbolsOpen, setSymbolsOpen] = useState(false);
+  const [sizeDraft, setSizeDraft] = useState<string | null>(null);
+  const sizeList = useId();
+  const state = useEditorState({
+    editor,
+    selector: ({ editor: e }) => ({
+      bold: e.isActive("bold"),
+      italic: e.isActive("italic"),
+      underline: e.isActive("underline"),
+      strike: e.isActive("strike"),
+      sup: e.isActive("superscript"),
+      sub: e.isActive("subscript"),
+      align:
+        e.getAttributes("heading").textAlign ||
+        e.getAttributes("paragraph").textAlign ||
+        "left",
+      bullet: e.isActive("bulletList"),
+      ordered: e.isActive("orderedList"),
+      task: e.isActive("taskList"),
+      quote: e.isActive("blockquote"),
+      style: e.isActive("heading")
+        ? `H${e.getAttributes("heading").level}`
+        : "P",
+      font: e.getAttributes("textStyle").fontFamily || "Arial",
+      size:
+        parseFloat(
+          e.getAttributes("textStyle").fontSize ||
+            e.getAttributes("paragraph").fontSize ||
+            e.getAttributes("heading").fontSize,
+        ) ||
+        ({ 1: 36, 2: 30, 3: 24 }[
+          e.getAttributes("heading").level as 1 | 2 | 3
+        ] ??
+          DEFAULT_FONT_SIZE),
+      color: e.getAttributes("textStyle").color || "#202124",
+      highlight: e.getAttributes("highlight").color || "#fff2cc",
+      line:
+        e.getAttributes("heading").paragraphLineHeight ||
+        e.getAttributes("paragraph").paragraphLineHeight ||
+        "1.5",
+      before:
+        e.getAttributes("heading").spacingBefore ||
+        e.getAttributes("paragraph").spacingBefore ||
+        0,
+      after:
+        e.getAttributes("heading").spacingAfter ||
+        e.getAttributes("paragraph").spacingAfter ||
+        0,
+      table: e.isActive("table"),
+      image: e.isActive("image"),
+      imagePos: e.state.selection.from,
+      imageWidth: e.getAttributes("image").width || "",
+      imageAlt: e.getAttributes("image").alt || "",
+      undo: e.can().undo(),
+      redo: e.can().redo(),
+      merge: e.can().mergeCells(),
+      split: e.can().splitCell(),
+    }),
+  });
+  const pages = ["편집", "문단", "삽입", "표·이미지"];
+  const lineOptions = ["1", "1.15", "1.5", "1.75", "2", "2.5", "3"];
+  const run = (action: () => void) => {
+    if (editor.isEditable) action();
+  };
+  const tool = (
+    label: string,
+    icon: ReactNode,
+    action: () => void,
+    active?: boolean,
+    disabled = false,
+    shortcut?: string,
+  ) => (
     <button
+      key={label}
       type="button"
-      className="ribbon-tool"
-      title={label}
+      className={`ribbon-tool ${active ? "is-active" : ""}`}
       aria-label={label}
-      onMouseDown={onMouseDown}
-      onClick={onClick}
+      aria-pressed={active}
       disabled={disabled}
+      title={shortcut ? `${label} (${shortcut})` : label}
+      onMouseDown={(e) => e.preventDefault()}
+      onClick={() => run(action)}
     >
       <span className="ribbon-tool-symbol" aria-hidden="true">
-        {children}
+        {icon}
       </span>
       <span className="ribbon-tool-label">{label}</span>
     </button>
   );
-}
-
-export function AnswerRibbon(props: Props) {
-  const [page, setPage] = useState(0);
-  const [symbolsOpen, setSymbolsOpen] = useState(false);
-  const pages = ["편집", "문단", "삽입"];
-  const tool = (
-    label: string,
-    icon: ReactNode,
-    onClick: () => void,
-    disabled = false,
-  ) => (
-    <RibbonTool
-      key={label}
-      label={label}
-      disabled={disabled}
-      onClick={onClick}
-      onMouseDown={props.onPreserveSelection}
-    >
-      {icon}
-    </RibbonTool>
+  const group = (label: string, children: ReactNode) => (
+    <div className="ribbon-group">
+      <div className="ribbon-group-tools">{children}</div>
+      <span className="ribbon-group-caption">{label}</span>
+    </div>
   );
+  const paragraph = (attrs: Record<string, unknown>) =>
+    editor
+      .chain()
+      .focus()
+      .updateAttributes("paragraph", attrs)
+      .updateAttributes("heading", attrs)
+      .run();
+  function indent(direction: number) {
+    const item = editor.isActive("taskItem") ? "taskItem" : "listItem";
+    if (editor.isActive(item)) {
+      if (direction > 0) editor.chain().focus().sinkListItem(item).run();
+      else editor.chain().focus().liftListItem(item).run();
+      return;
+    }
+    const type = editor.isActive("heading") ? "heading" : "paragraph";
+    paragraph({
+      indent: Math.max(
+        0,
+        Math.min(6, Number(editor.getAttributes(type).indent || 0) + direction),
+      ),
+    });
+  }
+  function size(value: string, focus = true) {
+    const number = Math.min(
+      96,
+      Math.max(8, Number(value) || DEFAULT_FONT_SIZE),
+    );
+    const chain = editor.chain();
+    if (focus) chain.focus();
+    chain
+      .setFontSize(`${number}px`)
+      .command(({ tr }) => {
+        const { from, to } = tr.selection;
+        tr.doc.nodesBetween(from, to, (node, pos) => {
+          if (!["paragraph", "heading"].includes(node.type.name)) return;
+          // A fully formatted paragraph must use the same font metrics as its text.
+          if (from <= pos + 1 && to >= pos + 1 + node.content.size) {
+            tr.setNodeMarkup(pos, undefined, {
+              ...node.attrs,
+              fontSize: `${number}px`,
+            });
+          }
+        });
+        return true;
+      })
+      .run();
+    setSizeDraft(null);
+  }
   return (
     <div className="answer-ribbon">
       <div className="ribbon-menu" aria-label="서식 메뉴">
-        <span className="ribbon-menu-title">서식</span>
         <div className="ribbon-menu-tabs">
           {pages.map((label, index) => (
             <button
               type="button"
               key={label}
               aria-pressed={page === index}
-              onMouseDown={props.onPreserveSelection}
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => setPage(index)}
             >
               {label}
@@ -102,14 +197,17 @@ export function AnswerRibbon(props: Props) {
           ))}
         </div>
         <div className="ribbon-pagination">
-          <span aria-live="polite">
+          <button type="button" aria-label="편집 단축키 안내" onClick={onHelp}>
+            ⌨
+          </button>
+          <span>
             {page + 1} / {pages.length}
           </span>
           <button
             type="button"
             aria-label="이전 서식 도구"
             disabled={page === 0}
-            onMouseDown={props.onPreserveSelection}
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => setPage((p) => p - 1)}
           >
             <EditorToolIcon name="previous" />
@@ -118,7 +216,7 @@ export function AnswerRibbon(props: Props) {
             type="button"
             aria-label="다음 서식 도구"
             disabled={page === pages.length - 1}
-            onMouseDown={props.onPreserveSelection}
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => setPage((p) => p + 1)}
           >
             <EditorToolIcon name="next" />
@@ -131,33 +229,94 @@ export function AnswerRibbon(props: Props) {
         aria-label={`${pages[page]} 도구`}
       >
         <div className="ribbon-page" hidden={page !== 0}>
-          <div className="ribbon-group">
-            <div className="ribbon-group-tools">
-              {tool("찾기", <EditorToolIcon name="search" />, props.onFind)}
-              {tool("실행 취소", <EditorToolIcon name="undo" />, () =>
-                props.onCommand("undo"),
+          {group(
+            "편집",
+            <>
+              {tool(
+                "찾기·바꾸기",
+                <EditorToolIcon name="search" />,
+                onFind,
+                undefined,
+                false,
+                "Ctrl/⌘ F",
               )}
-              {tool("다시 실행", <EditorToolIcon name="redo" />, () =>
-                props.onCommand("redo"),
+              {tool(
+                "실행 취소",
+                <EditorToolIcon name="undo" />,
+                () => editor.chain().focus().undo().run(),
+                undefined,
+                !state.undo,
+                "Ctrl/⌘ Z",
               )}
-            </div>
-            <span className="ribbon-group-caption">편집</span>
-          </div>
-          <div className="ribbon-group">
-            <div className="ribbon-group-tools">
-              {tool("굵게", <b>가</b>, () => props.onCommand("bold"))}
-              {tool("기울임", <i>가</i>, () => props.onCommand("italic"))}
-              {tool("밑줄", <u>가</u>, () => props.onCommand("underline"))}
-            </div>
-            <span className="ribbon-group-caption">글자 모양</span>
-          </div>
-          <div className="ribbon-group">
-            <div className="ribbon-group-tools">
-              <label className="ribbon-tool ribbon-color" title="글자 색상">
+              {tool(
+                "다시 실행",
+                <EditorToolIcon name="redo" />,
+                () => editor.chain().focus().redo().run(),
+                undefined,
+                !state.redo,
+                "Ctrl/⌘ Shift Z",
+              )}
+            </>,
+          )}
+          {group(
+            "글자 모양",
+            <>
+              {tool(
+                "굵게",
+                <b>가</b>,
+                () => editor.chain().focus().toggleBold().run(),
+                state.bold,
+                false,
+                "Ctrl/⌘ B",
+              )}
+              {tool(
+                "기울임",
+                <i>가</i>,
+                () => editor.chain().focus().toggleItalic().run(),
+                state.italic,
+                false,
+                "Ctrl/⌘ I",
+              )}
+              {tool(
+                "밑줄",
+                <u>가</u>,
+                () => editor.chain().focus().toggleUnderline().run(),
+                state.underline,
+                false,
+                "Ctrl/⌘ U",
+              )}
+              {tool(
+                "취소선",
+                <s>가</s>,
+                () => editor.chain().focus().toggleStrike().run(),
+                state.strike,
+              )}
+              {tool(
+                "위 첨자",
+                <span>
+                  x<sup>2</sup>
+                </span>,
+                () => editor.chain().focus().toggleSuperscript().run(),
+                state.sup,
+              )}
+              {tool(
+                "아래 첨자",
+                <span>
+                  x<sub>2</sub>
+                </span>,
+                () => editor.chain().focus().toggleSubscript().run(),
+                state.sub,
+              )}
+            </>,
+          )}
+          {group(
+            "색상",
+            <>
+              <label className="ribbon-tool ribbon-color">
                 <span className="ribbon-tool-symbol">
                   <span
                     className="ribbon-text-color"
-                    style={{ borderBottomColor: props.textColor }}
+                    style={{ borderBottomColor: state.color }}
                   >
                     가
                   </span>
@@ -166,16 +325,17 @@ export function AnswerRibbon(props: Props) {
                 <input
                   aria-label="글자 색상"
                   type="color"
-                  value={props.textColor}
-                  onMouseDown={props.onRememberSelection}
-                  onChange={(e) => props.onTextColor(e.target.value)}
+                  value={hexColor(state.color)}
+                  onChange={(e) =>
+                    editor.chain().focus().setColor(e.target.value).run()
+                  }
                 />
               </label>
-              <label className="ribbon-tool ribbon-color" title="강조 색상">
+              <label className="ribbon-tool ribbon-color">
                 <span className="ribbon-tool-symbol">
                   <span
                     className="ribbon-highlight"
-                    style={{ backgroundColor: props.highlightColor }}
+                    style={{ backgroundColor: state.highlight }}
                   >
                     가
                   </span>
@@ -184,227 +344,483 @@ export function AnswerRibbon(props: Props) {
                 <input
                   aria-label="강조 색상"
                   type="color"
-                  value={props.highlightColor}
-                  onMouseDown={props.onRememberSelection}
-                  onChange={(e) => props.onHighlight(e.target.value)}
+                  value={hexColor(state.highlight)}
+                  onChange={(e) =>
+                    editor
+                      .chain()
+                      .focus()
+                      .setHighlight({ color: e.target.value })
+                      .run()
+                  }
                 />
               </label>
-            </div>
-            <span className="ribbon-group-caption">색상</span>
-          </div>
-          <div className="ribbon-group">
-            <div className="ribbon-group-tools">
-              {tool(
-                "서식 지우기",
-                <EditorToolIcon name="clear" />,
-                props.onClear,
-              )}
-            </div>
-            <span className="ribbon-group-caption">서식</span>
-          </div>
+            </>,
+          )}
+          {group(
+            "서식",
+            tool("서식 지우기", <EditorToolIcon name="clear" />, () =>
+              editor
+                .chain()
+                .focus()
+                .unsetAllMarks()
+                .clearNodes()
+                .resetAttributes("paragraph", "fontSize")
+                .resetAttributes("heading", "fontSize")
+                .run(),
+            ),
+          )}
         </div>
         <div className="ribbon-page" hidden={page !== 1}>
-          <div className="ribbon-group">
-            <div className="ribbon-group-tools">
-              {tool("왼쪽 정렬", <EditorToolIcon name="alignLeft" />, () =>
-                props.onCommand("justifyLeft"),
+          {group(
+            "문단 정렬",
+            <>
+              {(["left", "center", "right", "justify"] as const).map(
+                (align, index) =>
+                  tool(
+                    ["왼쪽 정렬", "가운데 정렬", "오른쪽 정렬", "양쪽 정렬"][
+                      index
+                    ],
+                    <EditorToolIcon
+                      name={
+                        (
+                          [
+                            "alignLeft",
+                            "alignCenter",
+                            "alignRight",
+                            "alignJustify",
+                          ] as const
+                        )[index]
+                      }
+                    />,
+                    () => editor.chain().focus().setTextAlign(align).run(),
+                    state.align === align,
+                  ),
               )}
-              {tool("가운데 정렬", <EditorToolIcon name="alignCenter" />, () =>
-                props.onCommand("justifyCenter"),
+            </>,
+          )}
+          {group(
+            "목록 및 들여쓰기",
+            <>
+              {tool(
+                "글머리 기호",
+                <EditorToolIcon name="list" />,
+                () => editor.chain().focus().toggleBulletList().run(),
+                state.bullet,
               )}
-              {tool("오른쪽 정렬", <EditorToolIcon name="alignRight" />, () =>
-                props.onCommand("justifyRight"),
+              {tool(
+                "번호 목록",
+                <EditorToolIcon name="numberList" />,
+                () => editor.chain().focus().toggleOrderedList().run(),
+                state.ordered,
               )}
-              {tool("양쪽 정렬", <EditorToolIcon name="alignJustify" />, () =>
-                props.onCommand("justifyFull"),
-              )}
-            </div>
-            <span className="ribbon-group-caption">문단 정렬</span>
-          </div>
-          <div className="ribbon-group">
-            <div className="ribbon-group-tools">
-              {tool("글머리 기호", <EditorToolIcon name="list" />, () =>
-                props.onCommand("insertUnorderedList"),
-              )}
-              {tool("번호 목록", <EditorToolIcon name="numberList" />, () =>
-                props.onCommand("insertOrderedList"),
+              {tool(
+                "체크리스트",
+                <EditorToolIcon name="checklist" />,
+                () => editor.chain().focus().toggleTaskList().run(),
+                state.task,
               )}
               {tool("내어쓰기", <EditorToolIcon name="outdent" />, () =>
-                props.onCommand("outdent"),
+                indent(-1),
               )}
               {tool("들여쓰기", <EditorToolIcon name="indent" />, () =>
-                props.onCommand("indent"),
+                indent(1),
               )}
-            </div>
-            <span className="ribbon-group-caption">목록 및 들여쓰기</span>
-          </div>
-          <div className="ribbon-group">
-            <div className="ribbon-group-tools ribbon-spacing">
-              <EditorToolIcon name="lineSpacing" />
-              <select
-                aria-label="줄 간격"
-                value={props.lineSpacing}
-                onMouseDown={props.onRememberSelection}
-                onChange={(e) => props.onSpacing(e.target.value)}
-              >
-                {["1", "1.15", "1.5", "2"].map((value) => (
-                  <option key={value} value={value}>
-                    {value}배
-                  </option>
-                ))}
-              </select>
-            </div>
-            <span className="ribbon-group-caption">줄 간격</span>
-          </div>
+              {tool(
+                "인용문",
+                <span>❞</span>,
+                () => editor.chain().focus().toggleBlockquote().run(),
+                state.quote,
+              )}
+            </>,
+          )}
+          {group(
+            "줄·문단 간격",
+            <div className="ribbon-paragraph-settings">
+              <label>
+                줄 간격
+                <select
+                  aria-label="줄 간격"
+                  value={state.line}
+                  onChange={(e) =>
+                    paragraph({ paragraphLineHeight: e.target.value })
+                  }
+                >
+                  {!lineOptions.includes(state.line) && (
+                    <option value={state.line}>
+                      {state.line === "normal" ? "보통" : `${state.line}배`}
+                    </option>
+                  )}
+                  {lineOptions.map((n) => (
+                    <option key={n} value={n}>
+                      {n}배
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                문단 앞
+                <select
+                  aria-label="문단 앞 간격"
+                  value={state.before}
+                  onChange={(e) =>
+                    paragraph({ spacingBefore: Number(e.target.value) })
+                  }
+                >
+                  {[0, 4, 8, 12, 16, 20, 24].map((n) => (
+                    <option key={n}>{n}</option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                문단 뒤
+                <select
+                  aria-label="문단 뒤 간격"
+                  value={state.after}
+                  onChange={(e) =>
+                    paragraph({ spacingAfter: Number(e.target.value) })
+                  }
+                >
+                  {[0, 4, 8, 12, 16, 20, 24].map((n) => (
+                    <option key={n}>{n}</option>
+                  ))}
+                </select>
+              </label>
+            </div>,
+          )}
         </div>
         <div className="ribbon-page" hidden={page !== 2}>
-          <div className="ribbon-group">
-            <div className="ribbon-group-tools">
+          {group(
+            "삽입",
+            <>
               {tool(
-                props.imageBusy ? "이미지 처리 중" : "이미지 넣기",
+                imageBusy ? "이미지 처리 중" : "이미지 넣기",
                 <EditorToolIcon name="image" />,
-                props.onImage,
-                props.imageBusy,
+                onImage,
+                undefined,
+                imageBusy,
+              )}
+              {tool("표 넣기", <EditorToolIcon name="table" />, onTable)}
+              {tool("링크 넣기", <EditorToolIcon name="link" />, onLink)}
+              {tool("구분선", <EditorToolIcon name="divider" />, () =>
+                editor.chain().focus().setHorizontalRule().run(),
               )}
               {tool(
-                "구분선",
-                <EditorToolIcon name="divider" />,
-                props.onDivider,
+                "특수문자",
+                <EditorToolIcon name="symbol" />,
+                () => setSymbolsOpen((v) => !v),
+                symbolsOpen,
               )}
-              {tool("특수문자", <EditorToolIcon name="symbol" />, () =>
-                setSymbolsOpen((open) => !open),
-              )}
-            </div>
-            <span className="ribbon-group-caption">이미지 및 기호</span>
-          </div>
-          <div className="ribbon-group">
-            <div className="ribbon-group-tools">
-              {tool("표 넣기", <EditorToolIcon name="table" />, props.onTable)}
-              {tool("행 추가", <EditorToolIcon name="addRow" />, props.onRow)}
-              {tool(
-                "열 추가",
-                <EditorToolIcon name="addColumn" />,
-                props.onColumn,
-              )}
-            </div>
-            <span className="ribbon-group-caption">표</span>
-          </div>
-          <div className="ribbon-group">
-            <div className="ribbon-group-tools">
-              {tool("링크 넣기", <EditorToolIcon name="link" />, props.onLink)}
-              {tool("체크리스트", <EditorToolIcon name="checklist" />, () =>
-                props.onCommand(
-                  "insertHTML",
-                  "<ul><li>☐ </li></ul><p><br></p>",
-                ),
-              )}
-            </div>
-            <span className="ribbon-group-caption">삽입</span>
-          </div>
+            </>,
+          )}
           {symbolsOpen && (
             <div
               className="ribbon-symbol-picker"
               role="group"
               aria-label="삽입할 특수문자"
             >
-              {["★", "☆", "✓", "→", "⇒", "±", "×", "÷", "≤", "≥", "π", "∞"].map(
-                (symbol) => (
-                  <button
-                    key={symbol}
-                    type="button"
-                    aria-label={`${symbol} 삽입`}
-                    onMouseDown={props.onPreserveSelection}
-                    onClick={() => {
-                      props.onSymbol(symbol);
-                      setSymbolsOpen(false);
-                    }}
-                  >
-                    {symbol}
-                  </button>
-                ),
-              )}
+              {[
+                "★",
+                "☆",
+                "✓",
+                "→",
+                "⇒",
+                "±",
+                "×",
+                "÷",
+                "≤",
+                "≥",
+                "π",
+                "∞",
+                "∑",
+                "√",
+                "℃",
+                "※",
+                "①",
+                "②",
+                "③",
+                "④",
+              ].map((symbol) => (
+                <button
+                  type="button"
+                  key={symbol}
+                  aria-label={`${symbol} 삽입`}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    editor.chain().focus().insertContent(symbol).run();
+                    setSymbolsOpen(false);
+                  }}
+                >
+                  {symbol}
+                </button>
+              ))}
             </div>
+          )}
+        </div>
+        <div className="ribbon-page" hidden={page !== 3}>
+          {group(
+            "삽입",
+            <>
+              {tool("표 넣기", <EditorToolIcon name="table" />, onTable)}
+              {tool(
+                imageBusy ? "이미지 처리 중" : "이미지 넣기",
+                <EditorToolIcon name="image" />,
+                onImage,
+                undefined,
+                imageBusy,
+              )}
+            </>,
+          )}
+          {state.table && (
+            <>
+              {group(
+                "행·열 편집",
+                <>
+                  {tool(
+                    "행 위 추가",
+                    <EditorToolIcon name="addRow" />,
+                    () => editor.chain().focus().addRowBefore().run(),
+                    undefined,
+                    !state.table,
+                  )}
+                  {tool(
+                    "행 아래 추가",
+                    <EditorToolIcon name="addRow" />,
+                    () => editor.chain().focus().addRowAfter().run(),
+                    undefined,
+                    !state.table,
+                  )}
+                  {tool(
+                    "열 왼쪽 추가",
+                    <EditorToolIcon name="addColumn" />,
+                    () => editor.chain().focus().addColumnBefore().run(),
+                    undefined,
+                    !state.table,
+                  )}
+                  {tool(
+                    "열 오른쪽 추가",
+                    <EditorToolIcon name="addColumn" />,
+                    () => editor.chain().focus().addColumnAfter().run(),
+                    undefined,
+                    !state.table,
+                  )}
+                  {tool(
+                    "행 삭제",
+                    <span>행 −</span>,
+                    () => editor.chain().focus().deleteRow().run(),
+                    undefined,
+                    !state.table,
+                  )}
+                  {tool(
+                    "열 삭제",
+                    <span>열 −</span>,
+                    () => editor.chain().focus().deleteColumn().run(),
+                    undefined,
+                    !state.table,
+                  )}
+                </>,
+              )}
+              {group(
+                "표 설정",
+                <>
+                  {tool(
+                    "셀 병합",
+                    <span>⊞</span>,
+                    () => editor.chain().focus().mergeCells().run(),
+                    undefined,
+                    !state.merge,
+                  )}
+                  {tool(
+                    "셀 나누기",
+                    <span>⊟</span>,
+                    () => editor.chain().focus().splitCell().run(),
+                    undefined,
+                    !state.split,
+                  )}
+                  {tool(
+                    "제목 행",
+                    <EditorToolIcon name="table" />,
+                    () => editor.chain().focus().toggleHeaderRow().run(),
+                    editor.isActive("tableHeader"),
+                    !state.table,
+                  )}
+                  {tool(
+                    "표 삭제",
+                    <span>표 ×</span>,
+                    () => editor.chain().focus().deleteTable().run(),
+                    undefined,
+                    !state.table,
+                  )}
+                </>,
+              )}
+            </>
+          )}
+          {state.image &&
+            group(
+              "이미지 편집",
+              <div className="ribbon-image-settings">
+                <label>
+                  너비
+                  <input
+                    key={`${state.imagePos}-${state.imageWidth}`}
+                    aria-label="이미지 너비"
+                    type="number"
+                    min="80"
+                    max="1600"
+                    placeholder="자동"
+                    defaultValue={state.imageWidth}
+                    disabled={!state.image}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        event.currentTarget.blur();
+                      }
+                    }}
+                    onBlur={(e) => {
+                      if (state.image && e.target.value)
+                        editor
+                          .chain()
+                          .updateAttributes("image", {
+                            width: Math.min(
+                              1600,
+                              Math.max(80, Number(e.target.value)),
+                            ),
+                            height: null,
+                          })
+                          .run();
+                    }}
+                  />
+                </label>
+                <label>
+                  설명
+                  <input
+                    key={`${state.imagePos}-${state.imageAlt}`}
+                    aria-label="이미지 설명"
+                    maxLength={200}
+                    defaultValue={state.imageAlt}
+                    disabled={!state.image}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        event.currentTarget.blur();
+                      }
+                    }}
+                    onBlur={(e) => {
+                      if (state.image)
+                        editor
+                          .chain()
+                          .updateAttributes("image", { alt: e.target.value })
+                          .run();
+                    }}
+                  />
+                </label>
+                <button
+                  type="button"
+                  disabled={!state.image}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => editor.chain().focus().deleteSelection().run()}
+                >
+                  이미지 삭제
+                </button>
+              </div>,
+            )}
+          {!state.table && !state.image && (
+            <div className="ribbon-context-empty" role="status">
+              <strong>표나 이미지를 삽입하거나 선택해주세요</strong>
+              <span>
+                새로 넣으려면 왼쪽 버튼을, 기존 항목을 수정하려면 본문의 표
+                셀이나 이미지를 클릭하세요.
+              </span>
+            </div>
+          )}
+          {(state.table || state.image) && (
+            <p className="ribbon-context-hint">
+              {state.table
+                ? "행·열을 추가하거나 삭제할 수 있습니다. 여러 셀을 드래그해 선택하면 병합할 수 있고, 열 경계선을 드래그하면 너비가 바뀝니다."
+                : "이미지 너비와 설명을 바꿀 수 있습니다. 이미지 모서리를 드래그해 크기를 조절할 수도 있습니다."}
+            </p>
           )}
         </div>
       </div>
       <div className="ribbon-quickbar" role="toolbar" aria-label="글꼴과 크기">
         <select
-          className="ribbon-style-select"
           aria-label="문단 스타일"
-          value={props.paragraphStyle}
-          onMouseDown={props.onRememberSelection}
-          onChange={(e) => props.onStyle(e.target.value)}
+          className="ribbon-style-select"
+          value={state.style}
+          onChange={(e) => {
+            const value = e.target.value;
+            if (value === "P") editor.chain().focus().setParagraph().run();
+            else
+              editor
+                .chain()
+                .focus()
+                .setHeading({ level: Number(value.slice(1)) as 1 | 2 | 3 })
+                .run();
+          }}
         >
           <option value="P">바탕글</option>
-          <option value="H2">제목 1</option>
-          <option value="H3">제목 2</option>
-          <option value="H4">제목 3</option>
+          <option value="H1">제목 1</option>
+          <option value="H2">제목 2</option>
+          <option value="H3">제목 3</option>
         </select>
         <select
-          className="ribbon-font-select"
           aria-label="글꼴"
-          value={props.fontFamily}
-          onMouseDown={props.onRememberSelection}
-          onChange={(e) => props.onFont(e.target.value)}
+          className="ribbon-font-select"
+          value={state.font.replace(/["']/g, "")}
+          onChange={(e) =>
+            editor.chain().focus().setFontFamily(e.target.value).run()
+          }
         >
-          {props.fonts.map((font) => (
-            <option key={font} value={font}>
-              {font}
-            </option>
+          {Object.values(FONT_FAMILIES).map((font) => (
+            <option key={font}>{font}</option>
           ))}
         </select>
         <div className="ribbon-font-size">
           <button
             type="button"
             aria-label="글자 크기 줄이기"
-            disabled={Number(props.fontSize) <= 8}
-            onMouseDown={props.onPreserveSelection}
-            onClick={() => props.onAdjustSize(-1)}
+            disabled={state.size <= 8}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => size(String(state.size - 1))}
           >
             <EditorToolIcon name="minus" />
           </button>
-          <select
+          <input
             aria-label="글자 크기"
-            title="글자 크기 (px)"
-            value={props.fontSize}
-            onMouseDown={props.onRememberSelection}
-            onChange={(e) => props.onSize(e.target.value)}
-          >
+            title="글자 크기 (8~96px)"
+            type="text"
+            inputMode="decimal"
+            list={sizeList}
+            value={sizeDraft ?? String(state.size)}
+            onChange={(e) => setSizeDraft(e.target.value)}
+            onBlur={() => {
+              if (sizeDraft !== null) size(sizeDraft, false);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                size(sizeDraft ?? String(state.size));
+              } else if (e.key === "Escape") {
+                setSizeDraft(null);
+                editor.commands.focus();
+              }
+            }}
+          />
+          <datalist id={sizeList}>
             {[
-              ...new Set([
-                8,
-                9,
-                10,
-                11,
-                12,
-                14,
-                16,
-                18,
-                20,
-                24,
-                30,
-                36,
-                48,
-                56,
-                Number(props.fontSize),
-              ]),
-            ]
-              .sort((a, b) => a - b)
-              .map((size) => (
-                <option key={size} value={size}>
-                  {size}
-                </option>
-              ))}
-          </select>
+              8, 10, 12, 14, 16, 18, 20, 24, 28, 32, 36, 48, 56, 64, 72, 96,
+            ].map((n) => (
+              <option key={n} value={n} />
+            ))}
+          </datalist>
           <span className="ribbon-font-unit" aria-hidden="true">
             px
           </span>
           <button
             type="button"
             aria-label="글자 크기 늘리기"
-            disabled={Number(props.fontSize) >= 56}
-            onMouseDown={props.onPreserveSelection}
-            onClick={() => props.onAdjustSize(1)}
+            disabled={state.size >= 96}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => size(String(state.size + 1))}
           >
             <EditorToolIcon name="plus" />
           </button>
@@ -413,13 +829,12 @@ export function AnswerRibbon(props: Props) {
           <span>확대</span>
           <select
             aria-label="편집 영역 확대 비율"
-            value={props.editorZoom}
-            onMouseDown={props.onRememberSelection}
-            onChange={(e) => props.onZoom(e.target.value)}
+            value={zoom}
+            onChange={(e) => onZoom(e.target.value)}
           >
-            {[75, 90, 100, 125, 150].map((zoom) => (
-              <option key={zoom} value={zoom}>
-                {zoom}%
+            {[75, 90, 100, 125, 150, 175, 200].map((n) => (
+              <option key={n} value={n}>
+                {n}%
               </option>
             ))}
           </select>

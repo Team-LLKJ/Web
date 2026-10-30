@@ -1053,8 +1053,7 @@
 /* The writing surface compensates for the surrounding 75% workspace scale. */
 .student-answer-content {
   --answer-workspace-scale: 1;
-  --answer-editor-zoom: 1;
-  zoom: calc(var(--answer-editor-zoom) / var(--answer-workspace-scale));
+  zoom: calc(var(--answer-editor-zoom, 1) / var(--answer-workspace-scale));
   width: 100%;
 }
 @media screen {
