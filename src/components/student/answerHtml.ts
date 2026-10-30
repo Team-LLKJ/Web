@@ -1,5 +1,5 @@
 export const MAX_ANSWER_LENGTH = 10_000;
-export const DEFAULT_FONT_SIZE = 20;
+export const DEFAULT_FONT_SIZE = 18;
 export const MAX_ANSWER_HTML_LENGTH = 1_000_000;
 const EMPTY_CARET = "\u200B";
 const ALLOWED_TAGS = new Set([
