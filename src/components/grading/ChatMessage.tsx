@@ -1,5 +1,18 @@
+import { lazy, Suspense } from "react";
 import type { Student } from "../../data/grading";
 import { Avatar } from "../ui/Avatar";
+
+const MarkdownMessage = lazy(() => import("./MarkdownMessage"));
+
+function PendingMessage({ announcement }: { announcement: string }) {
+  return (
+    <p className="message-pending" role="status">
+      <span className="sr-only">잠시만 기다려 주세요. {announcement}</span>
+      <span className="message-pending-text" aria-hidden="true">잠시만 기다려 주세요…</span>
+    </p>
+  );
+}
+
 export function ChatMessage({
   student,
   role,
@@ -21,14 +34,15 @@ export function ChatMessage({
         )}
         <span>{role === "user" ? student.name : "AI"}</span>
       </div>
-      <p className={pending ? "message-pending" : undefined} role={pending ? "status" : undefined}>
-        {pending ? (
-          <>
-            <span className="sr-only">잠시만 기다려 주세요. {content}</span>
-            <span className="message-pending-text" aria-hidden="true">잠시만 기다려 주세요…</span>
-          </>
-        ) : content}
-      </p>
+      {pending ? (
+        <PendingMessage announcement={content} />
+      ) : role === "ai" ? (
+        <Suspense fallback={<PendingMessage announcement="응답 서식을 준비하고 있습니다." />}>
+          <MarkdownMessage content={content} />
+        </Suspense>
+      ) : (
+        <p>{content}</p>
+      )}
     </div>
   );
 }
