@@ -1,6 +1,5 @@
 import type { Student } from "../../data/grading";
 import { Avatar } from "../ui/Avatar";
-import { Skeleton } from "../ui/Skeleton";
 export function ChatMessage({
   student,
   role,
@@ -25,12 +24,8 @@ export function ChatMessage({
       <p className={pending ? "message-pending" : undefined} role={pending ? "status" : undefined}>
         {pending ? (
           <>
-            <span className="sr-only">{content}</span>
-            <span className="message-pending-skeleton" aria-hidden="true">
-              <Skeleton className="message-pending-skeleton-line" />
-              <Skeleton className="message-pending-skeleton-line" />
-              <Skeleton className="message-pending-skeleton-line" />
-            </span>
+            <span className="sr-only">잠시만 기다려 주세요. {content}</span>
+            <span className="message-pending-text" aria-hidden="true">잠시만 기다려 주세요…</span>
           </>
         ) : content}
       </p>
