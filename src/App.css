@@ -251,19 +251,26 @@ h3 {
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
-  gap: 5px;
-  color: #68717d;
-  font-size: 0.82em;
-  font-weight: 600;
-  white-space: nowrap;
+  height: 1em;
 }
-.message-pending-dot {
-  width: 7px;
-  height: 7px;
-  flex: 0 0 7px;
+.message-pending-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 100%;
+}
+.message-pending-dots > span {
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background: var(--primary);
-  animation: pending-dot-pulse 1.1s ease-in-out infinite;
+  background: #4f5661;
+  animation: pending-dot-wave 1s ease-in-out infinite;
+}
+.message-pending-dots > span:nth-child(2) {
+  animation-delay: 0.14s;
+}
+.message-pending-dots > span:nth-child(3) {
+  animation-delay: 0.28s;
 }
 .message-pending-text {
   min-width: 0;
@@ -275,14 +282,15 @@ h3 {
   -webkit-text-fill-color: transparent;
   animation: message-text-shimmer 1.45s ease-in-out infinite;
 }
-@keyframes pending-dot-pulse {
-  50% { opacity: 0.4; }
+@keyframes pending-dot-wave {
+  0%, 60%, 100% { opacity: 0.5; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-3px); }
 }
 @keyframes message-text-shimmer {
   to { background-position: -220% 0; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .message-pending-dot,
+  .message-pending-dots > span,
   .message-pending-text { animation: none; }
 }
 .message.user > p {

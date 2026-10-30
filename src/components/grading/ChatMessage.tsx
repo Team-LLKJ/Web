@@ -9,8 +9,11 @@ function PendingMessage({ announcement }: { announcement: string }) {
     <p className="message-pending" role="status">
       <span className="sr-only">대기 중. 잠시만 기다려 주세요. {announcement}</span>
       <span className="message-pending-indicator" aria-hidden="true">
-        <span className="message-pending-dot" />
-        대기 중
+        <span className="message-pending-dots">
+          <span />
+          <span />
+          <span />
+        </span>
       </span>
       <span className="message-pending-text" aria-hidden="true">잠시만 기다려 주세요…</span>
     </p>
