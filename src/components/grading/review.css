@@ -316,3 +316,180 @@
     display: none;
   }
 }
+
+/* 채점 화면 스켈레톤 */
+.grading-skeleton-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+.grading-skeleton-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.grading-skeleton-tabs {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--border);
+}
+.grading-skeleton-review-tabs {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 35px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* 대화 기록 불러오는 중 말풍선 */
+.message-history-skeleton {
+  display: block;
+}
+
+/* 대화 기록 스켈레톤 (학생 풀이 화면과 동일) */
+.chat-history-skeleton {
+  display: grid;
+  align-content: start;
+  gap: 20px;
+}
+.chat-history-skeleton-message {
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+}
+.chat-history-skeleton-message.is-user {
+  justify-items: end;
+}
+.chat-history-skeleton-author {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* PDF 보고서: 화면에서는 숨기고 인쇄할 때만 보여준다 */
+.print-report {
+  display: none;
+}
+@media print {
+  @page {
+    size: A4;
+    margin: 18mm 16mm;
+  }
+  .app-shell > .header,
+  .app-shell > .workspace,
+  .app-shell > dialog,
+  .app-shell > .modal-backdrop {
+    display: none !important;
+  }
+  .app-shell {
+    padding: 0 !important;
+    min-height: 0 !important;
+  }
+  /* 학생 화면의 인쇄 차단 규칙(body * { visibility: hidden })이 전역이라 보고서는 다시 보이게 한다. */
+  .print-report,
+  .print-report * {
+    visibility: visible !important;
+  }
+  .print-report {
+    display: block;
+    color: #000;
+    font-size: 11pt;
+    line-height: 1.6;
+  }
+  .print-report-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding-bottom: 12px;
+    margin-bottom: 18px;
+    border-bottom: 2px solid #007bff;
+  }
+  .print-report-header h1 {
+    font-size: 20pt;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  .print-report-header p {
+    color: #636366;
+    font-size: 10pt;
+  }
+  .print-report h2 {
+    margin: 22px 0 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #c6c6c6;
+    font-size: 13pt;
+    font-weight: 600;
+    line-height: 1.4;
+    break-after: avoid;
+  }
+  .print-report h3 {
+    margin: 14px 0 4px;
+    font-size: 11.5pt;
+    font-weight: 600;
+    break-after: avoid;
+  }
+  .print-report p {
+    margin: 0 0 6px;
+    white-space: pre-wrap;
+  }
+  .print-report table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10.5pt;
+  }
+  .print-report th,
+  .print-report td {
+    padding: 6px 10px;
+    border: 1px solid #c6c6c6;
+    text-align: left;
+    vertical-align: top;
+  }
+  .print-report th {
+    background: #f6faff;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .print-report-info {
+    margin-bottom: 4px;
+  }
+  .print-report tr,
+  .print-report-message,
+  .print-report-question {
+    break-inside: avoid;
+  }
+  .print-report .print-report-score {
+    width: 80px;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .print-report-list {
+    margin: 0;
+    padding-left: 18px;
+  }
+  .print-report-list time {
+    margin-right: 6px;
+    color: #636366;
+  }
+  .print-report-prompt {
+    padding: 8px 12px;
+    border: 1px solid #007bff;
+    border-radius: 6px;
+    background: #f6faff;
+  }
+  .print-report-answer {
+    padding: 8px 12px;
+    border: 1px solid #c6c6c6;
+    border-radius: 6px;
+  }
+  .print-report-appendix {
+    break-before: page;
+  }
+  .print-report-message {
+    margin-bottom: 8px;
+  }
+  .print-report-message strong {
+    font-size: 10pt;
+    color: #48484a;
+  }
+}

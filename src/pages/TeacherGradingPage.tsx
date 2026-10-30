@@ -1,5 +1,5 @@
 import { StudentWorkspace } from "../components/student/StudentWorkspace";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useState } from "react";
 import "../App.css";
 import "../components/ui/ui.css";
@@ -12,8 +12,16 @@ import { Header } from "../components/grading/Header";
 import { StudentSidebar } from "../components/grading/StudentSidebar";
 import { SubmissionPanel } from "../components/grading/SubmissionPanel";
 import { ReviewPanel } from "../components/grading/ReviewPanel";
+import { PrintReport } from "../components/grading/PrintReport";
+import {
+  ReviewSkeleton,
+  StudentSidebarSkeleton,
+  SubmissionSkeleton,
+} from "../components/grading/GradingSkeleton";
 function TeacherGradingPage() {
   const navigate = useNavigate();
+  // 실제 API 연결 전까지는 ?loading=1 로 스켈레톤 화면을 미리 볼 수 있다.
+  const loading = useSearchParams()[0].get("loading") === "1";
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState(0);
   const [question, setQuestion] = useState(questions[0]?.id ?? 0);
@@ -27,6 +35,9 @@ function TeacherGradingPage() {
     <div className="app-shell compact-workspace">
       <Header ended={ended} onDialog={setDialog} />
       <div className="workspace teacher-workspace">
+        {loading ? (
+          <StudentSidebarSkeleton />
+        ) : (
         <StudentSidebar
           students={students}
           student={student}
@@ -37,12 +48,14 @@ function TeacherGradingPage() {
             setQuestion(questions[0]?.id ?? 0);
           }}
         />
+        )}
         <StudentWorkspace
           className="teacher-content"
           storageKey="lit:teacher-sidebar-width:v2"
           label="학생 평가 사이드바 너비 조절"
           defaultWidth={36}
           editor={
+            loading ? <SubmissionSkeleton /> : (
             <SubmissionPanel
               student={student}
               questions={questions}
@@ -50,8 +63,10 @@ function TeacherGradingPage() {
               question={question}
               onQuestion={setQuestion}
             />
+            )
           }
           chat={
+            loading ? <ReviewSkeleton /> : (
             <ReviewPanel
               student={student}
               messages={student.messages}
@@ -71,9 +86,11 @@ function TeacherGradingPage() {
               tab={tab}
               onTab={setTab}
             />
+            )
           }
         />
       </div>
+      <PrintReport student={student} questions={questions} review={review} />
       {dialog && (
         <Modal
           title={dialog}
