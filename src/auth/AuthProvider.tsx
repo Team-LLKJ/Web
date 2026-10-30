@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import {
   getCurrentUser,
   login as loginRequest,
@@ -8,18 +8,7 @@ import {
 } from "../api/auth";
 import { clearTokens, hasStoredSession } from "../api/client";
 import type { LoginRequest, StudentSignup, TeacherSignup, User } from "../api/types";
-
-type AuthContextValue = {
-  user: User | null;
-  loading: boolean;
-  login: (credentials: LoginRequest) => Promise<User>;
-  signupStudent: (payload: StudentSignup) => Promise<User>;
-  signupTeacher: (payload: TeacherSignup) => Promise<User>;
-  logout: () => Promise<void>;
-  reloadUser: () => Promise<User | null>;
-};
-
-const AuthContext = createContext<AuthContextValue | null>(null);
+import { AuthContext } from "./AuthContext";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -41,7 +30,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    void reloadUser().finally(() => setLoading(false));
+    let active = true;
+    void Promise.resolve().then(() => reloadUser()).finally(() => {
+      if (active) setLoading(false);
+    });
+    return () => { active = false; };
   }, [reloadUser]);
 
   const login = useCallback(async (credentials: LoginRequest) => {
@@ -67,11 +60,5 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {children}
     </AuthContext.Provider>
   );
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth는 AuthProvider 안에서 사용해야 합니다.");
-  return context;
 }
 

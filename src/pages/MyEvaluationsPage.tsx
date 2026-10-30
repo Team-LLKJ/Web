@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { apiErrorMessage } from "../api/client";
 import { getMyEvaluations } from "../api/evaluations";
 import type { PageResponse, TeacherEvaluationSummary } from "../api/types";
-import { useAuth } from "../auth/AuthProvider";
+import { useAuth } from "../auth/useAuth";
 import { Button } from "../components/ui/Button";
 import { Skeleton, SkeletonStatus } from "../components/ui/Skeleton";
 import "../components/teacher/teacher.css";
@@ -41,34 +41,47 @@ export function MyEvaluationsPage() {
     typeof (location.state as { notice?: unknown } | null)?.notice === "string"
       ? (location.state as { notice: string }).notice
       : "";
-  const [result, setResult] =
-    useState<PageResponse<TeacherEvaluationSummary> | null>(null);
+  const [resultState, setResultState] = useState<{
+    key: string;
+    result: PageResponse<TeacherEvaluationSummary>;
+  } | null>(null);
   const [page, setPage] = useState(0);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [notice, setNotice] = useState("");
+  const [loadedKey, setLoadedKey] = useState("");
+  const [noticeState, setNoticeState] = useState<{
+    key: string;
+    message: string;
+  } | null>(null);
+  const requestKey = `${page}:${refreshKey}`;
+  const result = resultState?.key === requestKey ? resultState.result : null;
+  const loading = loadedKey !== requestKey;
+  const notice =
+    (noticeState?.key === requestKey ? noticeState.message : "") ||
+    navigationNotice;
 
   useEffect(() => {
     let active = true;
-    setLoading(true);
-    setNotice(navigationNotice);
     void getMyEvaluations(page, PAGE_SIZE)
       .then((response) => {
-        if (active) setResult(response);
+        if (active) setResultState({ key: requestKey, result: response });
       })
       .catch((error) => {
         if (active)
-          setNotice(
-            apiErrorMessage(error, "수행평가 목록을 불러오지 못했습니다."),
-          );
+          setNoticeState({
+            key: requestKey,
+            message: apiErrorMessage(
+              error,
+              "수행평가 목록을 불러오지 못했습니다.",
+            ),
+          });
       })
       .finally(() => {
-        if (active) setLoading(false);
+        if (active) setLoadedKey(requestKey);
       });
     return () => {
       active = false;
     };
-  }, [page, refreshKey, navigationNotice]);
+  }, [page, refreshKey, requestKey]);
 
   const items = result?.items ?? [];
   const totalPages = result?.totalPages ?? 0;

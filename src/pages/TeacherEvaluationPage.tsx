@@ -27,7 +27,7 @@ import type {
   Lobby,
   QuestionInput,
 } from "../api/types";
-import { useAuth } from "../auth/AuthProvider";
+import { useAuth } from "../auth/useAuth";
 import { DeleteEvaluationDialog } from "../components/teacher/DeleteEvaluationDialog";
 import { Button } from "../components/ui/Button";
 import { Skeleton, SkeletonStatus } from "../components/ui/Skeleton";
@@ -40,6 +40,20 @@ const freshQuestion = (position: number): DraftQuestion => ({
   position,
   title: `문항 ${position}`,
   content: "",
+});
+const toDraftQuestion = (question: QuestionInput): DraftQuestion => ({
+  key: crypto.randomUUID(),
+  position: question.position,
+  title: question.title,
+  content: question.content,
+});
+const toQuestionInput = (
+  question: DraftQuestion,
+  index: number,
+): QuestionInput => ({
+  position: index + 1,
+  title: question.title.trim(),
+  content: question.content.trim(),
 });
 const visibleEventDetails = (details: Record<string, unknown>) =>
   Object.fromEntries(
@@ -168,18 +182,13 @@ export function TeacherEvaluationPage() {
       draft?: { aiPolicy: AiPolicy; questions: QuestionInput[] };
       notice?: string;
     } | null;
-    if (navigationState?.draft) {
-      setAiPolicy(navigationState.draft.aiPolicy);
-      setQuestions(
-        navigationState.draft.questions.map((question) => ({
-          ...question,
-          key: crypto.randomUUID(),
-        })),
-      );
-    }
-    if (navigationState?.notice) setNotice(navigationState.notice);
     void (async () => {
       setLoading(true);
+      if (navigationState?.draft) {
+        setAiPolicy(navigationState.draft.aiPolicy);
+        setQuestions(navigationState.draft.questions.map(toDraftQuestion));
+      }
+      if (navigationState?.notice) setNotice(navigationState.notice);
       try {
         const [nextEvaluation, nextConfiguration] = await Promise.all([
           getEvaluation(evaluationId),
@@ -193,12 +202,7 @@ export function TeacherEvaluationPage() {
             "",
         );
         if (!navigationState?.draft) {
-          setQuestions(
-            nextConfiguration.questions.map(({ id: _id, ...question }) => ({
-              ...question,
-              key: crypto.randomUUID(),
-            })),
-          );
+          setQuestions(nextConfiguration.questions.map(toDraftQuestion));
         }
         await refreshLobby();
         try {
@@ -302,15 +306,7 @@ export function TeacherEvaluationPage() {
         `lit:evaluation-guidelines:${created.id}`,
         evaluationGuidelines,
       );
-      const config = {
-        aiPolicy,
-        questions: questions.map(({ key: _key, ...question }, index) => ({
-          ...question,
-          position: index + 1,
-          title: question.title.trim(),
-          content: question.content.trim(),
-        })),
-      };
+      const config = { aiPolicy, questions: questions.map(toQuestionInput) };
       try {
         await configureEvaluation(created.id, config);
         navigate(`/teacher/evaluations/${encodeURIComponent(created.id)}`, {
@@ -352,19 +348,9 @@ export function TeacherEvaluationPage() {
     try {
       const config = await configureEvaluation(evaluationId, {
         aiPolicy,
-        questions: questions.map(({ key: _key, ...question }, index) => ({
-          ...question,
-          position: index + 1,
-          title: question.title.trim(),
-          content: question.content.trim(),
-        })),
+        questions: questions.map(toQuestionInput),
       });
-      setQuestions(
-        config.questions.map(({ id: _id, ...question }) => ({
-          ...question,
-          key: crypto.randomUUID(),
-        })),
-      );
+      setQuestions(config.questions.map(toDraftQuestion));
       setNotice("평가 설정을 저장했습니다.");
     } catch (error) {
       setNotice(apiErrorMessage(error, "평가 설정을 저장하지 못했습니다."));
