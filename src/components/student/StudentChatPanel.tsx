@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import type { Message, Student } from "../../data/grading";
 import { ChatMessage } from "../grading/ChatMessage";
 import { ChatComposer } from "./ChatComposer";
@@ -21,13 +21,36 @@ export function StudentChatPanel({
   onSend: (text: string) => void;
 }) {
   const list = useRef<HTMLDivElement>(null);
+  const historyAtBottom = useRef(true);
+  const scrollHistoryToBottom = useCallback(() => {
+    const history = list.current;
+    if (!history) return;
+    history.scrollTop = history.scrollHeight;
+    historyAtBottom.current = true;
+  }, []);
+
   useEffect(() => {
-    list.current?.scrollTo({ top: list.current.scrollHeight });
-  }, [messages.length]);
+    scrollHistoryToBottom();
+  }, [messages.length, scrollHistoryToBottom]);
+
+  const keepHistoryAtBottomOnComposerResize = useCallback(() => {
+    if (!historyAtBottom.current) return;
+    requestAnimationFrame(() => {
+      if (historyAtBottom.current) scrollHistoryToBottom();
+    });
+  }, [scrollHistoryToBottom]);
   return (
     <aside className="student-chat">
       <h2>AI 대화창</h2>
-      <div className="student-chat-history" ref={list}>
+      <div
+        className="student-chat-history"
+        ref={list}
+        onScroll={(event) => {
+          const history = event.currentTarget;
+          historyAtBottom.current =
+            history.scrollHeight - history.scrollTop - history.clientHeight <= 24;
+        }}
+      >
         {loadingHistory ? (
           <SkeletonStatus className="student-chat-loading-list" label="대화 기록을 불러오고 있습니다.">
             {Array.from({ length: 3 }, (_, index) => (
@@ -52,7 +75,11 @@ export function StudentChatPanel({
           </p>
         )}
       </div>
-      <ChatComposer disabled={disabled || busy} onSend={onSend} />
+      <ChatComposer
+        disabled={disabled || busy}
+        onSend={onSend}
+        onResize={keepHistoryAtBottomOnComposerResize}
+      />
     </aside>
   );
 }

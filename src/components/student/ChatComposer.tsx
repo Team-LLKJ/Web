@@ -2,9 +2,11 @@ import { useLayoutEffect, useRef, useState } from "react";
 export function ChatComposer({
   disabled,
   onSend,
+  onResize,
 }: {
   disabled: boolean;
   onSend: (text: string) => void;
+  onResize?: () => void;
 }) {
   const [value, setValue] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -13,9 +15,11 @@ export function ChatComposer({
     const textarea = textareaRef.current;
     if (!textarea) return;
 
+    const previousHeight = textarea.clientHeight;
     textarea.style.height = "0px";
     textarea.style.height = `${textarea.scrollHeight}px`;
-  }, [value]);
+    if (textarea.clientHeight !== previousHeight) onResize?.();
+  }, [value, onResize]);
 
   return (
     <form
