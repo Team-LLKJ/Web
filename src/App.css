@@ -260,8 +260,8 @@ h3 {
   height: 100%;
 }
 .message-pending-dots > span {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background: #4f5661;
   animation: pending-dot-wave 1s ease-in-out infinite;
