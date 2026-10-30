@@ -16,6 +16,15 @@ export function SubmissionPanel({
   question,
   onQuestion,
 }: Props) {
+  // 인쇄 창의 기본 파일 이름과 제목이 보고서 이름이 되도록 잠시 문서 제목을 바꾼다.
+  const savePdf = () => {
+    const previous = document.title;
+    document.title = `${student.name} 학습 보고서`;
+    window.addEventListener("afterprint", () => (document.title = previous), {
+      once: true,
+    });
+    window.print();
+  };
   const currentQuestion = questions.find((item) => item.id === question);
   const answer = answers.find((item) => item.questionId === question);
   const paragraphs = answer?.paragraphs.filter((text) => text.trim());
@@ -23,7 +32,7 @@ export function SubmissionPanel({
     <main className="answer-area">
       <section className="student-summary">
         <div className="identity">
-          <Avatar name={student.name} color={student.color} size="large" />
+          <Avatar name={student.name} size="large" />
           <div>
             <h1>{student.name}</h1>
             <p>
@@ -33,7 +42,7 @@ export function SubmissionPanel({
             </p>
           </div>
         </div>
-        <Button variant="primary" onClick={() => window.print()}>
+        <Button variant="primary" onClick={savePdf}>
           PDF로 저장하기
         </Button>
       </section>
