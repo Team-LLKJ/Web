@@ -1,12 +1,56 @@
 import { useCallback, useEffect, useRef } from "react";
+import type { AiPolicy } from "../../api/types";
 import type { Message, Student } from "../../data/grading";
 import { ChatMessage } from "../grading/ChatMessage";
 import { ChatComposer } from "./ChatComposer";
 import { Skeleton, SkeletonStatus } from "../ui/Skeleton";
+
+function StudentAiWelcome({ policy }: { policy: AiPolicy }) {
+  const guidance = {
+    DISABLED: {
+      introduction: "안녕하세요! 이 평가의 AI 사용 안내예요.",
+      points: [
+        "이 평가에서는 AI 사용이 허용되지 않습니다.",
+        "문제 풀이와 답안 작성은 AI 도움 없이 본인의 생각으로 해 주세요.",
+      ],
+    },
+    HINT_ONLY: {
+      introduction: "안녕하세요! 저는 평가 중 학습을 돕는 AI예요.",
+      points: [
+        "이 평가에서는 개념 설명과 풀이 방향에 대한 힌트를 받을 수 있어요.",
+        "완성된 답안을 대신 작성하게 하거나 AI 답변을 그대로 제출하지 말고, 자신의 말로 정리해 주세요.",
+      ],
+    },
+    FULL: {
+      introduction: "안녕하세요! 이 평가에서 궁금한 점을 질문하고 AI의 도움을 받을 수 있어요.",
+      points: [
+        "AI 답변이 항상 정확한 것은 아니니 중요한 정보는 확인해 주세요.",
+        "도움을 받은 뒤에는 내용을 이해하고 본인의 판단을 담아 최종 답안을 작성해 주세요.",
+      ],
+    },
+  }[policy];
+
+  return (
+    <div className="message ai student-chat-welcome">
+      <div className="message-author">
+        <span className="avatar small ai-avatar" aria-hidden="true">AI</span>
+        <span>AI</span>
+      </div>
+      <div className="message-content message-content--markdown">
+        <p>{guidance.introduction}</p>
+        <ul>
+          {guidance.points.map((point) => <li key={point}>{point}</li>)}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
 export function StudentChatPanel({
   student,
   messages,
   loadingHistory = false,
+  aiPolicy,
   disabled,
   busy = false,
   notice,
@@ -15,6 +59,7 @@ export function StudentChatPanel({
   student: Student;
   messages: Message[];
   loadingHistory?: boolean;
+  aiPolicy: AiPolicy;
   disabled: boolean;
   busy?: boolean;
   notice: string;
@@ -60,15 +105,19 @@ export function StudentChatPanel({
               </div>
             ))}
           </SkeletonStatus>
-        ) : messages.map((message) => (
-          <ChatMessage
-            key={message.id}
-            student={student}
-            role={message.role}
-            content={message.content}
-            pending={message.pending}
-          />
-        ))}
+        ) : messages.length > 0 ? (
+          messages.map((message) => (
+            <ChatMessage
+              key={message.id}
+              student={student}
+              role={message.role}
+              content={message.content}
+              pending={message.pending}
+            />
+          ))
+        ) : (
+          <StudentAiWelcome policy={aiPolicy} />
+        )}
         {notice && (
           <p className="chat-notice" role="status">
             {notice}

@@ -81,7 +81,7 @@ export function StudentFlow({ route }: { route: string }) {
   const [preview, setPreview] = useState<Review | null>(null);
   const [dialogError, setDialogError] = useState("");
   const [loadingWorkspace, setLoadingWorkspace] = useState(false);
-  const [loadingQuestionData, setLoadingQuestionData] = useState(false);
+  const [loadingQuestionData, setLoadingQuestionData] = useState(true);
   const [savingQuestionId, setSavingQuestionId] = useState("");
   const [aiBusy, setAiBusy] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -593,6 +593,7 @@ export function StudentFlow({ route }: { route: string }) {
             student={displayStudent}
             messages={messages}
             loadingHistory={loadingQuestionData}
+            aiPolicy={workspace.aiPolicy}
             disabled={readOnly || workspace.aiPolicy === "DISABLED"}
             busy={aiBusy}
             notice={readOnly ? "제출 또는 평가 종료 후에는 AI 질문을 할 수 없습니다." : workspace.aiPolicy === "DISABLED" ? "이 평가에서는 AI 사용이 허용되지 않았습니다." : chatNotice}
