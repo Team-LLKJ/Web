@@ -199,7 +199,7 @@
 }
 .teacher-form-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 180px;
+  grid-template-columns: minmax(0, 1fr) 220px;
   gap: 20px;
   align-items: end;
 }
@@ -242,9 +242,9 @@
 }
 .teacher-question-field legend {
   padding: 0 8px;
-  color: #0059bc;
-  font-size: var(--font-text-sm);
-  line-height: var(--line-text-sm);
+  color: var(--primary);
+  font-size: var(--font-text-md);
+  line-height: var(--line-text-md);
   font-weight: 700;
 }
 .teacher-textarea-label {
@@ -257,7 +257,7 @@
 .teacher-textarea-label textarea {
   min-height: 115px;
   padding: 12px;
-  resize: vertical;
+  resize: none;
   border: 1px solid #c6c6c6;
   border-radius: 8px;
   color: #181818;
@@ -277,15 +277,178 @@
 .teacher-guidelines-label textarea {
   min-height: 130px;
 }
+.teacher-question-field textarea {
+  margin-top: 12px;
+  min-height: 115px;
+  padding: 12px;
+  resize: none;
+  border: 1px solid #c6c6c6;
+  border-radius: 8px;
+  color: #181818;
+  font: inherit;
+  line-height: var(--line-text-md);
+}
+.teacher-question-field.is-dragging {
+  opacity: 0.5;
+  border-style: dashed;
+  border-color: #0059bc;
+}
+.teacher-drag-handle {
+  position: absolute;
+  top: -2px;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 20px;
+  padding: 0;
+  transform: translateX(-50%);
+  border: 0;
+  border-radius: 6px;
+  color: #a3a9b1;
+  background: none;
+  cursor: grab;
+  touch-action: none;
+}
+.teacher-drag-handle:hover,
+.teacher-drag-handle:focus-visible {
+  color: #48484a;
+  background: #f1f4f8;
+}
+.teacher-drag-handle:active {
+  cursor: grabbing;
+}
+.teacher-question-field:disabled .teacher-drag-handle {
+  visibility: hidden;
+}
+.teacher-question-footer {
+  display: flex;
+  justify-content: flex-end;
+}
 .teacher-remove-question {
-  justify-self: end;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
   padding: 0;
   border: 0;
-  color: #b64237;
+  border-radius: 50%;
+  color: #5f6368;
   background: none;
+  cursor: pointer;
+}
+.teacher-remove-question:hover:not(:disabled),
+.teacher-remove-question:focus-visible {
+  color: #b64237;
+  background: #fbeeed;
+}
+.teacher-remove-question:disabled {
+  color: #c9cdd2;
+  cursor: not-allowed;
+}
+.teacher-expiry-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.teacher-expiry-field legend {
+  padding: 0;
+  margin-bottom: 7px;
+  color: #48484a;
+  font-size: var(--font-text-sm);
+  line-height: var(--line-text-sm);
+}
+.teacher-expiry-inputs {
+  display: flex;
+  gap: 8px;
+}
+.teacher-expiry-inputs label {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  color: #48484a;
+  font-size: var(--font-text-sm);
+}
+.teacher-expiry-inputs input {
+  width: 100%;
+  min-width: 0;
+  height: 42px;
+  padding: 0 10px;
+  border: 1px solid #c6c6c6;
+  border-radius: 8px;
+  color: #181818;
+  font: inherit;
+  text-align: right;
+}
+.teacher-expiry-inputs[data-error="true"] input {
+  border-color: #b64237;
+}
+.teacher-expiry-error {
+  margin: -12px 0 0;
+  text-align: right;
+}
+.teacher-check-group {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.teacher-check-group legend {
+  display: grid;
+  gap: 4px;
+  padding: 0;
+  margin-bottom: 8px;
+  color: #48484a;
+  font-size: var(--font-text-sm);
+  line-height: var(--line-text-sm);
+}
+.teacher-check-group legend small {
+  color: #7b828b;
   font-size: var(--font-caption);
   line-height: var(--line-caption);
+}
+.teacher-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid #e2e7ee;
+  border-radius: 10px;
   cursor: pointer;
+}
+.teacher-check:has(input:checked) {
+  border-color: #9cc0ea;
+  background: #f5f9ff;
+}
+.teacher-check input {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+  accent-color: #0059bc;
+}
+.teacher-check span {
+  display: grid;
+  gap: 2px;
+}
+.teacher-check strong {
+  color: #20252b;
+  font-size: var(--font-text-sm);
+  line-height: var(--line-text-sm);
+  font-weight: 600;
+}
+.teacher-check small {
+  color: #7b828b;
+  font-size: var(--font-caption);
+  line-height: var(--line-caption);
 }
 .teacher-dashboard-grid {
   display: grid;
@@ -888,4 +1051,79 @@
     align-items: flex-start;
     flex-direction: column;
   }
+}
+
+.rich-text {
+  overflow: hidden;
+  border: 1px solid #c6c6c6;
+  border-radius: 8px;
+  background: #fff;
+}
+.rich-text:focus-within {
+  border-color: #0059bc;
+}
+.rich-text.is-over {
+  border-color: #b64237;
+}
+.rich-text.is-disabled {
+  background: #f6f7f9;
+}
+.rich-text-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 6px;
+  border-bottom: 1px solid #eef1f5;
+  background: #fafbfc;
+}
+.rich-text-toolbar button {
+  display: grid;
+  place-items: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 6px;
+  color: #48484a;
+  background: none;
+  font: inherit;
+  font-size: var(--font-text-sm);
+  cursor: pointer;
+}
+.rich-text-toolbar button:hover:not(:disabled) {
+  background: #eef1f5;
+}
+.rich-text-toolbar button.is-active {
+  color: #0059bc;
+  background: #e6effa;
+}
+.rich-text-toolbar button:disabled {
+  color: #c9cdd2;
+  cursor: not-allowed;
+}
+.rich-text-editor {
+  /* Pretendard에는 기울임 글꼴이 없어 편집기 안에서만 기울임 합성을 허용합니다. */
+  font-synthesis: style;
+  min-height: 130px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 12px;
+  color: #181818;
+  font-size: var(--font-text-md);
+  line-height: var(--line-text-md);
+  outline: none;
+  overflow-wrap: anywhere;
+}
+.rich-text-editor.is-empty::before {
+  content: attr(data-placeholder);
+  color: #9aa0a6;
+  pointer-events: none;
+}
+.rich-text-editor ul,
+.rich-text-editor ol {
+  margin: 4px 0;
+  padding-left: 22px;
+}
+.rich-text-editor p {
+  margin: 0;
 }
