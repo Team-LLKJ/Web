@@ -1,7 +1,7 @@
 .landing-page {
   min-height: 100vh;
-  background: #fff;
-  color: #000;
+  background: var(--color-white);
+  color: var(--color-black);
 }
 .landing-page a.button {
   text-decoration: none;
@@ -16,7 +16,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #f6faff;
+  background: var(--color-primary-background);
   padding: 15px 50px;
   height: 80px;
 }
@@ -30,15 +30,15 @@
 }
 .landing-outline {
   background: transparent;
-  border: 2px solid #007bff;
-  color: #007bff;
+  border: 2px solid var(--color-primary);
+  color: var(--color-primary);
   padding: 8px 25px;
 }
 .landing-outline.button--small {
   padding: 8px 18px;
 }
 .landing-hero {
-  background: #f6faff;
+  background: var(--color-primary-background);
   padding: 100px;
   display: flex;
   justify-content: center;
@@ -69,14 +69,14 @@
 }
 .landing-hero h1 span {
   display: inline-block;
-  color: #007bff;
+  color: var(--color-primary);
   margin-bottom: 10px;
 }
 .landing-hero-copy p {
   font-size: var(--font-test-lg);
   line-height: var(--line-test-lg);
-  font-weight: 500;
-  color: #8e8e93;
+  font-weight: var(--weight-medium);
+  color: var(--color-grey-40);
 }
 .landing-actions {
   display: flex;
@@ -133,7 +133,7 @@
   gap: 50px;
 }
 .landing-criteria {
-  background: #f6faff;
+  background: var(--color-primary-background);
 }
 .landing-section-heading {
   text-align: center;
@@ -145,13 +145,13 @@
   font-size: var(--font-title-md);
   line-height: var(--line-title-md);
   font-weight: var(--weight-bold);
-  color: #007bff;
+  color: var(--color-primary);
 }
 .landing-section-heading p {
   font-size: var(--font-test-lg);
   line-height: var(--line-test-lg);
-  font-weight: 500;
-  color: #8e8e93;
+  font-weight: var(--weight-medium);
+  color: var(--color-grey-40);
 }
 .landing-feature-grid {
   display: flex;
@@ -169,7 +169,7 @@
   gap: 20px;
 }
 .landing-feature-card {
-  background: #f6faff;
+  background: var(--color-primary-background);
 }
 .landing-feature-card img {
   display: block;
@@ -179,13 +179,13 @@
 .landing-criterion-card h3 {
   font-size: var(--font-test-lg);
   line-height: var(--line-test-lg);
-  font-weight: 500;
+  font-weight: var(--weight-medium);
 }
 .landing-feature-card p,
 .landing-criterion-card p {
   font-size: var(--font-text-md);
   line-height: var(--line-text-md);
-  color: #48484a;
+  color: var(--color-grey-60);
 }
 .landing-criteria-grid {
   display: flex;
@@ -197,14 +197,14 @@
   max-width: 100%;
 }
 .landing-criterion-card {
-  border: 1px solid #e2f0ff;
-  background: white;
+  border: 1px solid var(--color-primary-soft);
+  background: var(--color-white);
 }
 .criterion-number {
   font-size: var(--font-title-md);
   line-height: var(--line-title-md);
   font-weight: var(--weight-bold);
-  color: #007bff;
+  color: var(--color-primary);
 }
 @media (max-width: 1100px) {
   .landing-hero {

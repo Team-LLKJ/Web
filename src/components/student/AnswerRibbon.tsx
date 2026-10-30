@@ -1,7 +1,11 @@
 import { useId, useState, type ReactNode } from "react";
 import { useEditorState, type Editor } from "@tiptap/react";
 import { EditorToolIcon } from "./EditorToolIcon";
-import { DEFAULT_FONT_SIZE, FONT_FAMILIES } from "./answerHtml";
+import {
+  DEFAULT_FONT_FAMILY,
+  DEFAULT_FONT_SIZE,
+  FONT_FAMILIES,
+} from "./answerHtml";
 
 type Props = {
   editor: Editor;
@@ -23,7 +27,7 @@ function hexColor(value: string) {
           .slice(1)
           .map((v) => Number(v).toString(16).padStart(2, "0"))
           .join("")
-    : "#202124";
+    : "#000000";
 }
 export function AnswerRibbon({
   editor,
@@ -60,7 +64,7 @@ export function AnswerRibbon({
       style: e.isActive("heading")
         ? `H${e.getAttributes("heading").level}`
         : "P",
-      font: e.getAttributes("textStyle").fontFamily || "Arial",
+      font: e.getAttributes("textStyle").fontFamily || DEFAULT_FONT_FAMILY,
       size:
         parseFloat(
           e.getAttributes("textStyle").fontSize ||
@@ -71,12 +75,12 @@ export function AnswerRibbon({
           e.getAttributes("heading").level as 1 | 2 | 3
         ] ??
           DEFAULT_FONT_SIZE),
-      color: e.getAttributes("textStyle").color || "#202124",
+      color: e.getAttributes("textStyle").color || "#000000",
       highlight: e.getAttributes("highlight").color || "#fff2cc",
       line:
         e.getAttributes("heading").paragraphLineHeight ||
         e.getAttributes("paragraph").paragraphLineHeight ||
-        "1.5",
+        "1.4",
       before:
         e.getAttributes("heading").spacingBefore ||
         e.getAttributes("paragraph").spacingBefore ||
@@ -97,7 +101,7 @@ export function AnswerRibbon({
     }),
   });
   const pages = ["편집", "문단", "삽입", "표·이미지"];
-  const lineOptions = ["1", "1.15", "1.5", "1.75", "2", "2.5", "3"];
+  const lineOptions = ["1", "1.15", "1.4", "1.5", "1.75", "2", "2.5", "3"];
   const run = (action: () => void) => {
     if (editor.isEditable) action();
   };
