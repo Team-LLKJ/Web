@@ -23,7 +23,7 @@ export function SubmissionPanel({
     <main className="answer-area">
       <section className="student-summary">
         <div className="identity">
-          <Avatar name={student.name} color={student.color} size="large" />
+          <Avatar name={student.name} size="large" />
           <div>
             <h1>{student.name}</h1>
             <p>

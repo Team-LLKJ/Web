@@ -35,7 +35,7 @@ export function ChatMessage({
     <div className={`message ${role === "user" ? "user" : "ai"}`}>
       <div className="message-author">
         {role === "user" ? (
-          <Avatar name={student.name} color={student.color} size="small" />
+          <Avatar name={student.name} size="small" />
         ) : (
           <Avatar name="AI" size="small" ai />
         )}

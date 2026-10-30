@@ -17,7 +17,7 @@ export function PlayerButton({
       onClick={onSelect}
     >
       <span className="student-name">
-        <Avatar name={student.name} color={student.color} />
+        <Avatar name={student.name} />
         {student.name}
       </span>
       <StatusBadge status={student.status} />
