@@ -9,7 +9,7 @@
 }
 .answer-document-viewport:focus-within {
   border-color: #52a6ff;
-  box-shadow: 0 0 0 2px #f6faff;
+  box-shadow: 0 0 0 2px #e2f0ff;
 }
 .answer-document-host {
   display: flex;
@@ -172,8 +172,8 @@
   opacity: 1;
 }
 .ribbon-tool.is-active {
-  background: #f6faff;
-  border-color: #e2f0ff;
+  background: #e2f0ff;
+  border-color: #52a6ff;
   color: #0059bc;
 }
 .ribbon-tool.is-active .ribbon-tool-symbol {
@@ -197,7 +197,7 @@
   font-variant-numeric: tabular-nums;
 }
 .ribbon-font-size:focus-within {
-  outline: 2px solid #e2f0ff;
+  outline: 2px solid #52a6ff;
   outline-offset: 1px;
 }
 .ribbon-paragraph-settings {
