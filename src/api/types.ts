@@ -120,6 +120,8 @@ export type Workspace = {
   status: WorkspaceStatus;
   readOnly: boolean;
   aiPolicy: AiPolicy;
+  /** Teacher-written evaluation guidelines; absent until the server supports it. */
+  guidelines?: string;
   questions: QuestionAnswer[];
 };
 

@@ -3,6 +3,7 @@ import { LoginPage } from "../pages/LoginPage";
 import { SignupPage } from "../pages/SignupPage";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { TeacherEvaluationPage } from "../pages/TeacherEvaluationPage";
+import TeacherGradingPage from "../pages/TeacherGradingPage";
 import { TeacherResultsPage } from "../pages/TeacherResultsPage";
 import { MyEvaluationsPage } from "../pages/MyEvaluationsPage";
 import { PasswordResetPage } from "../pages/PasswordResetPage";
@@ -35,7 +36,7 @@ export function AppRoutes() {
       <Route path={paths.evaluationCreate} element={<RequireAuth role="TEACHER"><TeacherEvaluationPage /></RequireAuth>} />
       <Route path={paths.results} element={<RequireAuth role="TEACHER"><TeacherResultsPage /></RequireAuth>} />
       <Route path={paths.evaluation} element={<RequireAuth role="TEACHER"><TeacherEvaluationPage /></RequireAuth>} />
-      <Route path={paths.grading} element={<Navigate to={paths.evaluationCreate} replace />} />
+      <Route path={paths.grading} element={<TeacherGradingPage />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );

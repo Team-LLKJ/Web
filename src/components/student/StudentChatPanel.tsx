@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { AiPolicy } from "../../api/types";
 import type { Message, Student } from "../../data/grading";
+import { ChatHistorySkeleton } from "../grading/ChatHistorySkeleton";
 import { ChatMessage } from "../grading/ChatMessage";
-import { Skeleton, SkeletonStatus } from "../ui/Skeleton";
 import { ChatComposer } from "./ChatComposer";
 
 function StudentAiWelcome({ policy }: { policy: AiPolicy }) {
@@ -105,33 +105,9 @@ export function StudentChatPanel({
         aria-relevant="additions text"
         tabIndex={0}
       >
-        {loadingHistory && messages.length === 0 ? (
-          <SkeletonStatus
-            className="student-chat-loading-list"
-            label="대화 기록을 불러오고 있습니다."
-          >
-            {Array.from({ length: 3 }, (_, index) => (
-              <div
-                className={`student-chat-loading-message ${index % 2 ? "is-user" : ""}`}
-                key={index}
-                aria-hidden="true"
-              >
-                <div className="student-chat-loading-author">
-                  <Skeleton
-                    style={{ width: 25, height: 25, borderRadius: "50%" }}
-                  />
-                  <Skeleton style={{ width: 56, height: 13 }} />
-                </div>
-                <Skeleton
-                  style={{
-                    width: index % 2 ? "54%" : "72%",
-                    height: 48,
-                    borderRadius: 10,
-                  }}
-                />
-              </div>
-            ))}
-          </SkeletonStatus>
+        <StudentAiWelcome policy={aiPolicy} />
+        {loadingHistory ? (
+          <ChatHistorySkeleton />
         ) : messages.length > 0 ? (
           messages.map((message) => (
             <ChatMessage
@@ -142,9 +118,7 @@ export function StudentChatPanel({
               pending={message.pending}
             />
           ))
-        ) : (
-          <StudentAiWelcome policy={aiPolicy} />
-        )}
+        ) : null}
         {notice && (
           <p className="chat-notice" role="status">
             {notice}
