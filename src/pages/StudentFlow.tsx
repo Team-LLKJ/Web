@@ -83,6 +83,7 @@ export function StudentFlow({ route }: { route: string }) {
   const [aiBusy, setAiBusy] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [privacyMasked, setPrivacyMasked] = useState(false);
+  const [chatExpanded, setChatExpanded] = useState(false);
 
   const isSolving = route === "/student/solve";
   const isWaiting = route === "/student/wait";
@@ -306,7 +307,7 @@ export function StudentFlow({ route }: { route: string }) {
   }
 
   async function sendAiQuestion(text: string) {
-    if (!session.evaluationId || !questionId || !workspace || workspace.aiPolicy === "DISABLED" || readOnly) return;
+    if (aiBusy || !session.evaluationId || !questionId || !workspace || workspace.aiPolicy === "DISABLED" || readOnly) return;
     const requestId = crypto.randomUUID();
     const pending: Turn = {
       id: Date.now(), requestId, questionId, questionText: text, answerText: null, state: "PENDING",
@@ -480,6 +481,7 @@ export function StudentFlow({ route }: { route: string }) {
         </div>
       )}
       <StudentWorkspace
+        sidebarExpanded={chatExpanded}
         editor={
           <main className="student-writing">
             <AnswerEditor
@@ -512,6 +514,8 @@ export function StudentFlow({ route }: { route: string }) {
         }
         chat={
           <StudentChatPanel
+            expanded={chatExpanded}
+            onExpandedChange={setChatExpanded}
             student={displayStudent}
             messages={messages}
             disabled={readOnly || workspace.aiPolicy === "DISABLED"}

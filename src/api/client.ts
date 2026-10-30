@@ -1,16 +1,28 @@
+import axios, { type AxiosResponse } from "axios";
 import type { Tokens } from "./types";
-import { clearParticipantCredentials, getParticipantToken } from "../data/studentSession";
+import {
+  clearParticipantCredentials,
+  getParticipantToken,
+} from "../data/studentSession";
 
 const ACCESS_TOKEN_KEY = "lit:auth:access-token";
 const REFRESH_TOKEN_KEY = "lit:auth:refresh-token";
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "").replace(
+  /\/$/,
+  "",
+);
 
 export class ApiError extends Error {
   status: number;
   code: string;
   payload: unknown;
 
-  constructor(status: number, code: string, message: string, payload?: unknown) {
+  constructor(
+    status: number,
+    code: string,
+    message: string,
+    payload?: unknown,
+  ) {
     super(message);
     this.name = "ApiError";
     this.status = status;
@@ -45,9 +57,10 @@ function storageSet(storage: Storage, key: string, value: string | null) {
   }
 }
 
-let accessToken = typeof window === "undefined"
-  ? null
-  : storageGet(window.sessionStorage, ACCESS_TOKEN_KEY);
+let accessToken =
+  typeof window === "undefined"
+    ? null
+    : storageGet(window.sessionStorage, ACCESS_TOKEN_KEY);
 let refreshInFlight: Promise<string | null> | null = null;
 
 export function getAccessToken() {
@@ -56,7 +69,10 @@ export function getAccessToken() {
 
 export function hasStoredSession() {
   if (accessToken) return true;
-  return typeof window !== "undefined" && Boolean(storageGet(window.localStorage, REFRESH_TOKEN_KEY));
+  return (
+    typeof window !== "undefined" &&
+    Boolean(storageGet(window.localStorage, REFRESH_TOKEN_KEY))
+  );
 }
 
 export function setTokens(tokens: Tokens) {
@@ -75,20 +91,31 @@ export function clearTokens() {
   }
 }
 
-async function readError(response: Response): Promise<ApiError> {
+async function readError(
+  response: AxiosResponse<string | Blob>,
+): Promise<ApiError> {
   let payload: unknown;
   try {
-    payload = await response.json();
+    payload = JSON.parse(
+      typeof response.data === "string"
+        ? response.data
+        : await response.data.text(),
+    );
   } catch {
     payload = undefined;
   }
-  const errorBody = payload && typeof payload === "object"
-    ? payload as { code?: unknown; message?: unknown }
-    : {};
-  const code = typeof errorBody.code === "string" ? errorBody.code : `HTTP_${response.status}`;
-  const message = typeof errorBody.message === "string"
-    ? errorBody.message
-    : `요청에 실패했습니다. (${response.status})`;
+  const errorBody =
+    payload && typeof payload === "object"
+      ? (payload as { code?: unknown; message?: unknown })
+      : {};
+  const code =
+    typeof errorBody.code === "string"
+      ? errorBody.code
+      : `HTTP_${response.status}`;
+  const message =
+    typeof errorBody.message === "string"
+      ? errorBody.message
+      : `요청에 실패했습니다. (${response.status})`;
   return new ApiError(response.status, code, message, payload);
 }
 
@@ -100,17 +127,21 @@ async function refreshAccessToken(): Promise<string | null> {
 
   refreshInFlight = (async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({ refreshToken }),
-      });
-      if (!response.ok) {
+      const response = await send(
+        "/api/auth/refresh",
+        {
+          method: "POST",
+          body: { refreshToken },
+          auth: false,
+        },
+        null,
+      );
+      if (response.status < 200 || response.status >= 300) {
         const error = await readError(response);
         if (response.status === 401) clearTokens();
         throw error;
       }
-      const tokens = await response.json() as Tokens;
+      const tokens = JSON.parse(response.data as string) as Tokens;
       setTokens(tokens);
       return tokens.accessToken;
     } catch (error) {
@@ -123,54 +154,103 @@ async function refreshAccessToken(): Promise<string | null> {
   return refreshInFlight;
 }
 
-async function send(path: string, options: RequestOptions, token: string | null) {
+async function send(
+  path: string,
+  options: RequestOptions,
+  token: string | null,
+) {
   const headers = new Headers(options.headers);
-  headers.set("Accept", options.responseType === "blob" ? "image/png" : "application/json");
-  if (options.body !== undefined) headers.set("Content-Type", "application/json");
-  if (options.auth !== false && token) headers.set("Authorization", `Bearer ${token}`);
+  headers.set(
+    "Accept",
+    options.responseType === "blob" ? "image/png" : "application/json",
+  );
+  if (options.body !== undefined)
+    headers.set("Content-Type", "application/json");
+  if (options.auth !== false && token)
+    headers.set("Authorization", `Bearer ${token}`);
   if (options.participant) {
-    const participantToken = getParticipantToken(options.participantEvaluationId);
+    const participantToken = getParticipantToken(
+      options.participantEvaluationId,
+    );
     if (participantToken) headers.set("X-Participant-Token", participantToken);
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    headers,
-    body: options.body === undefined ? undefined : JSON.stringify(options.body),
+  const requestHeaders: Record<string, string> = {};
+  headers.forEach((value, key) => {
+    requestHeaders[key] = value;
   });
-  return response;
+  try {
+    return await axios.request<string | Blob>({
+      url: `${API_BASE_URL}${path}`,
+      method: options.method ?? "GET",
+      headers: requestHeaders,
+      data:
+        options.body === undefined ? undefined : JSON.stringify(options.body),
+      responseType: options.responseType === "blob" ? "blob" : "text",
+      signal: options.signal ?? undefined,
+      withCredentials: options.credentials === "include",
+      validateStatus: () => true,
+    });
+  } catch (error) {
+    if (axios.isCancel(error))
+      throw new DOMException("요청이 취소되었습니다.", "AbortError");
+    if (axios.isAxiosError(error))
+      throw new TypeError("API 서버에 연결할 수 없습니다.", { cause: error });
+    throw error;
+  }
 }
 
-export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  if (options.participant && !getParticipantToken(options.participantEvaluationId)) {
-    throw new ApiError(401, "PARTICIPANT_TOKEN_MISSING", "참가 정보가 만료되었습니다. PIN과 닉네임으로 다시 참가해주세요.");
+export async function apiRequest<T>(
+  path: string,
+  options: RequestOptions = {},
+): Promise<T> {
+  if (
+    options.participant &&
+    !getParticipantToken(options.participantEvaluationId)
+  ) {
+    throw new ApiError(
+      401,
+      "PARTICIPANT_TOKEN_MISSING",
+      "참가 정보가 만료되었습니다. PIN과 닉네임으로 다시 참가해주세요.",
+    );
   }
   const auth = options.auth !== false;
   let token = accessToken;
   if (auth && !token) token = await refreshAccessToken();
 
   let response = await send(path, options, token);
-  if (response.status === 401 && auth && options.retryOnUnauthorized !== false && path !== "/api/auth/refresh") {
+  if (
+    response.status === 401 &&
+    auth &&
+    options.retryOnUnauthorized !== false &&
+    path !== "/api/auth/refresh"
+  ) {
     const refreshed = await refreshAccessToken();
     if (refreshed) response = await send(path, options, refreshed);
     else clearTokens();
   }
-  if (!response.ok) {
+  if (response.status < 200 || response.status >= 300) {
     const error = await readError(response);
-    if (options.participant && (response.status === 401 || error.code === "PARTICIPANT_TOKEN_REQUIRED")) {
+    if (
+      options.participant &&
+      (response.status === 401 || error.code === "PARTICIPANT_TOKEN_REQUIRED")
+    ) {
       clearParticipantCredentials();
     }
     throw error;
   }
-  if (options.responseType === "blob") return await response.blob() as T;
+  if (options.responseType === "blob") return response.data as T;
   if (response.status === 204) return undefined as T;
-  const text = await response.text();
+  const text = response.data as string;
   return (text ? JSON.parse(text) : undefined) as T;
 }
 
-export function apiErrorMessage(error: unknown, fallback = "요청을 처리하지 못했습니다. 잠시 후 다시 시도해주세요.") {
+export function apiErrorMessage(
+  error: unknown,
+  fallback = "요청을 처리하지 못했습니다. 잠시 후 다시 시도해주세요.",
+) {
   if (error instanceof ApiError) return error.message;
-  if (error instanceof TypeError) return "API 서버에 연결할 수 없습니다. 서버가 실행 중인지 확인해주세요.";
+  if (error instanceof TypeError)
+    return "API 서버에 연결할 수 없습니다. 서버가 실행 중인지 확인해주세요.";
   return fallback;
 }
-
