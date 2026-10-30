@@ -474,14 +474,21 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  height: 60px;
+  min-height: 60px;
   padding: 10px 20px;
   border: 1px solid #c6c6c6;
   border-radius: 15px;
 }
-.student-chat-composer input {
+.student-chat-composer textarea {
+  display: block;
+  flex: 1;
   width: 100%;
   min-width: 0;
+  min-height: 25px;
+  max-height: 200px;
+  padding: 0;
+  overflow-y: auto;
+  resize: none;
   outline: 0;
   border: 0;
   background: transparent;
@@ -489,7 +496,7 @@
   font-size: var(--font-text-md);
   line-height: var(--line-text-md);
 }
-.student-chat-composer input::placeholder {
+.student-chat-composer textarea::placeholder {
   color: #8e8e93;
 }
 .student-chat-composer button {
