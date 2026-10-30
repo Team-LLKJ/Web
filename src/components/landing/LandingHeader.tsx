@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { paths } from "../../router/paths";
 import { Icon } from "../ui/Icon";
 import { IconButton } from "../ui/IconButton";
-import { useAuth } from "../../auth/AuthProvider";
+import { useAuth } from "../../auth/useAuth";
 import { Button } from "../ui/Button";
 export function LandingHeader({
   onNotice,

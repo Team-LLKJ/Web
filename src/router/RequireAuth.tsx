@@ -1,24 +1,13 @@
 import type { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "../auth/AuthProvider";
-import { Skeleton, SkeletonStatus } from "../components/ui/Skeleton";
+import { useAuth } from "../auth/useAuth";
 import type { UserRole } from "../api/types";
 
 export function RequireAuth({ children, role }: { children: ReactNode; role: UserRole }) {
   const { user, loading } = useAuth();
   const location = useLocation();
 
-  if (loading) return (
-    <main className="route-loading">
-      <SkeletonStatus className="route-loading-card" label="계정 정보를 확인하고 있습니다.">
-        <Skeleton style={{ width: 90, height: 30 }} />
-        <Skeleton style={{ width: "72%", height: 18 }} />
-        <Skeleton style={{ width: "100%", height: 46 }} />
-        <Skeleton style={{ width: "100%", height: 46 }} />
-        <Skeleton style={{ width: "100%", height: 44, marginTop: 10 }} />
-      </SkeletonStatus>
-    </main>
-  );
+  if (loading) return null;
   if (!user) return <Navigate to="/login" replace state={{ from: location }} />;
   if (user.role !== role) {
     return <Navigate to={user.role === "TEACHER" ? "/teacher/evaluations" : "/student/join"} replace />;

@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { apiErrorMessage } from "../api/client";
 import { getEvaluation, getParticipants, getTeacherLearningEvents } from "../api/evaluations";
 import type { Evaluation, LearningEvent, Lobby, Participant } from "../api/types";
-import { useAuth } from "../auth/AuthProvider";
+import { useAuth } from "../auth/useAuth";
 import { Button } from "../components/ui/Button";
 import { Skeleton, SkeletonStatus } from "../components/ui/Skeleton";
 import { TextInput } from "../components/ui/TextInput";
@@ -17,6 +17,7 @@ const eventNames: Record<string, string> = {
   SUBMITTED: "답안 제출",
 };
 const detailKeys = ["questionId", "source", "answerVersion", "errorCode"];
+const emptyParticipants: Participant[] = [];
 
 function visibleDetails(details: Record<string, unknown>) {
   return detailKeys.flatMap((key) => {
@@ -35,10 +36,16 @@ export function TeacherResultsPage() {
   const [lobby, setLobby] = useState<Lobby | null>(null);
   const [selectedId, setSelectedId] = useState("");
   const [query, setQuery] = useState("");
-  const [events, setEvents] = useState<LearningEvent[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [eventsLoading, setEventsLoading] = useState(false);
+  const [eventsSnapshot, setEventsSnapshot] = useState<{ key: string; items: LearningEvent[] }>({ key: "", items: [] });
+  const [loadedEvaluationId, setLoadedEvaluationId] = useState("");
+  const [loadedEventsKey, setLoadedEventsKey] = useState("");
+  const [refreshingEventsKey, setRefreshingEventsKey] = useState("");
   const [notice, setNotice] = useState("");
+  const eventsKey = `${evaluationId}:${selectedId}`;
+  const events = eventsSnapshot.key === eventsKey ? eventsSnapshot.items : [];
+  const eventsLoading = Boolean(evaluationId && selectedId)
+    && (loadedEventsKey !== eventsKey || refreshingEventsKey === eventsKey);
+  const loading = Boolean(evaluationId) && loadedEvaluationId !== evaluationId;
 
   const refreshLobby = useCallback(async () => {
     if (!evaluationId) return;
@@ -54,15 +61,15 @@ export function TeacherResultsPage() {
   }, [evaluationId]);
 
   useEffect(() => {
+    if (!evaluationId) return;
     let active = true;
-    setLoading(true);
-    void refreshLobby().catch((error) => {
+    void Promise.resolve().then(() => refreshLobby()).catch((error) => {
       if (active) setNotice(apiErrorMessage(error, "평가 결과를 불러오지 못했습니다."));
     }).finally(() => {
-      if (active) setLoading(false);
+      if (active) setLoadedEvaluationId(evaluationId);
     });
     return () => { active = false; };
-  }, [refreshLobby]);
+  }, [evaluationId, refreshLobby]);
 
   useEffect(() => {
     if (!evaluationId || evaluation?.state === "ENDED" || evaluation?.state === "EXPIRED") return;
@@ -74,26 +81,23 @@ export function TeacherResultsPage() {
 
   useEffect(() => {
     if (!evaluationId || !selectedId) {
-      setEvents([]);
       return;
     }
     let active = true;
-    setEvents([]);
-    setEventsLoading(true);
     void getTeacherLearningEvents(evaluationId, selectedId, 0, 200).then((next) => {
-      if (active) setEvents(next);
+      if (active) setEventsSnapshot({ key: eventsKey, items: next });
     }).catch((error) => {
       if (active) setNotice(apiErrorMessage(error, "학습 기록을 불러오지 못했습니다."));
     }).finally(() => {
-      if (active) setEventsLoading(false);
+      if (active) setLoadedEventsKey(eventsKey);
     });
     return () => { active = false; };
-  }, [evaluationId, selectedId]);
+  }, [evaluationId, selectedId, eventsKey]);
 
-  const participants = lobby?.participants ?? [];
-  const visibleParticipants = useMemo(() => participants.filter((participant) =>
+  const participants = lobby?.participants ?? emptyParticipants;
+  const visibleParticipants = participants.filter((participant) =>
     participant.nickname.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()),
-  ), [participants, query]);
+  );
   const selected = participants.find((participant) => participant.id === selectedId) ?? null;
   const connectedCount = participants.filter((participant) => participant.presence === "CONNECTED").length;
   const savedAnswers = events.filter((event) => event.type === "ANSWER_SAVED").length;
@@ -102,14 +106,17 @@ export function TeacherResultsPage() {
 
   async function refreshEvents() {
     if (!selectedId || !evaluationId) return;
-    setEventsLoading(true);
+    const key = `${evaluationId}:${selectedId}`;
+    setRefreshingEventsKey(key);
     setNotice("");
     try {
-      setEvents(await getTeacherLearningEvents(evaluationId, selectedId, 0, 200));
+      const next = await getTeacherLearningEvents(evaluationId, selectedId, 0, 200);
+      setEventsSnapshot({ key, items: next });
+      setLoadedEventsKey(key);
     } catch (error) {
       setNotice(apiErrorMessage(error, "학습 기록을 새로 불러오지 못했습니다."));
     } finally {
-      setEventsLoading(false);
+      setRefreshingEventsKey((current) => current === key ? "" : current);
     }
   }
 

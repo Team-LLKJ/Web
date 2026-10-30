@@ -210,12 +210,88 @@ h3 {
   background: var(--primary);
   color: white;
 }
-.message > p {
+.message > p,
+.message > .message-content {
   padding: 10px 15px;
   background: #f4f4f4;
   border-radius: 10px;
   font-size: var(--font-text-md);
   line-height: var(--line-text-md);
+}
+.message-content--markdown {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.message-content--markdown > :first-child { margin-top: 0; }
+.message-content--markdown > :last-child { margin-bottom: 0; }
+.message-content--markdown p { margin: 0 0 0.75em; }
+.message-content--markdown ul,
+.message-content--markdown ol { margin: 0 0 0.75em; padding-left: 1.5em; }
+.message-content--markdown li + li { margin-top: 0.2em; }
+.message-content--markdown h1,
+.message-content--markdown h2,
+.message-content--markdown h3,
+.message-content--markdown h4 { margin: 0.8em 0 0.4em; font-size: 1em; line-height: inherit; }
+.message-content--markdown blockquote { margin: 0.6em 0; padding-left: 0.8em; border-left: 3px solid #c6c6c6; color: #555; }
+.message-content--markdown code { padding: 0.1em 0.35em; border-radius: 4px; background: #e7e9ec; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.9em; }
+.message-content--markdown pre { overflow-x: auto; margin: 0.6em 0; padding: 10px 12px; border-radius: 7px; background: #e7e9ec; }
+.message-content--markdown pre code { padding: 0; background: transparent; font-size: 0.9em; }
+.message-content--markdown table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; }
+.message-content--markdown th,
+.message-content--markdown td { border: 1px solid #c6c6c6; padding: 5px 8px; text-align: left; }
+.message-content--markdown a { color: var(--primary); text-decoration: underline; }
+.message > p.message-pending {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  max-width: min(360px, 100%);
+}
+.message-pending-indicator {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  height: 1em;
+}
+.message-pending-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 100%;
+}
+.message-pending-dots > span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #4f5661;
+  animation: pending-dot-wave 1s ease-in-out infinite;
+}
+.message-pending-dots > span:nth-child(2) {
+  animation-delay: 0.14s;
+}
+.message-pending-dots > span:nth-child(3) {
+  animation-delay: 0.28s;
+}
+.message-pending-text {
+  min-width: 0;
+  color: transparent;
+  background: linear-gradient(100deg, #9299a3 25%, #e6eaf0 45%, #9299a3 65%);
+  background-size: 220% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: message-text-shimmer 1.45s ease-in-out infinite;
+}
+@keyframes pending-dot-wave {
+  0%, 60%, 100% { opacity: 0.5; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-3px); }
+}
+@keyframes message-text-shimmer {
+  to { background-position: -220% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .message-pending-dots > span,
+  .message-pending-text { animation: none; }
 }
 .message.user > p {
   background: #e2f0ff;
@@ -379,10 +455,13 @@ h3 {
   font-size: var(--font-text-md);
   line-height: var(--line-text-md);
 }
-.message > p {
+.message > p,
+.message > .message-content {
   max-width: 100%;
-  white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+.message > p {
+  white-space: pre-wrap;
 }
 
 @media screen {
