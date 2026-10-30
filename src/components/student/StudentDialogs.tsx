@@ -43,6 +43,8 @@ export function StudentDialogs({
       title={title}
       onClose={onClose}
       className="student-modal"
+      dismissOnBackdrop={kind !== "warning"}
+      dismissOnEscape={kind !== "warning"}
       actions={
         <>
           {kind === "submit" ? (

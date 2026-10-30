@@ -121,7 +121,7 @@ export function StudentFlow({ route }: { route: string }) {
   const [preview, setPreview] = useState<Review | null>(null);
   const [dialogError, setDialogError] = useState("");
   const [loadingWorkspace, setLoadingWorkspace] = useState(false);
-  const [loadingQuestionData, setLoadingQuestionData] = useState(false);
+  const [loadingQuestionData, setLoadingQuestionData] = useState(true);
   const [savingQuestionId, setSavingQuestionId] = useState("");
   const [aiBusy, setAiBusy] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -886,6 +886,7 @@ export function StudentFlow({ route }: { route: string }) {
             student={displayStudent}
             messages={messages}
             loadingHistory={loadingQuestionData}
+            aiPolicy={workspace.aiPolicy}
             disabled={readOnly || workspace.aiPolicy === "DISABLED"}
             busy={aiBusy}
             notice={
