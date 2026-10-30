@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from "react";
 export function ChatComposer({
   disabled,
   value,
@@ -5,6 +6,7 @@ export function ChatComposer({
   busy = false,
   disabledReason = "현재 질문을 보낼 수 없습니다.",
   onSend,
+  onResize,
 }: {
   disabled: boolean;
   value: string;
@@ -12,7 +14,17 @@ export function ChatComposer({
   busy?: boolean;
   disabledReason?: string;
   onSend: (text: string) => void;
+  onResize?: () => void;
 }) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  useLayoutEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    const previousHeight = textarea.clientHeight;
+    textarea.style.height = "0px";
+    textarea.style.height = `${textarea.scrollHeight}px`;
+    if (textarea.clientHeight !== previousHeight) onResize?.();
+  }, [value, onResize]);
   return (
     <form
       className="student-chat-composer"
@@ -24,7 +36,9 @@ export function ChatComposer({
       }}
     >
       <div>
-        <input
+        <textarea
+          ref={textareaRef}
+          rows={1}
           aria-label="AI에게 질문"
           placeholder={
             disabled

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Message, Student } from "../../data/grading";
 import { ChatMessage } from "../grading/ChatMessage";
 import { Skeleton, SkeletonStatus } from "../ui/Skeleton";
@@ -26,15 +26,34 @@ export function StudentChatPanel({
 }) {
   const list = useRef<HTMLDivElement>(null);
   const [draft, setDraft] = useState("");
+  const historyAtBottom = useRef(true);
+  const scrollHistoryToBottom = useCallback(() => {
+    const history = list.current;
+    if (!history) return;
+    history.scrollTop = history.scrollHeight;
+    historyAtBottom.current = true;
+  }, []);
   useEffect(() => {
-    list.current?.scrollTo({ top: list.current.scrollHeight });
-  }, [messages, expanded, loadingHistory]);
+    scrollHistoryToBottom();
+  }, [messages, expanded, loadingHistory, scrollHistoryToBottom]);
+  const keepHistoryAtBottomOnComposerResize = useCallback(() => {
+    if (!historyAtBottom.current) return;
+    requestAnimationFrame(() => {
+      if (historyAtBottom.current) scrollHistoryToBottom();
+    });
+  }, [scrollHistoryToBottom]);
 
   const conversation = (
     <>
       <div
         className="student-chat-history"
         ref={list}
+        onScroll={(event) => {
+          const history = event.currentTarget;
+          historyAtBottom.current =
+            history.scrollHeight - history.scrollTop - history.clientHeight <=
+            24;
+        }}
         role="log"
         aria-label="AI 대화 기록"
         aria-live="polite"
@@ -97,6 +116,7 @@ export function StudentChatPanel({
         value={draft}
         onValueChange={setDraft}
         onSend={onSend}
+        onResize={keepHistoryAtBottomOnComposerResize}
       />
     </>
   );
