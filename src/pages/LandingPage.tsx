@@ -58,7 +58,6 @@ export function LandingPage() {
           onClose={() => setNotice("")}
           actions={<Button onClick={() => setNotice("")}>확인</Button>}
         >
-          {notice === "설정" && <p>설정할 항목이 없습니다.</p>}
         </Modal>
       )}
     </div>
