@@ -106,12 +106,15 @@ async function readError(
   }
   const errorBody =
     payload && typeof payload === "object"
-      ? (payload as { code?: unknown; message?: unknown })
+      ? (payload as { code?: unknown; message?: unknown; errorCode?: unknown })
       : {};
+  // AI 질문 실패는 { code, message } 대신 Turn(errorCode)으로 내려오기도 합니다.
   const code =
     typeof errorBody.code === "string"
       ? errorBody.code
-      : `HTTP_${response.status}`;
+      : typeof errorBody.errorCode === "string"
+        ? errorBody.errorCode
+        : `HTTP_${response.status}`;
   const message =
     typeof errorBody.message === "string"
       ? errorBody.message
