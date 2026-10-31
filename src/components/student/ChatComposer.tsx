@@ -50,6 +50,13 @@ export function ChatComposer({
           value={value}
           disabled={disabled}
           onChange={(e) => onValueChange(e.target.value)}
+          onKeyDown={(e) => {
+            // Enter sends; Shift+Enter inserts a line break. Ignore Enter that confirms IME composition (Korean).
+            if (e.key !== "Enter" || e.shiftKey) return;
+            if (e.nativeEvent.isComposing || e.keyCode === 229) return;
+            e.preventDefault();
+            e.currentTarget.form?.requestSubmit();
+          }}
         />
         <button
           type="submit"

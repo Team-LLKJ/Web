@@ -3,6 +3,7 @@ import {
   useEffect,
   useRef,
   useState,
+  type CSSProperties,
 } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ApiError, apiErrorMessage } from "../api/client";
@@ -46,6 +47,7 @@ import { NicknameForm } from "../components/student/NicknameForm";
 import { WaitingRoom } from "../components/student/WaitingRoom";
 import { StudentHeader } from "../components/student/StudentHeader";
 import { StudentWorkspace } from "../components/student/StudentWorkspace";
+import { readChatWidth } from "../components/student/chatWidth";
 import { AnswerEditor } from "../components/student/AnswerEditor";
 import { StudentChatPanel } from "../components/student/StudentChatPanel";
 import {
@@ -63,6 +65,14 @@ function screenFor(lobby: {
   if (lobby.state === "WAITING") return "WAITING";
   if (lobby.state === "STARTED") return "SOLVING";
   return "ENDED";
+}
+
+// 서버가 평가 종료·만료로 요청을 거절한 경우인지 확인합니다.
+function isEndedError(error: unknown) {
+  return (
+    error instanceof ApiError &&
+    (error.status === 410 || /ENDED|EXPIRED|CLOSED/.test(error.code))
+  );
 }
 
 function toChatMessages(turns: Turn[]): Message[] {
@@ -202,7 +212,12 @@ export function StudentFlow({ route }: { route: string }) {
         if (screen !== "WAITING" && isWaiting)
           navigate("/student/solve", { replace: true });
       } catch (error) {
-        if (active && !redirectForParticipantAuthError(error))
+        if (active && isEndedError(error) && isSolving) {
+          if (!endHandled.current) {
+            endHandled.current = true;
+            void forceEndRef.current();
+          }
+        } else if (active && !redirectForParticipantAuthError(error))
           setNotice(apiErrorMessage(error, "평가 상태를 불러오지 못했습니다."));
       }
     };
@@ -210,7 +225,12 @@ export function StudentFlow({ route }: { route: string }) {
     const stateTimer = window.setInterval(() => void syncState(), 4000);
     const heartbeatTimer = window.setInterval(() => {
       void sendHeartbeat(session.evaluationId).catch((error) => {
-        if (active && !redirectForParticipantAuthError(error))
+        if (active && isEndedError(error) && isSolving) {
+          if (!endHandled.current) {
+            endHandled.current = true;
+            void forceEndRef.current();
+          }
+        } else if (active && !redirectForParticipantAuthError(error))
           setNotice(apiErrorMessage(error, "연결 상태를 갱신하지 못했습니다."));
       });
     }, 10000);
@@ -511,7 +531,9 @@ export function StudentFlow({ route }: { route: string }) {
     let submitted = workspace?.status === "SUBMITTED";
     if (session.evaluationId && !serverReadOnly) {
       try {
-        if (questionId) await saveAnswer(questionId);
+        // 아직 저장되지 않은 답안은 모든 문항을 저장합니다.
+        for (const row of workspace?.questions ?? [])
+          await saveAnswer(row.question.id);
         if (!submitted) {
           const review = await getSubmissionPreview(session.evaluationId);
           if (review.canConfirm) {
@@ -806,49 +828,30 @@ export function StudentFlow({ route }: { route: string }) {
         </header>
         <div
           className="student-solving-body student-workspace-skeleton-body"
+          style={
+            { "--student-chat-width": `${readChatWidth()}%` } as CSSProperties
+          }
           aria-hidden="true"
         >
           <main className="student-writing">
             <section className="student-editor student-workspace-skeleton-card">
-              <Skeleton className="student-workspace-skeleton-title" />
-              <div className="question-tabs student-workspace-skeleton-tabs">
-                <Skeleton />
+              <div className="student-workspace-skeleton-tabs">
+                <span className="is-active" />
+                <span />
+                <span />
                 <span />
               </div>
-              <section className="question-box student-workspace-skeleton-question">
-                <Skeleton className="student-workspace-skeleton-question-title" />
-                <Skeleton className="student-workspace-skeleton-question-line" />
-                <Skeleton className="student-workspace-skeleton-question-line is-short" />
-              </section>
-              <div className="answer-rich-editor student-workspace-skeleton-rich-editor">
-                <div className="answer-toolbar-scroll">
-                  <div className="student-workspace-skeleton-toolbar">
-                    <Skeleton />
-                    <Skeleton />
-                    <Skeleton />
-                    <i />
-                    <Skeleton />
-                    <Skeleton />
-                    <Skeleton />
-                    <i />
-                    <Skeleton />
-                    <Skeleton />
-                    <Skeleton />
-                  </div>
-                </div>
-                <div className="student-answer-content student-workspace-skeleton-answer">
-                  <Skeleton />
-                  <Skeleton />
-                  <Skeleton />
-                </div>
-                <div className="answer-rich-status">
-                  <Skeleton />
-                  <Skeleton />
-                </div>
+              <Skeleton className="student-workspace-skeleton-title" />
+              <Skeleton className="student-workspace-skeleton-lead" />
+              <div className="student-workspace-skeleton-block">
+                <Skeleton className="student-workspace-skeleton-heading" />
+                <Skeleton className="student-workspace-skeleton-row" />
+                <Skeleton className="student-workspace-skeleton-row" />
               </div>
-              <div className="student-workspace-skeleton-source">
-                <Skeleton />
-                <Skeleton />
+              <div className="student-workspace-skeleton-block">
+                <Skeleton className="student-workspace-skeleton-heading" />
+                <Skeleton className="student-workspace-skeleton-line" />
+                <Skeleton className="student-workspace-skeleton-line is-short" />
               </div>
             </section>
           </main>
@@ -900,7 +903,7 @@ export function StudentFlow({ route }: { route: string }) {
   const displayStudent: Student = {
     id: workspace.participantId,
     name: session.nickname || user?.name || "학생",
-    color: "#ffbb76",
+    color: "#ffd4d3",
     status: workspace.status === "SUBMITTED" ? "제출완료" : "작성중",
     submittedAt: null,
     answers: [],
@@ -923,23 +926,19 @@ export function StudentFlow({ route }: { route: string }) {
         onLeave={() => setDialog("leave")}
         onSubmit={() => void openSubmissionPreview()}
         onPolicy={() => setDialog("policy")}
-        onNotice={(title) => {
-          setNotice(title);
-          setDialog("notice");
-        }}
       />
       <StudentWorkspace
         sidebarExpanded={chatExpanded}
         editor={
           <main className="student-writing">
             <AnswerEditor
+              title={session.evaluationTitle}
+              guidelines={workspace?.guidelines ?? ""}
+              aiPolicy={workspace?.aiPolicy ?? null}
               questions={questions}
               questionId={questionId}
               answers={answers}
               readOnly={readOnly}
-              sourceByQuestion={sourceByQuestion}
-              aiRequestByQuestion={aiRequestByQuestion}
-              completedTurns={turns}
               savingQuestionId={savingQuestionId}
               notice={editorNotice}
               onQuestion={(id) => void selectQuestion(id)}
@@ -949,20 +948,6 @@ export function StudentFlow({ route }: { route: string }) {
                 setEditorNotice("");
               }}
               onSave={(id) => void saveAnswer(id)}
-              onSourceChange={(id, source) => {
-                setSourceByQuestion((current) => ({
-                  ...current,
-                  [id]: source,
-                }));
-                setDirtyAnswers((current) => ({ ...current, [id]: true }));
-              }}
-              onAiRequestChange={(id, requestId) => {
-                setAiRequestByQuestion((current) => ({
-                  ...current,
-                  [id]: requestId,
-                }));
-                setDirtyAnswers((current) => ({ ...current, [id]: true }));
-              }}
             />
           </main>
         }
