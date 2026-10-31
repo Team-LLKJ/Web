@@ -17,8 +17,10 @@ import { AnswerRibbon } from "./AnswerRibbon";
 import { AnswerSearchPanel } from "./AnswerSearchPanel";
 import {
   AnswerLinkDialog,
+  AnswerTableDialog,
   AnswerShortcutsDialog,
 } from "./AnswerToolsDialogs";
+import { prepareAnswerImage } from "./answerImage";
 import "./docs-editor.css";
 
 type Props = {
@@ -46,10 +48,12 @@ export function RichAnswerField({
     callbacks.current = { onChange, onBlur, readOnly };
   }, [onChange, onBlur, readOnly]);
   const [initialHtml] = useState(() => editorHtmlFromContent(content));
+  const imageInput = useRef<HTMLInputElement>(null);
+  const [imageBusy, setImageBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [zoom, setZoom] = useState("100");
   const [search, setSearch] = useState(false);
-  const [dialog, setDialog] = useState<"" | "link" | "help">("");
+  const [dialog, setDialog] = useState<"" | "link" | "table" | "help">("");
   const alive = useRef(true);
   useEffect(() => {
     alive.current = true;
@@ -84,12 +88,34 @@ export function RichAnswerField({
         }
         return false;
       },
+      handlePaste: (_view, event) => {
+        const file = Array.from(event.clipboardData?.files || []).find((f) =>
+          f.type.startsWith("image/"),
+        );
+        if (file) {
+          event.preventDefault();
+          void addImage(file);
+          return true;
+        }
+        return false;
+      },
+      handleDrop: (_view, event, _slice, moved) => {
+        if (moved) return false;
+        const file = Array.from(event.dataTransfer?.files || []).find((f) =>
+          f.type.startsWith("image/"),
+        );
+        if (file) {
+          event.preventDefault();
+          void addImage(file);
+          return true;
+        }
+        return false;
+      },
     },
     onUpdate: ({ editor: e, transaction }) => {
       if (callbacks.current.readOnly || !transaction.docChanged) return;
       const html = sanitizeAnswerHtml(e.getHTML());
-      // 빈 셀만 있는 표도 내용으로 취급해야 하므로 e.isEmpty 대신 sanitize 결과를 그대로 쓴다.
-      callbacks.current.onChange(questionId, html);
+      callbacks.current.onChange(questionId, e.isEmpty ? "" : html);
       setMessage("");
     },
   });
@@ -107,6 +133,37 @@ export function RichAnswerField({
       },
     });
   }, [editor, readOnly, questionTitle]);
+  async function addImage(file: File) {
+    if (!editor || imageBusy || callbacks.current.readOnly) return;
+    setImageBusy(true);
+    setMessage("");
+    try {
+      const src = await prepareAnswerImage(file);
+      if (!alive.current || editor.isDestroyed || callbacks.current.readOnly)
+        return;
+      if (editor.getHTML().length + src.length > MAX_ANSWER_HTML_LENGTH) {
+        setMessage(
+          "답안에 포함된 이미지가 많습니다. 일부 이미지를 삭제해주세요.",
+        );
+        return;
+      }
+      editor
+        .chain()
+        .focus()
+        .setImage({ src, alt: file.name.slice(0, 200) })
+        .createParagraphNear()
+        .run();
+    } catch (error) {
+      if (alive.current)
+        setMessage(
+          error instanceof Error
+            ? error.message
+            : "이미지를 불러오지 못했습니다.",
+        );
+    } finally {
+      if (alive.current) setImageBusy(false);
+    }
+  }
   if (!editor)
     return (
       <SkeletonStatus
@@ -130,12 +187,27 @@ export function RichAnswerField({
     >
       {!readOnly && (
         <>
+          <input
+            ref={imageInput}
+            className="answer-image-input"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            aria-label="답안에 넣을 이미지"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              e.target.value = "";
+              if (file) void addImage(file);
+            }}
+          />
           <AnswerRibbon
             editor={editor}
+            imageBusy={imageBusy}
             zoom={zoom}
             onZoom={setZoom}
             onFind={() => setSearch((v) => !v)}
             onLink={() => setDialog("link")}
+            onTable={() => setDialog("table")}
+            onImage={() => imageInput.current?.click()}
             onHelp={() => setDialog("help")}
           />
         </>
@@ -158,9 +230,13 @@ export function RichAnswerField({
         message={message}
         saving={saving}
         notice={notice}
+        readOnly={readOnly}
       />
       {!readOnly && dialog === "link" && (
         <AnswerLinkDialog editor={editor} onClose={() => setDialog("")} />
+      )}
+      {!readOnly && dialog === "table" && (
+        <AnswerTableDialog editor={editor} onClose={() => setDialog("")} />
       )}
       {!readOnly && dialog === "help" && (
         <AnswerShortcutsDialog onClose={() => setDialog("")} />
@@ -174,11 +250,13 @@ function AnswerStatus({
   message,
   saving,
   notice,
+  readOnly,
 }: {
   editor: Editor;
   message: string;
   saving: boolean;
   notice: string;
+  readOnly: boolean;
 }) {
   const stats = useEditorState({
     editor,
@@ -195,7 +273,11 @@ function AnswerStatus({
   return (
     <div className="answer-rich-status" aria-live="polite">
       <span>
-        {message || (saving ? "저장 중…" : notice)}
+        {message ||
+          (saving
+            ? "저장 중…"
+            : notice ||
+              (!readOnly ? "입력 후 다른 영역을 누르면 저장됩니다." : ""))}
       </span>
       <span>
         {stats?.selected ? `선택 ${stats.selected}자 · ` : ""}

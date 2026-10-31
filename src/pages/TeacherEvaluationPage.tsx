@@ -24,9 +24,11 @@ import type {
 } from "../api/types";
 import { Modal } from "../components/ui/Modal";
 import { TeacherHeader } from "../components/teacher/TeacherHeader";
+import { RichTextEditor } from "../components/teacher/RichTextEditor";
 import { Button } from "../components/ui/Button";
 import { Skeleton, SkeletonStatus } from "../components/ui/Skeleton";
 import { TextInput } from "../components/ui/TextInput";
+import { evaluationCriteria } from "../data/landing";
 import "../components/teacher/teacher.css";
 
 type DraftQuestion = QuestionInput & { key: string };
@@ -42,14 +44,56 @@ const toDraftQuestion = (question: QuestionInput): DraftQuestion => ({
   title: question.title,
   content: question.content,
 });
+// 문항 제목 입력은 없애고 순서대로 "문항 N"을 서버에 보냅니다.
 const toQuestionInput = (
   question: DraftQuestion,
   index: number,
 ): QuestionInput => ({
   position: index + 1,
-  title: question.title.trim(),
+  title: `문항 ${index + 1}`,
   content: question.content.trim(),
 });
+const moveQuestion = (
+  questions: DraftQuestion[],
+  fromKey: string,
+  toIndex: number,
+) => {
+  const fromIndex = questions.findIndex((question) => question.key === fromKey);
+  if (
+    fromIndex < 0 ||
+    toIndex < 0 ||
+    toIndex >= questions.length ||
+    fromIndex === toIndex
+  )
+    return questions;
+  const next = [...questions];
+  const [moved] = next.splice(fromIndex, 1);
+  next.splice(toIndex, 0, moved);
+  return next.map((question, index) => ({ ...question, position: index + 1 }));
+};
+const MAX_EXPIRES_MINUTES = 1440;
+const antiCheatOptions = [
+  {
+    id: "TAB_LEAVE",
+    label: "창/탭 이탈 감지",
+    description: "학생이 다른 창이나 탭으로 이동하면 기록합니다.",
+  },
+  {
+    id: "PRINT_BLOCK",
+    label: "프린트 금지",
+    description: "평가 화면 인쇄(Ctrl+P)를 막습니다.",
+  },
+] as const;
+type AntiCheatOption = (typeof antiCheatOptions)[number]["id"];
+const toggleInOrder = <T,>(
+  order: readonly T[],
+  current: T[],
+  item: T,
+  checked: boolean,
+) =>
+  checked
+    ? order.filter((value) => value === item || current.includes(value))
+    : current.filter((value) => value !== item);
 
 function QuestionFields({
   questions,
@@ -57,65 +101,112 @@ function QuestionFields({
   onChange,
   onAdd,
   onRemove,
-  showAdd = true,
-  showRemove = true,
+  onMove,
 }: {
   questions: DraftQuestion[];
   disabled: boolean;
-  onChange: (key: string, field: "title" | "content", value: string) => void;
+  onChange: (key: string, content: string) => void;
   onAdd: () => void;
   onRemove: (key: string) => void;
-  showAdd?: boolean;
-  showRemove?: boolean;
+  onMove: (key: string, toIndex: number) => void;
 }) {
+  const [grabbedKey, setGrabbedKey] = useState<string | null>(null);
+  const [draggingKey, setDraggingKey] = useState<string | null>(null);
   return (
     <div className="teacher-question-fields">
       {questions.map((question, index) => (
         <fieldset
-          className="teacher-question-field"
+          className={`teacher-question-field${draggingKey === question.key ? " is-dragging" : ""}`}
           key={question.key}
           disabled={disabled}
+          draggable={!disabled && grabbedKey === question.key}
+          onDragStart={(event) => {
+            event.dataTransfer.effectAllowed = "move";
+            setDraggingKey(question.key);
+          }}
+          onDragOver={(event) => {
+            if (!draggingKey) return;
+            event.preventDefault();
+            if (draggingKey !== question.key) onMove(draggingKey, index);
+          }}
+          onDrop={(event) => event.preventDefault()}
+          onDragEnd={() => {
+            setDraggingKey(null);
+            setGrabbedKey(null);
+          }}
         >
           <legend>문항 {index + 1}</legend>
-          <TextInput
-            label="문항 제목"
-            maxLength={200}
-            value={question.title}
-            onChange={(event) =>
-              onChange(question.key, "title", event.target.value)
-            }
+          <button
+            className="teacher-drag-handle"
+            type="button"
+            aria-label={`문항 ${index + 1} 순서 이동 (위/아래 방향키)`}
+            title="드래그해서 순서 바꾸기"
+            onPointerDown={() => setGrabbedKey(question.key)}
+            onPointerUp={() => setGrabbedKey(null)}
+            onKeyDown={(event) => {
+              if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+              event.preventDefault();
+              onMove(question.key, index + (event.key === "ArrowUp" ? -1 : 1));
+            }}
+          >
+            <svg
+              width="20"
+              height="12"
+              viewBox="0 0 20 12"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              {[4, 10, 16].flatMap((x) =>
+                [3, 9].map((y) => (
+                  <circle key={`${x}-${y}`} cx={x} cy={y} r="1.6" />
+                )),
+              )}
+            </svg>
+          </button>
+          <textarea
+            aria-label={`문항 ${index + 1} 내용`}
+            placeholder="문항 내용을 입력하세요"
+            maxLength={10000}
+            value={question.content}
+            onChange={(event) => onChange(question.key, event.target.value)}
           />
-          <label className="teacher-textarea-label">
-            <span>문항 내용</span>
-            <textarea
-              maxLength={10000}
-              value={question.content}
-              onChange={(event) =>
-                onChange(question.key, "content", event.target.value)
-              }
-            />
-          </label>
-          {showRemove && questions.length > 1 && (
+          <div className="teacher-question-footer">
             <button
               className="teacher-remove-question"
               type="button"
+              aria-label={`문항 ${index + 1} 삭제`}
+              title="삭제"
+              disabled={questions.length <= 1}
               onClick={() => onRemove(question.key)}
             >
-              문항 삭제
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M4 7h16" />
+                <path d="M10 11v6M14 11v6" />
+                <path d="M6 7l1 13h10l1-13" />
+                <path d="M9 7V4h6v3" />
+              </svg>
             </button>
-          )}
+          </div>
         </fieldset>
       ))}
-      {showAdd && (
-        <Button
-          variant="secondary"
-          type="button"
-          disabled={disabled || questions.length >= 100}
-          onClick={onAdd}
-        >
-          문항 추가
-        </Button>
-      )}
+      <Button
+        variant="secondary"
+        type="button"
+        disabled={disabled || questions.length >= 100}
+        onClick={onAdd}
+      >
+        문항 추가
+      </Button>
     </div>
   );
 }
@@ -162,7 +253,17 @@ export function TeacherEvaluationPage() {
   const [title, setTitle] = useState("");
   const [titleError, setTitleError] = useState("");
   const [evaluationGuidelines, setEvaluationGuidelines] = useState("");
-  const [expiresInMinutes, setExpiresInMinutes] = useState(60);
+  const [expiresHours, setExpiresHours] = useState("1");
+  const [expiresMinutes, setExpiresMinutes] = useState("0");
+  const [expiresError, setExpiresError] = useState("");
+  const [antiCheat, setAntiCheat] = useState<AntiCheatOption[]>(
+    antiCheatOptions.map((option) => option.id),
+  );
+  const [criteria, setCriteria] = useState<string[]>(
+    evaluationCriteria.map((criterion) => criterion.title),
+  );
+  const expiresInMinutes =
+    Number(expiresHours || 0) * 60 + Number(expiresMinutes || 0);
   const [aiPolicy, setAiPolicy] = useState<AiPolicy | "">("");
   const [questions, setQuestions] = useState<DraftQuestion[]>([
     freshQuestion(1),
@@ -255,20 +356,42 @@ export function TeacherEvaluationPage() {
     return () => window.clearInterval(timer);
   }, [evaluationId, evaluation?.state, refreshLobby]);
 
-  const updateQuestion = (
-    key: string,
-    field: "title" | "content",
-    value: string,
-  ) => {
-    setQuestions((current) =>
-      current.map((question) =>
-        question.key === key ? { ...question, [field]: value } : question,
+  const questionHandlers = {
+    onChange: (key: string, content: string) =>
+      setQuestions((current) =>
+        current.map((question) =>
+          question.key === key ? { ...question, content } : question,
+        ),
       ),
-    );
+    onAdd: () =>
+      setQuestions((current) => [...current, freshQuestion(current.length + 1)]),
+    onRemove: (key: string) =>
+      setQuestions((current) =>
+        current
+          .filter((item) => item.key !== key)
+          .map((item, index) => ({ ...item, position: index + 1 })),
+      ),
+    onMove: (key: string, toIndex: number) =>
+      setQuestions((current) => moveQuestion(current, key, toIndex)),
   };
+
+  function validateExpiry() {
+    if (
+      !Number.isInteger(expiresInMinutes) ||
+      expiresInMinutes < 1 ||
+      expiresInMinutes > MAX_EXPIRES_MINUTES ||
+      Number(expiresMinutes) > 59
+    ) {
+      setExpiresError("1분 ~ 24시간 사이로 입력해주세요. (분은 0~59)");
+      return false;
+    }
+    setExpiresError("");
+    return true;
+  }
 
   function continueToQuestions() {
     setNotice("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
     if (!aiPolicy) {
       setNotice("AI 사용 정책을 선택해주세요.");
       return;
@@ -278,8 +401,12 @@ export function TeacherEvaluationPage() {
       return;
     }
     setTitleError("");
+    if (!validateExpiry()) return;
+    if (!criteria.length) {
+      setNotice("평가 항목을 1개 이상 선택해주세요.");
+      return;
+    }
     setCreateStep("questions");
-    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   async function submitCreate(event: FormEvent<HTMLFormElement>) {
@@ -295,14 +422,16 @@ export function TeacherEvaluationPage() {
       setCreateStep("details");
       return;
     }
+    if (!validateExpiry()) {
+      setCreateStep("details");
+      return;
+    }
     if (
       questions.length < 1 ||
       questions.length > 100 ||
-      questions.some(
-        (question) => !question.title.trim() || !question.content.trim(),
-      )
+      questions.some((question) => !question.content.trim())
     ) {
-      setNotice("문항은 1~100개이며, 제목과 내용을 모두 입력해야 합니다.");
+      setNotice("문항은 1~100개이며, 모든 문항의 내용을 입력해야 합니다.");
       return;
     }
     setBusy(true);
@@ -314,6 +443,11 @@ export function TeacherEvaluationPage() {
       localStorage.setItem(
         `lit:evaluation-guidelines:${created.id}`,
         evaluationGuidelines,
+      );
+      // 부정행위 설정·평가 항목은 아직 API 필드가 없어 평가 기준 메모처럼 이 기기에만 저장합니다.
+      localStorage.setItem(
+        `lit:evaluation-settings:${created.id}`,
+        JSON.stringify({ antiCheat, criteria }),
       );
       const config = { aiPolicy, questions: questions.map(toQuestionInput) };
       try {
@@ -497,41 +631,56 @@ export function TeacherEvaluationPage() {
                         setTitleError("");
                     }}
                   />
-                  <label className="teacher-select-label">
-                    <span>유효 시간</span>
-                    <select
-                      value={expiresInMinutes}
-                      disabled={busy}
-                      onChange={(event) =>
-                        setExpiresInMinutes(Number(event.target.value))
-                      }
+                  <fieldset className="teacher-expiry-field" disabled={busy}>
+                    <legend>유효 시간</legend>
+                    <div
+                      className="teacher-expiry-inputs"
+                      data-error={!!expiresError}
                     >
-                      <option value={30}>30분</option>
-                      <option value={60}>1시간</option>
-                      <option value={180}>3시간</option>
-                      <option value={360}>6시간</option>
-                      <option value={1440}>24시간</option>
-                    </select>
-                  </label>
+                      <label>
+                        <input
+                          type="number"
+                          inputMode="numeric"
+                          min={0}
+                          max={24}
+                          value={expiresHours}
+                          aria-label="시간"
+                          onChange={(event) =>
+                            setExpiresHours(event.target.value)
+                          }
+                        />
+                        시간
+                      </label>
+                      <label>
+                        <input
+                          type="number"
+                          inputMode="numeric"
+                          min={0}
+                          max={59}
+                          value={expiresMinutes}
+                          aria-label="분"
+                          onChange={(event) =>
+                            setExpiresMinutes(event.target.value)
+                          }
+                        />
+                        분
+                      </label>
+                    </div>
+                  </fieldset>
                 </div>
-                <label className="teacher-textarea-label teacher-guidelines-label">
-                  <span>
-                    평가 내용{" "}
-                    <small>
-                      평가 기준이나 규칙을 적어주세요. 현재 API에서는 서버 저장
-                      및 학생 공유를 지원하지 않습니다.
-                    </small>
-                  </span>
-                  <textarea
-                    maxLength={10000}
-                    value={evaluationGuidelines}
-                    disabled={busy}
-                    placeholder="예: 답안에는 풀이 과정을 포함해주세요. AI는 개념 이해를 위한 힌트만 사용할 수 있습니다."
-                    onChange={(event) =>
-                      setEvaluationGuidelines(event.target.value)
-                    }
-                  />
-                </label>
+                {expiresError && (
+                  <p className="input-error teacher-expiry-error">
+                    {expiresError}
+                  </p>
+                )}
+                <RichTextEditor
+                  label="평가 내용"
+                  description="평가 기준이나 규칙을 적어주세요. 현재 API에서는 서버 저장 및 학생 공유를 지원하지 않습니다."
+                  value={evaluationGuidelines}
+                  disabled={busy}
+                  placeholder="예: 답안에는 풀이 과정을 포함해주세요. AI는 개념 이해를 위한 힌트만 사용할 수 있습니다."
+                  onChange={setEvaluationGuidelines}
+                />
                 <div className="teacher-policy-row">
                   <label className="teacher-select-label">
                     <span>
@@ -555,6 +704,64 @@ export function TeacherEvaluationPage() {
                     </select>
                   </label>
                 </div>
+                <fieldset className="teacher-check-group" disabled={busy}>
+                  <legend>
+                    평가 항목 <small>채점에 사용할 기준을 선택하세요.</small>
+                  </legend>
+                  {evaluationCriteria.map((criterion) => (
+                    <label key={criterion.title} className="teacher-check">
+                      <input
+                        type="checkbox"
+                        checked={criteria.includes(criterion.title)}
+                        onChange={(event) =>
+                          setCriteria((current) =>
+                            toggleInOrder(
+                              evaluationCriteria.map((item) => item.title),
+                              current,
+                              criterion.title,
+                              event.target.checked,
+                            ),
+                          )
+                        }
+                      />
+                      <span>
+                        <strong>{criterion.title}</strong>
+                        <small>{criterion.description}</small>
+                      </span>
+                    </label>
+                  ))}
+                </fieldset>
+                <fieldset className="teacher-check-group" disabled={busy}>
+                  <legend>
+                    부정행위 방지{" "}
+                    <small>
+                      현재 API에서는 서버 저장 및 학생 화면 적용을 지원하지
+                      않습니다.
+                    </small>
+                  </legend>
+                  {antiCheatOptions.map((option) => (
+                    <label key={option.id} className="teacher-check">
+                      <input
+                        type="checkbox"
+                        checked={antiCheat.includes(option.id)}
+                        onChange={(event) =>
+                          setAntiCheat((current) =>
+                            toggleInOrder(
+                              antiCheatOptions.map((item) => item.id),
+                              current,
+                              option.id,
+                              event.target.checked,
+                            ),
+                          )
+                        }
+                      />
+                      <span>
+                        <strong>{option.label}</strong>
+                        <small>{option.description}</small>
+                      </span>
+                    </label>
+                  ))}
+                </fieldset>
                 <div className="teacher-form-actions teacher-form-actions--end">
                   <Button
                     type="button"
@@ -574,23 +781,7 @@ export function TeacherEvaluationPage() {
                 <QuestionFields
                   questions={questions}
                   disabled={busy}
-                  onChange={updateQuestion}
-                  onAdd={() =>
-                    setQuestions((current) => [
-                      ...current,
-                      freshQuestion(current.length + 1),
-                    ])
-                  }
-                  onRemove={(key) =>
-                    setQuestions((current) =>
-                      current
-                        .filter((item) => item.key !== key)
-                        .map((item, index) => ({
-                          ...item,
-                          position: index + 1,
-                        })),
-                    )
-                  }
+                  {...questionHandlers}
                 />
                 <div className="teacher-form-actions">
                   <Button
@@ -672,7 +863,6 @@ export function TeacherEvaluationPage() {
                 </div>
               )}
             </section>
-
           </div>
         ) : (
           <section className="teacher-card">

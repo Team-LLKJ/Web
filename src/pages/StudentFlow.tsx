@@ -3,7 +3,6 @@ import {
   useEffect,
   useRef,
   useState,
-  type CSSProperties,
 } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ApiError, apiErrorMessage } from "../api/client";
@@ -47,7 +46,6 @@ import { NicknameForm } from "../components/student/NicknameForm";
 import { WaitingRoom } from "../components/student/WaitingRoom";
 import { StudentHeader } from "../components/student/StudentHeader";
 import { StudentWorkspace } from "../components/student/StudentWorkspace";
-import { readChatWidth } from "../components/student/chatWidth";
 import { AnswerEditor } from "../components/student/AnswerEditor";
 import { StudentChatPanel } from "../components/student/StudentChatPanel";
 import {
@@ -808,30 +806,49 @@ export function StudentFlow({ route }: { route: string }) {
         </header>
         <div
           className="student-solving-body student-workspace-skeleton-body"
-          style={
-            { "--student-chat-width": `${readChatWidth()}%` } as CSSProperties
-          }
           aria-hidden="true"
         >
           <main className="student-writing">
             <section className="student-editor student-workspace-skeleton-card">
-              <div className="student-workspace-skeleton-tabs">
-                <span className="is-active" />
-                <span />
-                <span />
-                <span />
-              </div>
               <Skeleton className="student-workspace-skeleton-title" />
-              <Skeleton className="student-workspace-skeleton-lead" />
-              <div className="student-workspace-skeleton-block">
-                <Skeleton className="student-workspace-skeleton-heading" />
-                <Skeleton className="student-workspace-skeleton-row" />
-                <Skeleton className="student-workspace-skeleton-row" />
+              <div className="question-tabs student-workspace-skeleton-tabs">
+                <Skeleton />
+                <span />
               </div>
-              <div className="student-workspace-skeleton-block">
-                <Skeleton className="student-workspace-skeleton-heading" />
-                <Skeleton className="student-workspace-skeleton-line" />
-                <Skeleton className="student-workspace-skeleton-line is-short" />
+              <section className="question-box student-workspace-skeleton-question">
+                <Skeleton className="student-workspace-skeleton-question-title" />
+                <Skeleton className="student-workspace-skeleton-question-line" />
+                <Skeleton className="student-workspace-skeleton-question-line is-short" />
+              </section>
+              <div className="answer-rich-editor student-workspace-skeleton-rich-editor">
+                <div className="answer-toolbar-scroll">
+                  <div className="student-workspace-skeleton-toolbar">
+                    <Skeleton />
+                    <Skeleton />
+                    <Skeleton />
+                    <i />
+                    <Skeleton />
+                    <Skeleton />
+                    <Skeleton />
+                    <i />
+                    <Skeleton />
+                    <Skeleton />
+                    <Skeleton />
+                  </div>
+                </div>
+                <div className="student-answer-content student-workspace-skeleton-answer">
+                  <Skeleton />
+                  <Skeleton />
+                  <Skeleton />
+                </div>
+                <div className="answer-rich-status">
+                  <Skeleton />
+                  <Skeleton />
+                </div>
+              </div>
+              <div className="student-workspace-skeleton-source">
+                <Skeleton />
+                <Skeleton />
               </div>
             </section>
           </main>
@@ -883,7 +900,7 @@ export function StudentFlow({ route }: { route: string }) {
   const displayStudent: Student = {
     id: workspace.participantId,
     name: session.nickname || user?.name || "학생",
-    color: "#ffd4d3",
+    color: "#ffbb76",
     status: workspace.status === "SUBMITTED" ? "제출완료" : "작성중",
     submittedAt: null,
     answers: [],
@@ -916,13 +933,13 @@ export function StudentFlow({ route }: { route: string }) {
         editor={
           <main className="student-writing">
             <AnswerEditor
-              title={session.evaluationTitle}
-              guidelines={workspace?.guidelines ?? ""}
-              aiPolicy={workspace?.aiPolicy ?? null}
               questions={questions}
               questionId={questionId}
               answers={answers}
               readOnly={readOnly}
+              sourceByQuestion={sourceByQuestion}
+              aiRequestByQuestion={aiRequestByQuestion}
+              completedTurns={turns}
               savingQuestionId={savingQuestionId}
               notice={editorNotice}
               onQuestion={(id) => void selectQuestion(id)}
@@ -932,6 +949,20 @@ export function StudentFlow({ route }: { route: string }) {
                 setEditorNotice("");
               }}
               onSave={(id) => void saveAnswer(id)}
+              onSourceChange={(id, source) => {
+                setSourceByQuestion((current) => ({
+                  ...current,
+                  [id]: source,
+                }));
+                setDirtyAnswers((current) => ({ ...current, [id]: true }));
+              }}
+              onAiRequestChange={(id, requestId) => {
+                setAiRequestByQuestion((current) => ({
+                  ...current,
+                  [id]: requestId,
+                }));
+                setDirtyAnswers((current) => ({ ...current, [id]: true }));
+              }}
             />
           </main>
         }

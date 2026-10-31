@@ -1,18 +1,27 @@
 import { useRef, useState, type CSSProperties, type ReactNode } from "react";
-import {
-  CHAT_WIDTH_KEY,
-  DEFAULT_CHAT_WIDTH,
-  MAX_CHAT_WIDTH,
-  MIN_CHAT_WIDTH,
-  clampChatWidth as clamp,
-  readChatWidth as readWidth,
-} from "./chatWidth";
+
+const DEFAULT_CHAT_WIDTH = 32;
+const MIN_CHAT_WIDTH = 22;
+const MAX_CHAT_WIDTH = 50;
+
+const clamp = (width: number) =>
+  Math.min(MAX_CHAT_WIDTH, Math.max(MIN_CHAT_WIDTH, width));
+
+function readWidth(storageKey: string, defaultWidth: number) {
+  try {
+    const saved = localStorage.getItem(storageKey);
+    const width = saved === null ? defaultWidth : Number(saved);
+    return Number.isFinite(width) ? clamp(width) : defaultWidth;
+  } catch {
+    return defaultWidth;
+  }
+}
 
 export function StudentWorkspace({
   editor,
   chat,
   className = "",
-  storageKey = CHAT_WIDTH_KEY,
+  storageKey = "lit:student-chat-width:v2",
   label = "AI 대화창 너비 조절",
   defaultWidth = DEFAULT_CHAT_WIDTH,
   sidebarExpanded = false,

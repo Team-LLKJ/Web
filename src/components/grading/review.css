@@ -3,17 +3,17 @@
   flex-direction: column;
   gap: 30px;
   padding: 30px 25px;
-  background: white;
+  background: var(--color-white);
 }
 .review-card {
   border: 1px solid var(--border);
   border-radius: 20px;
   padding: 20px;
-  background: white;
+  background: var(--color-white);
 }
 .review-card h3 {
   font-size: var(--font-test-lg);
-  font-weight: 500;
+  font-weight: var(--weight-medium);
   line-height: var(--line-test-lg);
 }
 .contribution-card {
@@ -51,7 +51,7 @@
   position: absolute;
   inset: 11px;
   border-radius: 50%;
-  background: white;
+  background: var(--color-white);
 }
 .donut-label {
   position: relative;
@@ -62,13 +62,13 @@
 }
 .donut-label strong {
   font-size: var(--font-test-lg);
-  font-weight: 600;
-  color: #2c2c2e;
+  font-weight: var(--weight-semibold);
+  color: var(--color-grey-90);
 }
 .donut-label span {
   font-size: var(--font-text-sm);
   line-height: var(--line-text-sm);
-  color: #636366;
+  color: var(--color-grey-50);
 }
 .contribution-legend h3 {
   margin-bottom: 15px;
@@ -80,7 +80,7 @@
   gap: 10px;
   font-size: var(--font-text-sm);
   line-height: var(--line-text-sm);
-  color: #48484a;
+  color: var(--color-grey-60);
   white-space: nowrap;
 }
 .contribution-legend p + p {
@@ -90,7 +90,7 @@
   height: 10px;
   width: 10px;
   border-radius: 50%;
-  background: #007bff;
+  background: var(--color-primary);
 }
 .contribution-legend i.ai-dot {
   background: #52a6ff;
@@ -116,7 +116,7 @@
 .usage-track {
   height: 15px;
   flex: 1;
-  background: #f4f4f4;
+  background: var(--color-grey-10);
   border-radius: 20px;
   overflow: hidden;
 }
@@ -127,7 +127,7 @@
 .usage-level {
   width: 40px;
   text-align: right;
-  color: #8e8e93;
+  color: var(--color-grey-40);
 }
 .warnings-card h3 {
   margin-bottom: 15px;
@@ -152,12 +152,12 @@
   display: flex;
   padding: 2px;
   border-radius: 50%;
-  background: #ffd4d3;
+  background: var(--color-danger-soft);
 }
 .warning-row time {
   font-size: var(--font-caption);
   line-height: var(--line-caption);
-  color: #8e8e93;
+  color: var(--color-grey-40);
 }
 .asset-divider {
   width: 100%;
@@ -208,16 +208,16 @@
 .rating-options button {
   padding: 7.5px 10px;
   font-size: var(--font-text-sm);
-  color: #8e8e93;
+  color: var(--color-grey-40);
   border-radius: 10px;
   white-space: nowrap;
 }
 .rating-options button.selected {
-  color: #007bff;
-  background: #e2f0ff;
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
 }
 .rating-options button:hover {
-  background: #f6faff;
+  background: var(--color-primary-background);
 }
 .criterion-divider {
   margin-bottom: 20px;
@@ -234,9 +234,9 @@
 }
 .analysis-modal .modal-heading {
   flex-shrink: 0;
-  background: white;
+  background: var(--color-white);
   padding: 24px 28px 20px;
-  border-bottom: 1px solid #f6faff;
+  border-bottom: 1px solid var(--color-grey-20);
 }
 .analysis-cards {
   display: flex;
@@ -251,17 +251,17 @@
   flex-shrink: 0;
 }
 .analysis-card {
-  border: 1px solid #c6c6c6;
+  border: 1px solid var(--color-grey-20);
   border-radius: 20px;
   overflow: hidden;
 }
 .analysis-card > h3 {
   padding: 15px 30px;
-  color: #007bff;
-  background: #e2f0ff;
-  border-bottom: 1px solid #c6c6c6;
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  border-bottom: 1px solid var(--color-grey-20);
   font-size: var(--font-test-lg);
-  font-weight: 500;
+  font-weight: var(--weight-medium);
   line-height: var(--line-test-lg);
 }
 .analysis-body {
@@ -272,13 +272,13 @@
 }
 .analysis-body h4 {
   font-size: var(--font-text-md);
-  font-weight: 400;
+  font-weight: var(--weight-regular);
   line-height: var(--line-text-md);
   margin: 0 0 10px;
 }
 .analysis-body p {
   margin: 0;
-  color: black;
+  color: var(--color-black);
   font-size: var(--font-text-md);
   line-height: var(--line-text-md);
 }
@@ -287,7 +287,7 @@
 .analysis-body .evidence h4 {
   font-size: var(--font-text-sm);
   line-height: var(--line-text-sm);
-  color: #48484a;
+  color: var(--color-grey-60);
 }
 .analysis-body .evidence p + p {
   margin-top: 0;

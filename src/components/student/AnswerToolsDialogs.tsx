@@ -96,6 +96,77 @@ export function AnswerLinkDialog({
     </Modal>
   );
 }
+export function AnswerTableDialog({
+  editor,
+  onClose,
+}: {
+  editor: Editor;
+  onClose: () => void;
+}) {
+  const [rows, setRows] = useState(3);
+  const [columns, setColumns] = useState(3);
+  const [header, setHeader] = useState(true);
+  return (
+    <Modal title="표 넣기" className="answer-tools-modal" onClose={onClose}>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          editor
+            .chain()
+            .focus()
+            .insertTable({
+              rows: Math.max(1, Math.min(20, rows)),
+              cols: Math.max(1, Math.min(10, columns)),
+              withHeaderRow: header,
+            })
+            .run();
+          onClose();
+        }}
+      >
+        <div className="answer-table-size">
+          <label>
+            행
+            <input
+              type="number"
+              min="1"
+              max="20"
+              required
+              aria-label="표 행 수"
+              value={rows}
+              onChange={(e) => setRows(Number(e.target.value))}
+            />
+          </label>
+          <label>
+            열
+            <input
+              type="number"
+              min="1"
+              max="10"
+              required
+              aria-label="표 열 수"
+              value={columns}
+              onChange={(e) => setColumns(Number(e.target.value))}
+            />
+          </label>
+        </div>
+        <label className="answer-checkbox-label">
+          <input
+            type="checkbox"
+            checked={header}
+            onChange={(e) => setHeader(e.target.checked)}
+          />
+          첫 번째 행을 제목 행으로 사용
+        </label>
+        <div className="answer-dialog-actions">
+          <Button variant="secondary" onClick={onClose}>
+            취소
+          </Button>
+          <Button type="submit">표 넣기</Button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
 export function AnswerShortcutsDialog({ onClose }: { onClose: () => void }) {
   const shortcuts = [
     ["굵게", "Ctrl/⌘ B"],

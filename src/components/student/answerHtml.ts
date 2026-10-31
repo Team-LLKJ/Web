@@ -1,5 +1,6 @@
 export const MAX_ANSWER_LENGTH = 10_000;
-export const DEFAULT_FONT_SIZE = 18;
+export const DEFAULT_FONT_SIZE = 20;
+export const DEFAULT_FONT_FAMILY = "Pretendard";
 export const MAX_ANSWER_HTML_LENGTH = 1_000_000;
 const EMPTY_CARET = "\u200B";
 const ALLOWED_TAGS = new Set([
@@ -43,6 +44,7 @@ const ALLOWED_TAGS = new Set([
 ]);
 
 export const FONT_FAMILIES: Record<string, string> = {
+  pretendard: DEFAULT_FONT_FAMILY,
   "맑은 고딕": "맑은 고딕",
   굴림: "굴림",
   바탕: "바탕",

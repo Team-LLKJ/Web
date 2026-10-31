@@ -1,10 +1,3 @@
-:root {
-  --primary: #007bff;
-  --border: #c6c6c6;
-  --muted: #8e8e93;
-  --surface: #f6faff;
-}
-
 a {
   text-decoration: none;
   color: inherit;
@@ -20,7 +13,7 @@ a {
   z-index: 1000;
   height: 81px;
   padding: 15px 50px;
-  background: white;
+  background: var(--color-white);
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
@@ -36,7 +29,7 @@ a {
   align-items: center;
 }
 .icon-button {
-  color: #48484a;
+  color: var(--color-grey-60);
   padding: 0;
   display: grid;
   place-items: center;
@@ -50,7 +43,7 @@ a {
 }
 .students {
   padding: 30px 15px;
-  background: white;
+  background: var(--color-white);
   border-right: 1px solid var(--border);
 }
 .student-filter {
@@ -72,7 +65,7 @@ a {
   color: var(--primary);
 }
 .counts span:nth-child(2) {
-  color: #ff0500;
+  color: var(--color-danger);
 }
 .student-list {
   display: flex;
@@ -93,7 +86,7 @@ a {
   line-height: var(--line-text-md);
 }
 .student-row.selected {
-  background: #e2f0ff;
+  background: var(--color-primary-soft);
   border-color: var(--primary);
 }
 .student-name {
@@ -115,7 +108,7 @@ a {
   align-items: center;
   padding: 20px 30px;
   border-radius: 20px;
-  background: white;
+  background: var(--color-white);
   min-height: 90px;
   gap: 10px;
 }
@@ -128,11 +121,11 @@ a {
   width: 50px;
   height: 50px;
   font-size: var(--font-text-md);
-  font-weight: 500;
+  font-weight: var(--weight-medium);
 }
 .identity h1 {
   font-size: var(--font-test-lg);
-  font-weight: 500;
+  font-weight: var(--weight-medium);
   line-height: var(--line-test-lg);
 }
 .identity p {
@@ -142,13 +135,13 @@ a {
   margin-top: 5px;
 }
 .answer-card {
-  background: white;
+  background: var(--color-white);
   border-radius: 20px;
   padding: 30px;
 }
 .answer-card h2 {
   font-size: var(--font-title-sm);
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   line-height: var(--line-title-sm);
   margin-bottom: 15px;
 }
@@ -165,7 +158,7 @@ a {
 }
 h3 {
   font-size: var(--font-test-lg);
-  font-weight: 500;
+  font-weight: var(--weight-medium);
   line-height: var(--line-test-lg);
 }
 .question-box h3,
@@ -181,7 +174,7 @@ h3 {
   margin-top: 22.4px;
 }
 .details {
-  background: white;
+  background: var(--color-white);
   border-left: 1px solid var(--border);
 }
 .messages {
@@ -208,12 +201,12 @@ h3 {
 }
 .ai-avatar {
   background: var(--primary);
-  color: white;
+  color: var(--color-white);
 }
 .message > p,
 .message > .message-content {
   padding: 10px 15px;
-  background: #f4f4f4;
+  background: var(--color-grey-10);
   border-radius: 10px;
   font-size: var(--font-text-md);
   line-height: var(--line-text-md);
@@ -222,24 +215,72 @@ h3 {
   max-width: 100%;
   overflow-wrap: anywhere;
 }
-.message-content--markdown > :first-child { margin-top: 0; }
-.message-content--markdown > :last-child { margin-bottom: 0; }
-.message-content--markdown p { margin: 0 0 0.75em; }
+.message-content--markdown > :first-child {
+  margin-top: 0;
+}
+.message-content--markdown > :last-child {
+  margin-bottom: 0;
+}
+.message-content--markdown p {
+  margin: 0 0 0.75em;
+}
 .message-content--markdown ul,
-.message-content--markdown ol { margin: 0 0 0.75em; padding-left: 1.5em; }
-.message-content--markdown li + li { margin-top: 0.2em; }
+.message-content--markdown ol {
+  margin: 0 0 0.75em;
+  padding-left: 1.5em;
+}
+.message-content--markdown li + li {
+  margin-top: 0.2em;
+}
 .message-content--markdown h1,
 .message-content--markdown h2,
 .message-content--markdown h3,
-.message-content--markdown h4 { margin: 0.8em 0 0.4em; font-size: 1em; line-height: inherit; }
-.message-content--markdown blockquote { margin: 0.6em 0; padding-left: 0.8em; border-left: 3px solid #c6c6c6; color: #48484a; }
-.message-content--markdown code { padding: 0.1em 0.35em; border-radius: 4px; background: #f4f4f4; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.9em; }
-.message-content--markdown pre { overflow-x: auto; margin: 0.6em 0; padding: 10px 12px; border-radius: 7px; background: #f4f4f4; }
-.message-content--markdown pre code { padding: 0; background: transparent; font-size: 0.9em; }
-.message-content--markdown table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; }
+.message-content--markdown h4 {
+  margin: 0.8em 0 0.4em;
+  font-size: 1em;
+  line-height: inherit;
+}
+.message-content--markdown blockquote {
+  margin: 0.6em 0;
+  padding-left: 0.8em;
+  border-left: 3px solid var(--color-grey-20);
+  color: var(--color-grey-60);
+}
+.message-content--markdown code {
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  background: var(--color-grey-20);
+  font-family: var(--font-family-code);
+  font-size: 0.9em;
+}
+.message-content--markdown pre {
+  overflow-x: auto;
+  margin: 0.6em 0;
+  padding: 10px 12px;
+  border-radius: 7px;
+  background: var(--color-grey-20);
+}
+.message-content--markdown pre code {
+  padding: 0;
+  background: transparent;
+  font-size: 0.9em;
+}
+.message-content--markdown table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
 .message-content--markdown th,
-.message-content--markdown td { border: 1px solid #c6c6c6; padding: 5px 8px; text-align: left; }
-.message-content--markdown a { color: var(--primary); text-decoration: underline; }
+.message-content--markdown td {
+  border: 1px solid var(--color-grey-20);
+  padding: 5px 8px;
+  text-align: left;
+}
+.message-content--markdown a {
+  color: var(--primary);
+  text-decoration: underline;
+}
 .message > p.message-pending {
   display: flex;
   align-items: center;
@@ -263,7 +304,7 @@ h3 {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #48484a;
+  background: var(--color-grey-60);
   animation: pending-dot-wave 1s ease-in-out infinite;
 }
 .message-pending-dots > span:nth-child(2) {
@@ -275,7 +316,12 @@ h3 {
 .message-pending-text {
   min-width: 0;
   color: transparent;
-  background: linear-gradient(100deg, #8e8e93 25%, #f4f4f4 45%, #8e8e93 65%);
+  background: linear-gradient(
+    100deg,
+    var(--color-grey-40) 25%,
+    var(--color-grey-20) 45%,
+    var(--color-grey-40) 65%
+  );
   background-size: 220% 100%;
   background-clip: text;
   -webkit-background-clip: text;
@@ -283,18 +329,30 @@ h3 {
   animation: message-text-shimmer 1.45s ease-in-out infinite;
 }
 @keyframes pending-dot-wave {
-  0%, 60%, 100% { opacity: 0.5; transform: translateY(0); }
-  30% { opacity: 1; transform: translateY(-3px); }
+  0%,
+  60%,
+  100% {
+    opacity: 0.5;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
 }
 @keyframes message-text-shimmer {
-  to { background-position: -220% 0; }
+  to {
+    background-position: -220% 0;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .message-pending-dots > span,
-  .message-pending-text { animation: none; }
+  .message-pending-text {
+    animation: none;
+  }
 }
 .message.user > p {
-  background: #e2f0ff;
+  background: var(--color-primary-soft);
 }
 .empty {
   color: var(--muted);
@@ -318,7 +376,7 @@ h3 {
   z-index: 10;
 }
 .modal {
-  background: white;
+  background: var(--color-white);
   border-radius: 20px;
   padding: 30px;
   min-width: 360px;
@@ -330,7 +388,7 @@ h3 {
 }
 .modal p {
   margin-top: 15px;
-  color: #8e8e93;
+  color: var(--color-grey-40);
   font-size: var(--font-text-md);
   line-height: var(--line-text-md);
 }
@@ -413,7 +471,7 @@ h3 {
     display: none;
   }
   body {
-    background: white;
+    background: var(--color-white);
   }
 }
 
@@ -433,7 +491,7 @@ h3 {
 }
 .activity-list li p {
   margin-top: 5px;
-  color: #000;
+  color: var(--color-black);
   font-size: var(--font-text-md);
   line-height: var(--line-text-md);
 }
@@ -564,7 +622,7 @@ h3 {
   object-fit: cover;
 }
 .lit-logo-link:focus-visible {
-  outline: 2px solid #007bff;
+  outline: 2px solid var(--color-primary);
   outline-offset: 4px;
   border-radius: 6px;
 }
