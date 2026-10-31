@@ -38,27 +38,27 @@ a {
 }
 .workspace {
   display: grid;
-  grid-template-columns: 301px 750px minmax(350px, 1fr);
-  min-height: calc(100vh - 81px);
+  grid-template-columns: 226px 562.5px minmax(262.5px, 1fr);
+  min-height: calc(100vh - 61px);
 }
 .students {
-  padding: 30px 15px;
+  padding: 22.5px 11px;
   background: var(--color-white);
   border-right: 1px solid var(--border);
 }
 .student-filter {
-  padding-bottom: 15px;
+  padding-bottom: 11px;
   border-bottom: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 11px;
 }
 .counts {
   display: flex;
-  gap: 15px;
-  font-size: var(--font-text-sm);
-  line-height: var(--line-text-sm);
-  padding: 0 20px;
+  gap: 11px;
+  font-size: calc(var(--font-text-sm) * 0.75);
+  line-height: calc(var(--line-text-sm) * 0.75);
+  padding: 0 15px;
   color: var(--muted);
 }
 .counts span:first-child {
@@ -70,20 +70,20 @@ a {
 .student-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-top: 20px;
+  gap: 7.5px;
+  margin-top: 15px;
 }
 .student-row {
-  width: 270px;
-  padding: 12.5px 20px;
+  width: 202.5px;
+  padding: 9.5px 15px;
   border: 1px solid transparent;
-  border-radius: 10px;
+  border-radius: 7.5px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 55px;
-  font-size: var(--font-text-md);
-  line-height: var(--line-text-md);
+  min-height: 41px;
+  font-size: calc(var(--font-text-md) * 0.75);
+  line-height: calc(var(--line-text-md) * 0.75);
 }
 .student-row.selected {
   background: var(--color-primary-soft);
@@ -91,14 +91,14 @@ a {
 }
 .student-name {
   display: flex;
-  gap: 10px;
+  gap: 7.5px;
   align-items: center;
 }
 .answer-area {
-  padding: 50px;
+  padding: 37.5px;
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  gap: 22.5px;
   align-items: stretch;
   background: var(--surface);
 }
@@ -106,72 +106,72 @@ a {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 30px;
-  border-radius: 20px;
+  padding: 15px 22.5px;
+  border-radius: 15px;
   background: var(--color-white);
-  min-height: 90px;
-  gap: 10px;
+  min-height: 67.5px;
+  gap: 7.5px;
 }
 .identity {
   display: flex;
-  gap: 10px;
+  gap: 7.5px;
   align-items: center;
 }
 .identity > .avatar {
-  width: 50px;
-  height: 50px;
-  font-size: var(--font-text-md);
+  width: 37.5px;
+  height: 37.5px;
+  font-size: calc(var(--font-text-md) * 0.75);
   font-weight: var(--weight-medium);
 }
 .identity h1 {
-  font-size: var(--font-test-lg);
+  font-size: calc(var(--font-test-lg) * 0.75);
   font-weight: var(--weight-medium);
-  line-height: var(--line-test-lg);
+  line-height: calc(var(--line-test-lg) * 0.75);
 }
 .identity p {
-  font-size: var(--font-caption);
-  line-height: var(--line-caption);
+  font-size: calc(var(--font-caption) * 0.75);
+  line-height: calc(var(--line-caption) * 0.75);
   color: var(--muted);
-  margin-top: 5px;
+  margin-top: 4px;
 }
 .answer-card {
   background: var(--color-white);
-  border-radius: 20px;
-  padding: 30px;
+  border-radius: 15px;
+  padding: 22.5px;
 }
 .answer-card h2 {
-  font-size: var(--font-title-sm);
+  font-size: calc(var(--font-title-sm) * 0.75);
   font-weight: var(--weight-semibold);
-  line-height: var(--line-title-sm);
-  margin-bottom: 15px;
+  line-height: calc(var(--line-title-sm) * 0.75);
+  margin-bottom: 11px;
 }
 .question-box,
 .response-box {
-  padding: 15px 20px;
+  padding: 11px 15px;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 7.5px;
 }
 .question-box {
   background: var(--surface);
   border-color: var(--primary);
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 h3 {
-  font-size: var(--font-test-lg);
+  font-size: calc(var(--font-test-lg) * 0.75);
   font-weight: var(--weight-medium);
-  line-height: var(--line-test-lg);
+  line-height: calc(var(--line-test-lg) * 0.75);
 }
 .question-box h3,
 .response-box h3 {
-  margin-bottom: 10px;
+  margin-bottom: 7.5px;
 }
 .question-box p,
 .response-box p {
-  font-size: var(--font-text-md);
-  line-height: var(--line-text-md);
+  font-size: calc(var(--font-text-md) * 0.75);
+  line-height: calc(var(--line-text-md) * 0.75);
 }
 .response-box p + p {
-  margin-top: 22.4px;
+  margin-top: 17px;
 }
 .details {
   background: var(--color-white);
@@ -180,24 +180,24 @@ h3 {
 .messages {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding: 20px 30px 30px;
+  gap: 15px;
+  padding: 15px 22.5px 22.5px;
 }
 .message {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 5px;
+  gap: 4px;
 }
 .message.user {
   align-items: flex-end;
 }
 .message-author {
   display: flex;
-  gap: 5px;
+  gap: 4px;
   align-items: center;
-  font-size: var(--font-caption);
-  line-height: var(--line-caption);
+  font-size: calc(var(--font-caption) * 0.75);
+  line-height: calc(var(--line-caption) * 0.75);
 }
 .ai-avatar {
   background: var(--primary);
@@ -205,11 +205,11 @@ h3 {
 }
 .message > p,
 .message > .message-content {
-  padding: 10px 15px;
+  padding: 7.5px 11px;
   background: var(--color-grey-10);
-  border-radius: 10px;
-  font-size: var(--font-text-md);
-  line-height: var(--line-text-md);
+  border-radius: 7.5px;
+  font-size: calc(var(--font-text-md) * 0.75);
+  line-height: calc(var(--line-text-md) * 0.75);
 }
 .message-content--markdown {
   max-width: 100%;
@@ -248,7 +248,7 @@ h3 {
 }
 .message-content--markdown code {
   padding: 0.1em 0.35em;
-  border-radius: 4px;
+  border-radius: 3px;
   background: var(--color-grey-20);
   font-family: var(--font-family-code);
   font-size: 0.9em;
@@ -256,8 +256,8 @@ h3 {
 .message-content--markdown pre {
   overflow-x: auto;
   margin: 0.6em 0;
-  padding: 10px 12px;
-  border-radius: 7px;
+  padding: 7.5px 9px;
+  border-radius: 5px;
   background: var(--color-grey-20);
 }
 .message-content--markdown pre code {
@@ -274,7 +274,7 @@ h3 {
 .message-content--markdown th,
 .message-content--markdown td {
   border: 1px solid var(--color-grey-20);
-  padding: 5px 8px;
+  padding: 4px 6px;
   text-align: left;
 }
 .message-content--markdown a {
@@ -284,9 +284,9 @@ h3 {
 .message > p.message-pending {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   width: fit-content;
-  max-width: min(360px, 100%);
+  max-width: min(270px, 100%);
 }
 .message-pending-indicator {
   display: inline-flex;
@@ -297,12 +297,12 @@ h3 {
 .message-pending-dots {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   height: 100%;
 }
 .message-pending-dots > span {
-  width: 5px;
-  height: 5px;
+  width: 4px;
+  height: 4px;
   border-radius: 50%;
   background: var(--color-grey-60);
   animation: pending-dot-wave 1s ease-in-out infinite;
@@ -337,7 +337,7 @@ h3 {
   }
   30% {
     opacity: 1;
-    transform: translateY(-3px);
+    transform: translateY(-2px);
   }
 }
 @keyframes message-text-shimmer {
@@ -356,90 +356,59 @@ h3 {
 }
 .empty {
   color: var(--muted);
-  padding: 10px 0;
+  padding: 7.5px 0;
 }
 .detail-empty {
-  padding: 30px;
+  padding: 22.5px;
 }
 .detail-empty p {
   color: var(--muted);
-  margin-top: 15px;
-  font-size: var(--font-text-md);
-  line-height: var(--line-text-md);
-}
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: #0005;
-  display: grid;
-  place-items: center;
-  z-index: 10;
-}
-.modal {
-  background: var(--color-white);
-  border-radius: 20px;
-  padding: 30px;
-  min-width: 360px;
-  box-shadow: 0 12px 60px #0002;
-}
-.modal h2 {
-  font-size: var(--font-title-sm);
-  line-height: var(--line-title-sm);
-}
-.modal p {
-  margin-top: 15px;
-  color: var(--color-grey-40);
-  font-size: var(--font-text-md);
-  line-height: var(--line-text-md);
-}
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 30px;
+  margin-top: 11px;
+  font-size: calc(var(--font-text-md) * 0.75);
+  line-height: calc(var(--line-text-md) * 0.75);
 }
 @media (min-width: 1600px) {
   .workspace {
-    grid-template-columns: 301px minmax(750px, 1fr) 460px;
+    grid-template-columns: 226px minmax(562.5px, 1fr) 345px;
   }
   .answer-area {
     align-items: center;
   }
   .student-summary,
   .answer-card {
-    width: 650px;
+    width: 487.5px;
   }
 }
 @media (max-width: 1400px) {
   .workspace {
-    grid-template-columns: 260px 650px minmax(290px, 1fr);
+    grid-template-columns: 195px 487.5px minmax(217.5px, 1fr);
   }
   .students {
-    padding-left: 15px;
-    padding-right: 15px;
+    padding-left: 11px;
+    padding-right: 11px;
   }
   .student-row {
-    width: 230px;
+    width: 172.5px;
   }
   .counts {
-    gap: 12px;
-    padding: 0 10px;
+    gap: 9px;
+    padding: 0 7.5px;
   }
   .search {
-    padding: 10px;
+    padding: 7.5px;
   }
   .answer-area {
-    padding: 35px 30px;
+    padding: 26px 22.5px;
   }
   .detail-tabs {
-    padding: 10px 15px;
+    padding: 7.5px 11px;
   }
   .detail-tabs button {
-    width: 85px;
+    width: 64px;
   }
   .messages {
-    padding-left: 20px;
-    padding-right: 20px;
+    padding-left: 15px;
+    padding-right: 15px;
   }
 }
 @media print {
@@ -524,23 +493,23 @@ h3 {
 
 @media screen {
   .teacher-workspace {
-    grid-template-columns: 301px minmax(0, 1fr);
+    grid-template-columns: 226px minmax(0, 1fr);
   }
   .teacher-content {
     height: auto;
-    min-height: calc(100vh - 81px);
+    min-height: calc(100vh - 61px);
     align-items: stretch;
   }
   .teacher-content .answer-area {
     min-width: 0;
-    padding: 28px;
-    gap: 24px;
+    padding: 21px;
+    gap: 18px;
     align-items: stretch;
   }
   .teacher-content .student-summary,
   .teacher-content .answer-card {
     width: 100%;
-    max-width: 960px;
+    max-width: 720px;
     margin-inline: auto;
     min-width: 0;
   }
@@ -552,7 +521,7 @@ h3 {
     border-left: none;
   }
   .teacher-content .detail-tabs {
-    padding-inline: 15px;
+    padding-inline: 11px;
     gap: 0;
   }
   .teacher-content .detail-tabs button {
@@ -561,8 +530,8 @@ h3 {
     min-width: 0;
   }
   .teacher-content .contribution-card {
-    padding: 20px 15px;
-    gap: 15px;
+    padding: 15px 11px;
+    gap: 11px;
   }
   .teacher-content .contribution-legend h3 {
     white-space: normal;
@@ -572,7 +541,7 @@ h3 {
     justify-content: flex-start;
   }
   .teacher-content .rating-options button {
-    padding: 7.5px 8px;
+    padding: 5.5px 6px;
   }
 }
 @media screen and (max-width: 1400px) {
@@ -594,20 +563,31 @@ h3 {
   }
 }
 
+
 /* Scale the two assessment workspaces while keeping them viewport-height. */
+/* 채점 화면은 zoom 없이 직접 줄인 크기를 사용합니다. */
+@media screen {
+  .grading-workspace {
+    padding-top: 61px;
+    min-height: 100dvh;
+  }
+  .grading-workspace .teacher-workspace,
+  .grading-workspace .teacher-content {
+    min-height: calc(100dvh - 61px);
+  }
+}
 @media screen {
   .compact-workspace {
-    --workspace-viewport-height: calc(100dvh / 0.75);
-    zoom: 0.75;
-    padding-top: 81px;
+    --workspace-viewport-height: 100dvh;
+    padding-top: 61px;
     min-height: var(--workspace-viewport-height);
   }
   .compact-workspace > .student-solving-body {
-    height: calc(var(--workspace-viewport-height) - 81px);
+    height: calc(var(--workspace-viewport-height) - 61px);
   }
-  .compact-workspace .teacher-workspace,
-  .compact-workspace .teacher-content {
-    min-height: calc(var(--workspace-viewport-height) - 81px);
+  .grading-workspace .teacher-workspace,
+  .grading-workspace .teacher-content {
+    min-height: calc(100dvh - 61px);
   }
 }
 
@@ -629,9 +609,9 @@ h3 {
 
 /* Keep evaluation tabs visible while long reviews scroll within the viewport. */
 @media screen {
-  .compact-workspace .teacher-workspace,
-  .compact-workspace .teacher-content {
-    height: calc(var(--workspace-viewport-height) - 81px);
+  .grading-workspace .teacher-workspace,
+  .grading-workspace .teacher-content {
+    height: calc(100dvh - 61px);
     min-height: 0;
   }
   .teacher-content .details {
@@ -659,4 +639,104 @@ h3 {
   .teacher-content .answer-card {
     flex-shrink: 0;
   }
+}
+
+/* Frosted glass once page content scrolls underneath the fixed header. */
+.header {
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease;
+}
+.header.is-scrolled {
+  background: rgba(255, 255, 255, 0.72);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  border-bottom-color: rgba(223, 232, 245, 0.8);
+}
+
+/* 헤더: zoom 없이 직접 줄인 크기 */
+.header {
+  height: 61px;
+  padding: 11px 38px;
+}
+.header nav {
+  gap: 15px;
+}
+.header .icon-button {
+  width: 22px;
+  height: 30px;
+}
+.header > img,
+.header .lit-logo-link img {
+  width: 75px;
+  height: auto;
+}
+.header .button,
+.compact-workspace .header .button,
+.grading-workspace .header .button {
+  min-height: 40px;
+  padding: 8px 22px;
+  border-radius: 9px;
+  font-size: calc(var(--font-text-md) * 0.85);
+  line-height: calc(var(--line-text-md) * 0.85);
+}
+.landing-header {
+  height: 60px;
+  padding: 11px 38px;
+}
+.landing-header nav {
+  gap: 15px;
+}
+.landing-header .icon-button {
+  width: 22px;
+  height: 30px;
+}
+.landing-header .lit-logo-link img {
+  width: 75px;
+  height: auto;
+}
+.landing-header .button {
+  min-height: 40px;
+  padding: 8px 22px;
+  border-radius: 9px;
+  font-size: calc(var(--font-text-md) * 0.85);
+  line-height: calc(var(--line-text-md) * 0.85);
+}
+/* 학생 풀이·채점 화면의 버튼 (모달 안 버튼은 제외) */
+.compact-workspace .button,
+.grading-workspace .button {
+  min-height: 33px;
+  padding: 7px 19px;
+  border-radius: 8px;
+  font-size: calc(var(--font-text-md) * 0.75);
+  line-height: calc(var(--line-text-md) * 0.75);
+}
+.compact-workspace .modal .button,
+.grading-workspace .modal .button {
+  min-height: 44px;
+  padding: 10px 26px;
+  border-radius: 10px;
+  font-size: var(--font-text-md);
+  line-height: var(--line-text-md);
+}
+/* 헤더 아이콘도 같은 비율로 */
+.header .icon-button svg,
+.header .icon-button img,
+.landing-header .icon-button svg,
+.landing-header .icon-button img {
+  width: 18px;
+  height: 18px;
+}
+.header .icon-button {
+  width: 30px;
+  height: 30px;
+}
+
+.landing-header .button,
+.landing-header .landing-outline {
+  min-height: 40px;
+  padding: 8px 22px;
+  border-radius: 9px;
+  font-size: calc(var(--font-text-md) * 0.85);
+  line-height: calc(var(--line-text-md) * 0.85);
 }
