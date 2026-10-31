@@ -23,7 +23,11 @@ export function LandingFooter() {
           <div>
             <h4>계정</h4>
             {user ? (
-              <Link to={paths.home}>홈</Link>
+              <>
+                <Link to={paths.home}>홈</Link>
+                <Link to={paths.settings}>설정</Link>
+                <Link to={paths.notifications}>알림</Link>
+              </>
             ) : (
               <>
                 <Link to={paths.login}>로그인</Link>
@@ -38,8 +42,8 @@ export function LandingFooter() {
         <div>
           <p>© 2026 LIT. All rights reserved.</p>
           <p className="landing-footer-legal">
-            <span>이용약관</span>
-            <span>개인정보 처리방침</span>
+            <Link to={paths.terms}>이용약관</Link>
+            <Link to={paths.privacy}>개인정보 처리방침</Link>
           </p>
         </div>
         <div className="landing-footer-info">
