@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { paths } from "../../router/paths";
-import { Icon } from "../ui/Icon";
-import { IconButton } from "../ui/IconButton";
+import { HeaderUtilities } from "../ui/HeaderDialogs";
 import { useAuth } from "../../auth/useAuth";
 import { Button } from "../ui/Button";
 export function LandingHeader({
@@ -31,15 +30,7 @@ export function LandingHeader({
         <img src="/lit-logo.png" width="100" height="50" alt="LIT" />
       </Link>
       <nav aria-label="서비스 메뉴">
-        <IconButton
-          label="알림"
-          onClick={() => onNotice("새로운 알림이 없습니다.")}
-        >
-          <Icon name="bell" />
-        </IconButton>
-        <IconButton label="설정" onClick={() => onNotice("설정")}>
-          <Icon name="settings" />
-        </IconButton>
+        <HeaderUtilities />
         {user ? (
           <>
             <Link className="button landing-outline" to={user.role === "TEACHER" ? paths.evaluations : paths.join}>
