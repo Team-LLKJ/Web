@@ -15,6 +15,7 @@ import {
   moveQuestion,
   toDraftQuestion,
   toQuestionInput,
+  questionLimitError,
   type DraftQuestion,
 } from "../components/teacher/questionDraft";
 import { Button } from "../components/ui/Button";
@@ -22,6 +23,7 @@ import { DeleteEvaluationDialog } from "../components/teacher/DeleteEvaluationDi
 import { Skeleton, SkeletonStatus } from "../components/ui/Skeleton";
 import { paths } from "../router/paths";
 import "../components/teacher/teacher.css";
+import { Toast } from "../components/teacher/Toast";
 
 export function TeacherEvaluationEditPage() {
   const { evaluationId = "" } = useParams();
@@ -79,6 +81,11 @@ export function TeacherEvaluationEditPage() {
       setNotice("문항은 1~100개이며, 모든 문항의 내용을 입력해야 합니다.");
       return;
     }
+    const limitError = questionLimitError(questions);
+    if (limitError) {
+      setNotice(limitError);
+      return;
+    }
     setBusy(true);
     setNotice("");
     try {
@@ -119,11 +126,7 @@ export function TeacherEvaluationEditPage() {
             평가 삭제
           </Button>
         </div>
-        {notice && (
-          <p className="teacher-notice" role="alert">
-            {notice}
-          </p>
-        )}
+        <Toast message={notice} onClose={() => setNotice("")} />
         {loading ? (
           <SkeletonStatus label="평가 정보를 불러오는 중입니다.">
             <section className="teacher-card teacher-card-skeleton">
@@ -160,6 +163,11 @@ export function TeacherEvaluationEditPage() {
               onChange={(key, content) =>
                 setQuestions((current) =>
                   current.map((q) => (q.key === key ? { ...q, content } : q)),
+                )
+              }
+              onLimitChange={(key, field, value) =>
+                setQuestions((current) =>
+                  current.map((q) => (q.key === key ? { ...q, [field]: value } : q)),
                 )
               }
               onAdd={() =>
