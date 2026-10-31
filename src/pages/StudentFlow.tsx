@@ -5,6 +5,7 @@ import {
   useState,
   type CSSProperties,
 } from "react";
+import { htmlToPlainText } from "../lib/guidelinesText";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ApiError, apiErrorMessage } from "../api/client";
 import {
@@ -57,6 +58,23 @@ import {
 import { Skeleton, SkeletonStatus } from "../components/ui/Skeleton";
 import "../components/student/student.css";
 
+// 서버 오류 코드를 학생이 이해할 수 있는 안내 문구로 바꿉니다.
+const AI_FAILURE_MESSAGES: Record<string, string> = {
+  AI_TIMEOUT: "AI 응답이 너무 오래 걸려 중단됐어요. 잠시 후 다시 질문해 주세요.",
+  AI_NOT_CONFIGURED: "AI 기능이 아직 준비되지 않았어요. 선생님께 알려 주세요.",
+  AI_PROVIDER_RATE_LIMITED: "지금 AI 요청이 많아요. 잠시 후 다시 질문해 주세요.",
+  AI_PROVIDER_UNAVAILABLE: "AI 서비스가 일시적으로 불안정해요. 잠시 후 다시 질문해 주세요.",
+  AI_MODEL_UNAVAILABLE: "AI 모델을 사용할 수 없어요. 선생님께 알려 주세요.",
+  AI_AUTHENTICATION_FAILED: "AI 연결 설정에 문제가 있어요. 선생님께 알려 주세요.",
+  EVALUATION_CLOSED: "평가가 종료되어 AI 응답을 받지 못했어요.",
+};
+function aiFailureMessage(code: string | null | undefined) {
+  if (code && AI_FAILURE_MESSAGES[code]) return AI_FAILURE_MESSAGES[code];
+  if (code === "HTTP_502" || code === "HTTP_503" || code === "HTTP_504")
+    return "AI 서버와 연결하지 못했어요. 잠시 후 다시 질문해 주세요.";
+  return "AI 응답을 완료하지 못했어요. 잠시 후 다시 질문해 주세요.";
+}
+
 function screenFor(lobby: {
   screen?: StudentScreen;
   state: string;
@@ -95,7 +113,7 @@ function toChatMessages(turns: Turn[]): Message[] {
           turn.answerText ??
           (turn.state === "PENDING"
             ? "응답을 생성하고 있습니다…"
-            : `응답을 완료하지 못했습니다. (${turn.errorCode ?? "AI_PROVIDER_ERROR"})`),
+            : aiFailureMessage(turn.errorCode)),
         pending: turn.state === "PENDING" && !turn.answerText,
       },
     ]);
@@ -131,7 +149,6 @@ export function StudentFlow({ route }: { route: string }) {
   >({});
   const [turns, setTurns] = useState<Turn[]>([]);
   // Chat history already loaded per question, so revisiting a tab shows it instantly.
-  const turnsCache = useRef<Record<string, Turn[]>>({});
   const [dialog, setDialog] = useState<StudentDialog>("");
   const [notice, setNotice] = useState("");
   const [editorNotice, setEditorNotice] = useState("");
@@ -139,7 +156,7 @@ export function StudentFlow({ route }: { route: string }) {
   const [preview, setPreview] = useState<Review | null>(null);
   const [dialogError, setDialogError] = useState("");
   const [loadingWorkspace, setLoadingWorkspace] = useState(false);
-  const [loadingQuestionData, setLoadingQuestionData] = useState(true);
+  const [loadingHistory, setLoadingHistory] = useState(true);
   const [savingQuestionId, setSavingQuestionId] = useState("");
   const [aiBusy, setAiBusy] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -339,21 +356,10 @@ export function StudentFlow({ route }: { route: string }) {
   }, [isSolving, session.evaluationId, redirectForParticipantAuthError]);
 
   useEffect(() => {
-    if (!isSolving || !session.evaluationId || !questionId) {
-      setLoadingQuestionData(false);
-      return;
-    }
+    if (!isSolving || !session.evaluationId || !questionId) return;
     let active = true;
-    setLoadingQuestionData(!turnsCache.current[questionId]);
-    void Promise.all([
-      getStudentQuestion(session.evaluationId, questionId),
-      getConversations(session.evaluationId, {
-        questionId,
-        afterId: 0,
-        limit: 200,
-      }),
-    ])
-      .then(([questionAnswer, history]) => {
+    void getStudentQuestion(session.evaluationId, questionId)
+      .then((questionAnswer) => {
         if (!active) return;
         setWorkspace((current) =>
           current
@@ -374,22 +380,50 @@ export function StudentFlow({ route }: { route: string }) {
           ...current,
           [questionId]: questionAnswer.answer.version,
         }));
-        turnsCache.current[questionId] = history;
-        setTurns(history);
       })
       .catch((error) => {
         if (active)
           setChatNotice(
-            apiErrorMessage(error, "문항 기록을 불러오지 못했습니다."),
+            apiErrorMessage(error, "문항을 불러오지 못했습니다."),
           );
-      })
-      .finally(() => {
-        if (active) setLoadingQuestionData(false);
       });
     return () => {
       active = false;
     };
   }, [isSolving, session.evaluationId, questionId]);
+
+  // AI 대화창은 모든 문항이 하나를 함께 쓰므로, 문항을 바꿔도 초기화되지 않게 전체 기록을 한 번만 불러온다.
+  useEffect(() => {
+    if (!isSolving || !session.evaluationId) return;
+    let active = true;
+    setLoadingHistory(true);
+    void (async () => {
+      const all: Turn[] = [];
+      let afterId = 0;
+      for (let page = 0; page < 50; page += 1) {
+        const batch = await getConversations(session.evaluationId, {
+          afterId,
+          limit: 200,
+        });
+        all.push(...batch);
+        if (batch.length < 200) break;
+        afterId = Math.max(...batch.map((turn) => turn.id));
+      }
+      if (active) setTurns(all);
+    })()
+      .catch((error) => {
+        if (active)
+          setChatNotice(
+            apiErrorMessage(error, "대화 기록을 불러오지 못했습니다."),
+          );
+      })
+      .finally(() => {
+        if (active) setLoadingHistory(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [isSolving, session.evaluationId]);
 
   useEffect(() => {
     if (!isSolving) return;
@@ -566,11 +600,7 @@ export function StudentFlow({ route }: { route: string }) {
   async function selectQuestion(nextId: string) {
     if (nextId === questionId) return;
     if (questionId && !(await saveAnswer(questionId))) return;
-    if (questionId) turnsCache.current[questionId] = turns;
-    const cached = turnsCache.current[nextId];
     setQuestionId(nextId);
-    setLoadingQuestionData(!cached);
-    setTurns(cached ?? []);
     setChatNotice("");
   }
 
@@ -633,7 +663,7 @@ export function StudentFlow({ route }: { route: string }) {
         );
       else if (turn.state === "FAILED")
         setChatNotice(
-          `AI 응답을 완료하지 못했습니다. (${turn.errorCode ?? "AI_PROVIDER_ERROR"})`,
+          aiFailureMessage(turn.errorCode),
         );
     } catch (error) {
       setTurns((current) =>
@@ -645,7 +675,12 @@ export function StudentFlow({ route }: { route: string }) {
           completedAt: new Date().toISOString(),
         }),
       );
-      setChatNotice(apiErrorMessage(error, "AI 질문을 전송하지 못했습니다."));
+      setChatNotice(
+        error instanceof ApiError &&
+          (error.code.startsWith("HTTP_5") || error.code.startsWith("AI_"))
+          ? aiFailureMessage(error.code)
+          : apiErrorMessage(error, "AI 질문을 전송하지 못했습니다."),
+      );
     } finally {
       setAiBusy(false);
     }
@@ -655,6 +690,16 @@ export function StudentFlow({ route }: { route: string }) {
     if (!session.evaluationId) return;
     setDialogError("");
     if (questionId && !(await saveAnswer(questionId))) return;
+    for (const [index, item] of questions.entries()) {
+      if (!item.minChars) continue;
+      const length = htmlToPlainText(answers[item.id] ?? "").replace(/\n/g, "").length;
+      if (length < item.minChars) {
+        setNotice(
+          `${questions.length === 1 ? "문항" : `문항 ${index + 1}`}은 최소 ${item.minChars.toLocaleString()}자 이상 작성해야 제출할 수 있어요. (현재 ${length.toLocaleString()}자)`,
+        );
+        return;
+      }
+    }
     try {
       setPreview(await getSubmissionPreview(session.evaluationId));
       setDialog("submit");
@@ -957,7 +1002,7 @@ export function StudentFlow({ route }: { route: string }) {
             onExpandedChange={setChatExpanded}
             student={displayStudent}
             messages={messages}
-            loadingHistory={loadingQuestionData}
+            loadingHistory={loadingHistory}
             aiPolicy={workspace.aiPolicy}
             disabled={readOnly || workspace.aiPolicy === "DISABLED"}
             busy={aiBusy}
