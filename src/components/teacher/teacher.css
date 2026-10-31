@@ -361,7 +361,7 @@
   text-align: right;
 }
 .teacher-expiry-inputs[data-error="true"] input {
-  border-color: var(--color-danger-dark);
+  border-color: var(--color-danger);
 }
 .teacher-expiry-error {
   margin: -12px 0 0;
@@ -1325,79 +1325,6 @@
     height: 42px;
     font-size: 16px;
   }
-.rich-text {
-  overflow: hidden;
-  border: 1px solid var(--color-grey-20);
-  border-radius: 8px;
-  background: var(--color-white);
-}
-.rich-text:focus-within {
-  border-color: var(--color-primary-dark);
-}
-.rich-text.is-over {
-  border-color: var(--color-danger-dark);
-}
-.rich-text.is-disabled {
-  background: var(--color-primary-background);
-}
-.rich-text-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2px;
-  padding: 6px;
-  border-bottom: 1px solid var(--color-grey-20);
-  background: var(--color-primary-background);
-}
-.rich-text-toolbar button {
-  display: grid;
-  place-items: center;
-  min-width: 32px;
-  height: 32px;
-  padding: 0 6px;
-  border: 0;
-  border-radius: 6px;
-  color: var(--color-grey-60);
-  background: none;
-  font: inherit;
-  font-size: var(--font-text-sm);
-  cursor: pointer;
-}
-.rich-text-toolbar button:hover:not(:disabled) {
-  background: var(--color-grey-20);
-}
-.rich-text-toolbar button.is-active {
-  color: var(--color-primary-dark);
-  background: var(--color-primary-soft);
-}
-.rich-text-toolbar button:disabled {
-  color: var(--color-grey-20);
-  cursor: not-allowed;
-}
-.rich-text-editor {
-  /* Pretendard에는 기울임 글꼴이 없어 편집기 안에서만 기울임 합성을 허용합니다. */
-  font-synthesis: style;
-  min-height: 130px;
-  max-height: 320px;
-  overflow-y: auto;
-  padding: 12px;
-  color: var(--color-grey-90);
-  font-size: var(--font-text-md);
-  line-height: var(--line-text-md);
-  outline: none;
-  overflow-wrap: anywhere;
-}
-.rich-text-editor.is-empty::before {
-  content: attr(data-placeholder);
-  color: var(--color-grey-40);
-  pointer-events: none;
-}
-.rich-text-editor ul,
-.rich-text-editor ol {
-  margin: 4px 0;
-  padding-left: 22px;
-}
-.rich-text-editor p {
-  margin: 0;
 }
 
 /* 평가 카드의 수정·삭제 */
@@ -1429,4 +1356,1020 @@
 }
 .evaluation-card-actions > button:hover {
   color: var(--color-danger);
+}
+
+/* ───── 새 평가 만들기: 섹션 카드 폼 ───── */
+.teacher-page-content--create {
+  width: min(880px, calc(100% - 40px));
+}
+.teacher-create-sub {
+  margin: 6px 0 0;
+  color: var(--color-grey-50);
+  font-size: var(--font-text-sm);
+  line-height: var(--line-text-sm);
+}
+.teacher-create-card {
+  display: grid;
+  gap: 14px;
+}
+.teacher-create-card .teacher-create-stepper {
+  margin-top: 22px;
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+.teacher-create-card .teacher-create-stepper > span.is-current,
+.teacher-create-card .teacher-create-stepper > span.is-complete {
+  color: var(--color-primary);
+}
+.teacher-create-card .teacher-create-stepper > span.is-current .teacher-step-number,
+.teacher-create-card .teacher-create-stepper > span.is-complete .teacher-step-number {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-white);
+}
+.teacher-create-section {
+  display: grid;
+  gap: 16px;
+  padding: 26px 28px;
+  border-color: #dcdce0;
+  border-radius: 16px;
+  box-shadow: none;
+}
+.teacher-create-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.teacher-create-section-head h2 {
+  margin: 0;
+  color: var(--color-grey-90);
+  font-size: var(--font-text-md);
+  line-height: var(--line-text-md);
+  font-weight: var(--weight-bold);
+}
+.teacher-create-section-head h2 small,
+.teacher-create-section-head > small {
+  color: var(--color-grey-40);
+  font-size: var(--font-caption);
+  line-height: var(--line-caption);
+  font-weight: var(--weight-regular);
+}
+.teacher-create-section-head h2 small {
+  margin-left: 8px;
+}
+.teacher-section-num {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-right: 10px;
+  border-radius: 50%;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-size: 15px;
+  font-weight: var(--weight-bold);
+  vertical-align: -3px;
+}
+.teacher-section-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-primary);
+  font: inherit;
+  font-size: var(--font-caption);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+}
+.teacher-section-link:disabled {
+  color: var(--color-grey-30);
+  cursor: not-allowed;
+}
+.teacher-section-hint {
+  margin: -6px 0 0;
+  color: var(--color-grey-40);
+  font-size: var(--font-caption);
+  line-height: var(--line-caption);
+}
+.teacher-create-card .teacher-form-grid {
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: 18px;
+  align-items: start;
+}
+.teacher-create-card .teacher-expiry-field {
+  gap: 0;
+}
+.teacher-create-card .text-input-field > label,
+.teacher-create-card .teacher-expiry-field legend {
+  margin-top: 0;
+  margin-bottom: 3px;
+  color: var(--color-grey-60);
+  font-size: var(--font-caption);
+  font-weight: var(--weight-semibold);
+}
+.teacher-create-card .teacher-expiry-field legend {
+  margin-bottom: 8px;
+}
+.teacher-create-card .text-input {
+  align-items: center;
+  min-height: 50px;
+  border-radius: 12px;
+}
+.teacher-create-card .teacher-expiry-inputs input {
+  height: 50px;
+  border-radius: 12px;
+}
+.teacher-create-card .teacher-expiry-inputs input:focus {
+  border-color: var(--color-primary);
+  outline: 0;
+}
+
+/* 평가 내용: 학생 답안 편집기와 같은 서식 도구 */
+.teacher-rich-editor {
+  flex: none;
+}
+.teacher-rich-editor .answer-document-viewport {
+  flex: none;
+  min-height: 160px;
+  max-height: 360px;
+}
+.teacher-rich-editor .student-answer-content.tiptap {
+  min-height: 160px;
+  padding: 14px 16px;
+  border: 0;
+  outline: 0;
+  font-size: var(--font-text-sm);
+  line-height: 1.6;
+}
+.teacher-rich-editor.is-disabled {
+  background: var(--color-grey-10);
+}
+
+/* AI 사용 정책 라디오 카드 */
+.teacher-policy-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.teacher-option-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 18px;
+  border: 1px solid var(--color-grey-20);
+  border-radius: 14px;
+  cursor: pointer;
+}
+.teacher-option-card:has(input:checked) {
+  border-color: var(--color-primary);
+  background: var(--color-primary-background);
+}
+.teacher-option-card:has(input:focus-visible),
+.teacher-check:has(input:focus-visible) {
+  outline: 2px solid var(--color-primary-light);
+  outline-offset: 2px;
+}
+.teacher-option-card input[type="radio"] {
+  appearance: none;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin: 2px 0 0;
+  border: 1.5px solid var(--color-grey-30);
+  border-radius: 50%;
+  background: var(--color-white);
+}
+.teacher-option-card input[type="radio"]:checked {
+  border: 6px solid var(--color-primary);
+}
+.teacher-option-card span {
+  display: grid;
+  gap: 4px;
+}
+.teacher-option-card strong {
+  color: var(--color-grey-90);
+  font-size: var(--font-text-sm);
+  line-height: var(--line-text-sm);
+  font-weight: var(--weight-semibold);
+}
+.teacher-option-card small {
+  color: var(--color-grey-50);
+  font-size: var(--font-caption);
+  line-height: 1.5;
+}
+
+/* 평가 항목·부정행위 방지 체크 카드 */
+.teacher-create-card .teacher-check-group {
+  gap: 10px;
+}
+.teacher-create-card .teacher-check {
+  align-items: flex-start;
+  gap: 14px;
+  padding: 15px 18px;
+  border-radius: 14px;
+}
+.teacher-create-card .teacher-check:has(input:checked) {
+  border-color: var(--color-primary);
+}
+.teacher-create-card .teacher-check input[type="checkbox"] {
+  appearance: none;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  margin: 1px 0 0;
+  border: 1.5px solid var(--color-grey-30);
+  border-radius: 7px;
+  background: var(--color-white);
+}
+.teacher-create-card .teacher-check input[type="checkbox"]:checked {
+  border-color: var(--color-primary);
+  background: var(--color-primary)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12.5 4.5 4.5L19 7.5'/%3E%3C/svg%3E")
+    center / 14px no-repeat;
+}
+
+/* 하단 버튼 */
+.teacher-form-actions--bar {
+  justify-content: flex-end;
+  padding-top: 6px;
+}
+.teacher-form-actions--bar > div {
+  display: flex;
+  gap: 10px;
+}
+@media (max-width: 760px) {
+  .teacher-create-card .teacher-form-grid,
+  .teacher-policy-options {
+    grid-template-columns: 1fr;
+  }
+  .teacher-create-section {
+    padding: 20px 18px;
+  }
+  .teacher-form-actions--bar > div {
+    width: 100%;
+  }
+}
+
+/* 문항별 글자 수 제한(선택): 체크하면 최소·최대 입력칸이 나타난다 */
+.teacher-question-limits {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  min-width: 0;
+}
+.teacher-limit-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px 6px 8px;
+  border-radius: 10px;
+  color: var(--color-grey-70, #3a3a3c);
+  font-size: var(--font-text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.15s;
+}
+.teacher-limit-toggle:hover {
+  background: var(--color-grey-10);
+}
+.teacher-limit-toggle input {
+  appearance: none;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  border: 1.5px solid var(--color-grey-30, #c6c6c6);
+  border-radius: 6px;
+  background: var(--color-white) center / 12px no-repeat;
+  cursor: pointer;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s;
+}
+.teacher-limit-toggle input:hover {
+  border-color: var(--color-primary);
+}
+.teacher-limit-toggle input:checked {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E");
+}
+.teacher-limit-toggle input:focus-visible {
+  outline: 2px solid #b7d6ff;
+  outline-offset: 2px;
+}
+.teacher-limit-fields {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.teacher-limit-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.teacher-limit-item i {
+  color: var(--color-grey-40);
+  font-style: normal;
+}
+.teacher-limit-input {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-sizing: border-box;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--color-grey-20);
+  border-radius: 10px;
+  background: var(--color-white);
+}
+.teacher-limit-input:focus-within {
+  border-color: var(--color-primary);
+}
+.teacher-limit-input b {
+  color: var(--color-grey-50);
+  font-size: 13px;
+  font-weight: 500;
+}
+.teacher-limit-input input {
+  width: 72px;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font: inherit;
+  font-size: var(--font-text-sm);
+  text-align: right;
+}
+.teacher-limit-input input::placeholder {
+  color: var(--color-grey-40);
+}
+.teacher-limit-input em {
+  color: var(--color-grey-50);
+  font-size: var(--font-text-sm);
+  font-style: normal;
+}
+
+/* ───── 문항 작성(2단계) 카드형 ───── */
+.tq-intro {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+.tq-intro h2 {
+  margin: 0;
+  font-size: var(--font-text-lg, 18px);
+  font-weight: 600;
+}
+.tq-intro p {
+  margin: 6px 0 0;
+  color: var(--color-grey-60, #636366);
+  font-size: var(--font-text-sm);
+}
+.tq-count {
+  flex: none;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--color-primary-soft, #eaf3ff);
+  color: var(--color-primary);
+  font-size: 13px;
+  font-weight: 600;
+}
+.tq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+}
+.tq-card {
+  box-sizing: border-box;
+  min-width: 0;
+  margin: 0;
+  padding: 18px 20px 16px;
+  border: 1px solid var(--color-grey-20);
+  border-radius: 16px;
+  background: var(--color-white);
+}
+.tq-card:focus-within {
+  border-color: var(--color-primary);
+}
+.tq-card.is-dragging {
+  opacity: 0.5;
+}
+.tq-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.tq-badge {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+}
+.tq-title {
+  flex: 1;
+  margin: 0;
+  font-size: var(--font-text-md);
+  font-weight: 600;
+}
+.tq-handle {
+  display: grid;
+  place-items: center;
+  padding: 6px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--color-grey-40);
+  cursor: grab;
+}
+.tq-handle:hover {
+  background: var(--color-grey-10);
+  color: var(--color-grey-60, #636366);
+}
+.tq-handle:active {
+  cursor: grabbing;
+}
+.tq-card:disabled .tq-handle {
+  visibility: hidden;
+}
+.tq-card textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 112px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-grey-20);
+  border-radius: 12px;
+  background: var(--color-grey-10, #f7f7f8);
+  font: inherit;
+  font-size: var(--font-text-sm);
+  line-height: 1.6;
+  resize: none;
+  outline: 0;
+}
+.tq-card textarea:focus {
+  border-color: var(--color-primary);
+  background: #fff;
+}
+.tq-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-grey-10);
+}
+.tq-remove {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--color-grey-50);
+  cursor: pointer;
+}
+.tq-remove:hover:not(:disabled) {
+  background: #fff1f0;
+  color: #d92d20;
+}
+.tq-remove:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.tq-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 54px;
+  margin-top: 16px;
+  border: 1px solid #cfe3ff;
+  border-radius: 14px;
+  background: #f1f7ff;
+  color: var(--color-primary);
+  font: inherit;
+  font-size: var(--font-text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s;
+}
+.tq-add:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  background: #e6f1ff;
+}
+.tq-add:active:not(:disabled) {
+  background: #d9eaff;
+}
+.tq-add:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.teacher-form-actions--split {
+  justify-content: space-between;
+}
+@media (max-width: 560px) {
+  .tq-intro {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .tq-card {
+    padding: 16px 14px 14px;
+  }
+}
+
+/* 문항 추가 버튼과 하단 버튼 사이 간격 */
+.teacher-create-questions-step .teacher-form-actions--bar {
+  margin-top: 28px;
+  padding-top: 0;
+}
+
+/* 글자 수 제한을 켜도 문항 카드 높이가 변하지 않게 줄 높이를 고정한다. */
+.tq-foot {
+  min-height: 36px;
+}
+.teacher-question-limits {
+  flex-wrap: nowrap;
+}
+.teacher-limit-toggle {
+  box-sizing: border-box;
+  height: 36px;
+  flex: none;
+}
+.teacher-limit-fields {
+  flex-wrap: nowrap;
+}
+.teacher-limit-input {
+  flex: none;
+}
+@media (max-width: 640px) {
+  .tq-foot {
+    align-items: flex-start;
+  }
+  .teacher-question-limits,
+  .teacher-limit-fields {
+    flex-wrap: wrap;
+  }
+}
+
+/* 단계 표시줄과 아래 내용 사이 간격 (평가 정보·문항 작성 공통) */
+.teacher-create-stepper {
+  margin-bottom: 24px;
+}
+
+/* 두 단계의 단계 표시줄 아래 간격을 같게 맞춘다. */
+.tq-list {
+  margin-top: 0;
+}
+
+/* 평가 내용 편집기: 포커스 표시를 테두리 한 줄로 단순화하고 모서리를 깔끔하게 맞춘다. */
+.teacher-rich-editor {
+  overflow: hidden;
+  border: 1px solid var(--color-grey-20);
+  border-radius: 12px;
+  outline: 0;
+}
+.teacher-rich-editor:focus-within {
+  border-color: var(--color-primary);
+  outline: 0;
+}
+.teacher-rich-editor .answer-document-viewport,
+.teacher-rich-editor .answer-document-viewport:focus-within {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  outline: 0;
+}
+
+/* "선택" 표시를 작은 알약 태그로 */
+.teacher-create-section-head > small {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--color-grey-10);
+  color: var(--color-grey-60, #636366);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+/* 평가 내용 편집기: 안쪽 요소의 모서리 둥글기를 모두 없애고 바깥 테두리(overflow hidden)로만 자른다. */
+.teacher-rich-editor .answer-ribbon,
+.teacher-rich-editor .answer-ribbon--compact,
+.teacher-rich-editor .answer-ribbon--compact .ribbon-compact,
+.teacher-rich-editor > .answer-document-viewport,
+.teacher-rich-editor > .answer-document-viewport:first-child,
+.teacher-rich-editor .answer-document-host,
+.teacher-rich-editor .student-answer-content.tiptap {
+  border-radius: 0;
+}
+
+/* 문항 입력칸: 기본 상태를 흰 배경과 옅은 테두리로 밝게 */
+.tq-card textarea {
+  border-color: #e3e3e8;
+  background: #fff;
+}
+.tq-card textarea::placeholder {
+  color: var(--color-grey-30);
+}
+.tq-card textarea:hover:not(:focus):not(:disabled) {
+  border-color: var(--color-grey-20);
+}
+.tq-card textarea:focus {
+  border-color: var(--color-primary);
+}
+
+/* 글자 수 제한 입력칸의 "제한 없음"을 문항 입력칸 플레이스홀더와 같은 연한 색으로 */
+.teacher-limit-input input::placeholder {
+  color: var(--color-grey-30);
+  opacity: 1;
+}
+
+/* 선택 카드(평가 항목·AI 정책) 호버 */
+.teacher-check,
+.teacher-option-card {
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+.teacher-check:hover:not(:has(input:disabled)),
+.teacher-option-card:hover:not(:has(input:disabled)) {
+  border-color: var(--color-primary-light);
+  background: var(--color-primary-background);
+}
+.teacher-check:has(input:checked):hover,
+.teacher-option-card:has(input:checked):hover {
+  border-color: var(--color-primary);
+}
+
+/* 글자 수 입력: "최소/최대" 바로 뒤에서 왼쪽부터 입력되도록 */
+.teacher-limit-input input {
+  width: 88px;
+  text-align: left;
+}
+
+.teacher-limit-input {
+  gap: 6px;
+  padding: 0 12px;
+}
+.teacher-limit-input input {
+  width: 66px;
+}
+
+/* 오른쪽 아래 토스트 안내 */
+.teacher-toast {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: min(420px, calc(100vw - 32px));
+  box-sizing: border-box;
+  padding: 14px 16px 14px 18px;
+  border: 1px solid var(--color-primary-light);
+  border-radius: 14px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-deep);
+  font-size: var(--font-text-sm);
+  line-height: var(--line-text-sm);
+  animation: teacher-toast-in 0.22s ease-out;
+}
+.teacher-toast button {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  color: inherit;
+  font-size: 18px;
+  line-height: 1;
+}
+.teacher-toast button:hover {
+  background: #ffffff99;
+}
+@keyframes teacher-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (max-width: 640px) {
+  .teacher-toast {
+    right: 16px;
+    bottom: 16px;
+  }
+}
+
+/* 오류 토스트는 빨간색 */
+.teacher-toast--error {
+  border-color: var(--color-danger);
+  background: #fff5f5;
+  color: var(--color-danger);
+}
+.teacher-toast--error button:hover {
+  background: #ffffffa6;
+}
+
+/* 평가 내용 비었을 때 경고 테두리 */
+.teacher-rich-editor[data-error="true"],
+.teacher-rich-editor[data-error="true"]:focus-within {
+  border-color: var(--color-danger);
+}
+
+/* 토스트 너비: 글 길이에 맞춰 늘어나되 최대 너비까지만 */
+.teacher-toast {
+  width: max-content;
+  max-width: min(560px, calc(100vw - 32px));
+  word-break: keep-all;
+}
+
+/* ───── 평가 폴더 ───── */
+.folder-sub {
+  margin: 6px 0 0;
+  color: var(--color-grey-50);
+  font-size: var(--font-text-sm);
+}
+.folder-tabs {
+  display: inline-flex;
+  gap: 4px;
+  margin: 0 0 20px;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--color-grey-10);
+}
+.folder-tabs a {
+  padding: 8px 18px;
+  border-radius: 9px;
+  color: var(--color-grey-60);
+  font-size: var(--font-text-sm);
+  font-weight: var(--weight-semibold);
+  text-decoration: none;
+}
+.folder-tabs a.is-active {
+  background: var(--color-white);
+  color: var(--color-primary);
+}
+.folder-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+.folder-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 22px;
+  border: 1px solid var(--color-grey-20);
+  border-radius: 16px;
+  background: var(--color-white);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+.folder-card:hover {
+  border-color: var(--color-primary-light);
+  background: var(--color-primary-background);
+}
+.folder-card-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 6px;
+  border-radius: 12px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+.folder-card strong {
+  font-size: var(--font-text-md);
+  font-weight: var(--weight-semibold);
+}
+.folder-card-meta {
+  color: var(--color-grey-50);
+  font-size: var(--font-text-sm);
+}
+.folder-card-live {
+  align-self: flex-start;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: var(--weight-semibold);
+}
+.folder-back {
+  display: inline-block;
+  margin-bottom: 12px;
+  color: var(--color-grey-50);
+  font-size: var(--font-text-sm);
+  text-decoration: none;
+}
+.folder-back:hover {
+  color: var(--color-primary);
+}
+.folder-title-actions {
+  display: flex;
+  gap: 8px;
+}
+.folder-section {
+  margin-top: 16px;
+}
+.folder-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.folder-section-head h2 {
+  margin: 0;
+  font-size: var(--font-text-lg, 18px);
+  font-weight: var(--weight-bold);
+}
+.folder-section-head > span {
+  color: var(--color-grey-50);
+  font-size: var(--font-text-sm);
+}
+.folder-desc {
+  margin: 0 0 14px;
+  color: var(--color-grey-70, #48484a);
+  font-size: var(--font-text-sm);
+  line-height: 1.6;
+}
+.folder-questions {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.folder-questions li {
+  display: flex;
+  gap: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-grey-20);
+  border-radius: 12px;
+  font-size: var(--font-text-sm);
+  line-height: 1.6;
+}
+.folder-questions li b {
+  flex: none;
+  color: var(--color-primary);
+}
+.folder-empty {
+  margin: 0;
+  color: var(--color-grey-50);
+  font-size: var(--font-text-sm);
+}
+.folder-sessions {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.folder-session {
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) minmax(0, 1.2fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--color-grey-20);
+  border-radius: 12px;
+}
+.folder-session-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.folder-session-main strong {
+  font-weight: var(--weight-semibold);
+}
+.folder-session-meta {
+  color: var(--color-grey-50);
+  font-size: var(--font-text-sm);
+}
+.folder-session-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.folder-create-form {
+  display: grid;
+  gap: 16px;
+}
+.folder-modal-actions {
+  display: flex;
+  gap: 8px;
+}
+.folder-modal-actions > * {
+  flex: 1;
+}
+@media (max-width: 720px) {
+  .folder-session {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .folder-title-actions {
+    flex-wrap: wrap;
+  }
+}
+.folder-start-desc {
+  margin: 0;
+  color: var(--color-grey-60);
+  font-size: var(--font-text-sm);
+  line-height: 1.6;
+}
+.folder-section--plain {
+  padding: 0;
+}
+
+/* 수행평가 카드: 링크 영역 + 오른쪽 위 수정·삭제 아이콘 */
+.folder-card {
+  position: relative;
+  padding: 0;
+}
+.folder-card-link {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 22px;
+  color: inherit;
+  text-decoration: none;
+}
+.folder-card-actions {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+}
+
+/* 안내(파랑) 토스트: 배경은 아주 옅은 프라이머리, 글씨와 테두리는 프라이머리 */
+.teacher-toast--info {
+  border-color: var(--color-primary);
+  background: var(--color-primary-background);
+  color: var(--color-primary);
+}
+
+/* 수행평가 카드를 더 크게 */
+.folder-grid {
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+.folder-card-link {
+  gap: 10px;
+  min-height: 210px;
+  padding: 28px;
+}
+.folder-card-icon {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 10px;
+  border-radius: 16px;
+}
+.folder-card-icon svg {
+  width: 32px;
+  height: 32px;
+}
+.folder-card strong {
+  margin-top: auto;
+  font-size: 20px;
+  line-height: 1.35;
+}
+.folder-card-meta {
+  font-size: 15px;
+}
+.folder-card-actions {
+  top: 18px;
+  right: 18px;
 }
