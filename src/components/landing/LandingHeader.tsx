@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { paths } from "../../router/paths";
 import { Icon } from "../ui/Icon";
@@ -10,8 +11,18 @@ export function LandingHeader({
   onNotice: (title: string) => void;
 }) {
   const { user, logout } = useAuth();
+  const [scrolled, setScrolled] = useState(false);
+
+  // Transparent over the hero, frosted glass once content scrolls underneath.
+  useEffect(() => {
+    const update = () => setScrolled(window.scrollY > 8);
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    return () => window.removeEventListener("scroll", update);
+  }, []);
+
   return (
-    <header className="landing-header">
+    <header className={`landing-header${scrolled ? " is-scrolled" : ""}`}>
       <Link
         className="lit-logo-link"
         to={paths.views}
