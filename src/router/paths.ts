@@ -4,6 +4,10 @@ export const paths = {
   signup: "/signup",
   resetPassword: "/reset-password",
   views: "/views",
+  terms: "/terms",
+  privacy: "/privacy",
+  settings: "/settings",
+  notifications: "/notifications",
   join: "/student/join",
   nickname: "/student/nickname",
   wait: "/student/wait",
@@ -12,5 +16,6 @@ export const paths = {
   evaluations: "/teacher/evaluations",
   evaluationCreate: "/teacher/evaluations/new",
   evaluation: "/teacher/evaluations/:evaluationId",
+  evaluationEdit: "/teacher/evaluations/:evaluationId/edit",
   results: "/teacher/evaluations/:evaluationId/results",
 } as const;

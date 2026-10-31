@@ -6,6 +6,7 @@ type Props = {
   children?: ReactNode;
   actions?: ReactNode;
   className?: string;
+  size?: "small" | "medium" | "large";
   dismissOnBackdrop?: boolean;
   dismissOnEscape?: boolean;
 };
@@ -15,6 +16,7 @@ export function Modal({
   children,
   actions,
   className = "",
+  size = "medium",
   dismissOnBackdrop = true,
   dismissOnEscape = true,
 }: Props) {
@@ -27,7 +29,7 @@ export function Modal({
   return (
     <dialog
       ref={ref}
-      className={`modal ${className}`}
+      className={`modal${size === "medium" ? "" : ` modal--${size}`} ${className}`}
       aria-label={title}
       onCancel={(e) => {
         e.preventDefault();

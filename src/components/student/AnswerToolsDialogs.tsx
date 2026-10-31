@@ -1,4 +1,10 @@
-import { useState, type FormEvent } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type FormEvent,
+} from "react";
 import type { Editor } from "@tiptap/react";
 import { Modal } from "../ui/Modal";
 import { Button } from "../ui/Button";
@@ -11,15 +17,47 @@ export function AnswerLinkDialog({
   editor: Editor;
   onClose: () => void;
 }) {
+  const ref = useRef<HTMLFormElement>(null);
+  const hasLink = editor.isActive("link");
+  const emptySelection = editor.state.selection.empty && !hasLink;
   const [url, setUrl] = useState(editor.getAttributes("link").href || "");
-  const [text, setText] = useState(
-    editor.state.doc.textBetween(
-      editor.state.selection.from,
-      editor.state.selection.to,
-      " ",
-    ),
-  );
+  const [text, setText] = useState("");
   const [error, setError] = useState("");
+  const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
+  useLayoutEffect(() => {
+    const { from, to } = editor.state.selection;
+    const start = editor.view.coordsAtPos(from);
+    const end = editor.view.coordsAtPos(to);
+    const width = ref.current?.offsetWidth ?? 320;
+    const height = ref.current?.offsetHeight ?? 48;
+    const left = Math.max(
+      8,
+      Math.min(start.left, window.innerWidth - width - 8),
+    );
+    const below = end.bottom + 6;
+    const top =
+      below + height > window.innerHeight - 8
+        ? Math.max(8, start.top - height - 6)
+        : below;
+    setPos({ left, top });
+  }, [editor]);
+  useEffect(() => {
+    function onDown(event: MouseEvent) {
+      if (!ref.current?.contains(event.target as Node)) onClose();
+    }
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+      }
+    }
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [onClose]);
   function submit(event: FormEvent) {
     event.preventDefault();
     let href = url.trim();
@@ -35,136 +73,65 @@ export function AnswerLinkDialog({
       setError("http, https 또는 mailto 주소를 입력해주세요.");
       return;
     }
-    if (editor.state.selection.empty && !editor.isActive("link"))
+    if (emptySelection)
       editor
         .chain()
         .focus()
         .insertContent(
-          `<a href="${escapeHtml(href)}">${escapeHtml(text || url.trim())}</a>`,
+          `<a href="${escapeHtml(href)}">${escapeHtml(text.trim() || url.trim())}</a>`,
         )
         .run();
     else editor.chain().focus().extendMarkRange("link").setLink({ href }).run();
     onClose();
   }
   return (
-    <Modal title="링크 넣기" className="answer-tools-modal" onClose={onClose}>
-      <form onSubmit={submit}>
-        <label>
-          표시할 내용
-          <input
-            autoFocus
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            aria-label="링크 표시 내용"
-            disabled={!editor.state.selection.empty || editor.isActive("link")}
-          />
-        </label>
-        <label>
-          주소
-          <input
-            required
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://example.com"
-            aria-label="링크 주소"
-          />
-        </label>
-        {error && <p role="alert">{error}</p>}
-        <div className="answer-dialog-actions">
-          {editor.isActive("link") && (
-            <Button
-              variant="white-danger"
-              onClick={() => {
-                editor
-                  .chain()
-                  .focus()
-                  .extendMarkRange("link")
-                  .unsetLink()
-                  .run();
-                onClose();
-              }}
-            >
-              링크 제거
-            </Button>
-          )}
-          <Button variant="secondary" onClick={onClose}>
-            취소
-          </Button>
-          <Button type="submit">적용</Button>
-        </div>
-      </form>
-    </Modal>
-  );
-}
-export function AnswerTableDialog({
-  editor,
-  onClose,
-}: {
-  editor: Editor;
-  onClose: () => void;
-}) {
-  const [rows, setRows] = useState(3);
-  const [columns, setColumns] = useState(3);
-  const [header, setHeader] = useState(true);
-  return (
-    <Modal title="표 넣기" className="answer-tools-modal" onClose={onClose}>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          editor
-            .chain()
-            .focus()
-            .insertTable({
-              rows: Math.max(1, Math.min(20, rows)),
-              cols: Math.max(1, Math.min(10, columns)),
-              withHeaderRow: header,
-            })
-            .run();
-          onClose();
-        }}
-      >
-        <div className="answer-table-size">
-          <label>
-            행
-            <input
-              type="number"
-              min="1"
-              max="20"
-              required
-              aria-label="표 행 수"
-              value={rows}
-              onChange={(e) => setRows(Number(e.target.value))}
-            />
-          </label>
-          <label>
-            열
-            <input
-              type="number"
-              min="1"
-              max="10"
-              required
-              aria-label="표 열 수"
-              value={columns}
-              onChange={(e) => setColumns(Number(e.target.value))}
-            />
-          </label>
-        </div>
-        <label className="answer-checkbox-label">
-          <input
-            type="checkbox"
-            checked={header}
-            onChange={(e) => setHeader(e.target.checked)}
-          />
-          첫 번째 행을 제목 행으로 사용
-        </label>
-        <div className="answer-dialog-actions">
-          <Button variant="secondary" onClick={onClose}>
-            취소
-          </Button>
-          <Button type="submit">표 넣기</Button>
-        </div>
-      </form>
-    </Modal>
+    <form
+      ref={ref}
+      className="link-popover"
+      style={{
+        left: pos?.left ?? 0,
+        top: pos?.top ?? 0,
+        visibility: pos ? "visible" : "hidden",
+      }}
+      onSubmit={submit}
+    >
+      {emptySelection && (
+        <input
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="텍스트"
+          aria-label="링크 표시 내용"
+        />
+      )}
+      <div className="link-popover-row">
+        <input
+          autoFocus
+          value={url}
+          onChange={(e) => {
+            setUrl(e.target.value);
+            setError("");
+          }}
+          placeholder="링크 붙여넣기"
+          aria-label="링크 주소"
+        />
+        {hasLink && (
+          <button
+            type="button"
+            className="link-popover-remove"
+            onClick={() => {
+              editor.chain().focus().extendMarkRange("link").unsetLink().run();
+              onClose();
+            }}
+          >
+            제거
+          </button>
+        )}
+        <button type="submit" className="link-popover-apply" disabled={!url.trim()}>
+          적용
+        </button>
+      </div>
+      {error && <p role="alert">{error}</p>}
+    </form>
   );
 }
 export function AnswerShortcutsDialog({ onClose }: { onClose: () => void }) {
@@ -180,7 +147,12 @@ export function AnswerShortcutsDialog({ onClose }: { onClose: () => void }) {
     ["문단 안에서 줄 바꿈", "Shift Enter"],
   ];
   return (
-    <Modal title="편집 단축키" className="answer-tools-modal" onClose={onClose}>
+    <Modal
+      title="편집 단축키"
+      className="answer-tools-modal"
+      onClose={onClose}
+      actions={<Button onClick={onClose}>확인</Button>}
+    >
       <dl className="answer-shortcuts">
         {shortcuts.map(([label, key]) => (
           <div key={label}>

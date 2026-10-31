@@ -32,7 +32,7 @@ function TeacherGradingPage() {
   const [reviews, setReviews] = useState(studentReviews);
   const review = reviews[student.id];
   return (
-    <div className="app-shell compact-workspace">
+    <div className="app-shell grading-workspace">
       <Header ended={ended} onDialog={setDialog} />
       <div className="workspace teacher-workspace">
         {loading ? (
@@ -97,12 +97,9 @@ function TeacherGradingPage() {
           onClose={() => setDialog("")}
           actions={
             <>
-              <Button variant="secondary" onClick={() => setDialog("")}>
-                닫기
-              </Button>
               {dialog === "평가를 종료하시겠습니까?" && (
                 <Button
-                  variant="white-danger"
+                  variant="danger"
                   onClick={() => {
                     setEnded(true);
                     setDialog("");
@@ -116,12 +113,12 @@ function TeacherGradingPage() {
                   나가기
                 </Button>
               )}
+              <Button variant="secondary" onClick={() => setDialog("")}>
+                닫기
+              </Button>
             </>
           }
         >
-          {dialog === "평가 설정" && (
-            <p>현재 평가 화면은 디자인 미리보기입니다.</p>
-          )}
         </Modal>
       )}
     </div>
