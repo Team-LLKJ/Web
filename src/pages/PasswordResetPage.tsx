@@ -51,7 +51,7 @@ export function PasswordResetPage() {
           <TextInput label="새 비밀번호 확인" type="password" autoComplete="new-password" maxLength={128} value={confirmation} disabled={busy} onChange={(event) => { setConfirmation(event.target.value); setNotice(""); }} />
         </div>
         <div className="auth-submit">
-          <Button type="submit" disabled={busy}>{busy ? "변경 중…" : "비밀번호 변경"}</Button>
+          <Button type="submit" loading={busy}>{busy ? "변경 중…" : "비밀번호 변경"}</Button>
           {notice && <p className="auth-notice" role="status">{notice}</p>}
           {!token && <Link className="reset-retry-link" to="/login">로그인으로 돌아가기</Link>}
         </div>

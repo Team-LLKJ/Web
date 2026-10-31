@@ -49,16 +49,16 @@ export function StudentDialogs({
         <>
           {kind === "submit" ? (
             <>
-              <Button onClick={onSubmit} disabled={submitting || !preview?.canConfirm}>{submitting ? "제출 중…" : "제출 확정"}</Button>
+              <Button onClick={onSubmit} loading={submitting} disabled={!preview?.canConfirm}>{submitting ? "제출 중…" : "제출 확정"}</Button>
               <Button variant="secondary" onClick={onClose} disabled={submitting}>취소</Button>
             </>
           ) : kind === "leave" ? (
             <>
-              <Button variant="danger" onClick={onLeave}>나가기</Button>
+              <Button variant="white-danger" onClick={onLeave}>나가기</Button>
               <Button variant="secondary" onClick={onClose}>취소</Button>
             </>
           ) : (
-            <Button variant={kind === "warning" ? "danger" : "primary"} onClick={onClose}>{kind === "policy" ? "확인하고 계속" : "확인하기"}</Button>
+            <Button variant={kind === "warning" ? "white-danger" : "primary"} onClick={onClose}>{kind === "policy" ? "확인하고 계속" : "확인하기"}</Button>
           )}
         </>
       }

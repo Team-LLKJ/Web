@@ -43,7 +43,7 @@ export function NicknameForm({
           setError("");
         }}
       />
-      <Button type="submit" size="large" disabled={busy}>
+      <Button type="submit" size="large" loading={busy}>
         {busy ? "참여 중…" : "참여하기"}
       </Button>
     </JoinCard>

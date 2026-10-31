@@ -279,7 +279,7 @@ export function AuthForm({ mode, onSubmit }: Props) {
           onClose={() => { if (!busy) { setNotice(""); setSignupStep(1); } }}
           actions={
             <>
-              <Button disabled={busy} onClick={() => void completeSignup()}>{busy ? "처리 중…" : "가입 완료"}</Button>
+              <Button loading={busy} onClick={() => void completeSignup()}>{busy ? "처리 중…" : "가입 완료"}</Button>
               <Button variant="secondary" disabled={busy} onClick={() => { setNotice(""); setSignupStep(1); }}>이전</Button>
             </>
           }

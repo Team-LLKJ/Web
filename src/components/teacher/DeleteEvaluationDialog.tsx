@@ -44,8 +44,8 @@ export function DeleteEvaluationDialog({ title, onConfirm, onClose }: Props) {
       actions={
         <>
           <Button
-            variant="danger"
-            disabled={deleting}
+            variant="white-danger"
+            loading={deleting}
             onClick={() => void confirm()}
           >
             {deleting ? "삭제 중…" : "삭제"}
