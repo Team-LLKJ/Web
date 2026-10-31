@@ -3,8 +3,8 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { apiErrorMessage } from "../api/client";
 import { getEvaluation, getParticipants, getTeacherLearningEvents } from "../api/evaluations";
 import type { Evaluation, LearningEvent, Lobby, Participant } from "../api/types";
-import { useAuth } from "../auth/useAuth";
 import { Button } from "../components/ui/Button";
+import { TeacherHeader } from "../components/teacher/TeacherHeader";
 import { Skeleton, SkeletonStatus } from "../components/ui/Skeleton";
 import { TextInput } from "../components/ui/TextInput";
 import "../components/teacher/teacher.css";
@@ -31,7 +31,6 @@ function visibleDetails(details: Record<string, unknown>) {
 export function TeacherResultsPage() {
   const { evaluationId = "" } = useParams();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
   const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
   const [lobby, setLobby] = useState<Lobby | null>(null);
   const [selectedId, setSelectedId] = useState("");
@@ -122,8 +121,8 @@ export function TeacherResultsPage() {
 
   if (loading) return (
     <main className="teacher-page teacher-loading-page">
-      <header className="teacher-page-header" aria-hidden="true">
-        <Skeleton style={{ width: 70, height: 30 }} />
+      <header className="header teacher-header no-print" aria-hidden="true">
+        <Skeleton style={{ width: 100, height: 40 }} />
         <div className="teacher-loading-header-actions"><Skeleton /><Skeleton /><Skeleton /></div>
       </header>
       <SkeletonStatus className="teacher-page-content teacher-results-skeleton" label="평가 학습 기록을 불러오고 있습니다.">
@@ -149,14 +148,9 @@ export function TeacherResultsPage() {
 
   return (
     <main className="teacher-page teacher-results-page">
-      <header className="teacher-page-header no-print">
-        <Link className="teacher-brand" to="/">LIT<span>.</span></Link>
-        <div className="teacher-account">
-          <span>{user?.name} 선생님</span>
-          <Button variant="secondary" onClick={() => window.print()}>기록 인쇄 / PDF</Button>
-          <Button variant="secondary" onClick={() => void logout().then(() => navigate("/login"))}>로그아웃</Button>
-        </div>
-      </header>
+      <TeacherHeader className="no-print" onLeave={() => navigate("/teacher/evaluations")}>
+        <Button onClick={() => window.print()}>기록 인쇄 / PDF</Button>
+      </TeacherHeader>
 
       <div className="teacher-page-content">
         <p className="teacher-eyebrow">TEACHER / REVIEW</p>
