@@ -539,3 +539,156 @@
   outline: 2px solid var(--color-primary);
   outline-offset: 1px;
 }
+
+.grading-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+  padding: 10px 20px;
+  background: #fff1f0;
+  border-bottom: 1px solid #ffc9c5;
+  color: #b42318;
+  font-size: 14px;
+}
+.grading-error button {
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.grading-empty {
+  margin: auto;
+}
+
+/* 교사 채점 화면 AI 대화창: 학생 화면 말풍선 디자인을 쓰되 배경·테두리·레이아웃은 기존 그대로 둔다. */
+.messages.student-chat.teacher-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 15px 22.5px 22.5px;
+  overflow: visible;
+  background: transparent;
+  border-left: 0;
+}
+
+.review-locked {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 24px 22.5px;
+  padding: 32px 20px;
+  border: 1px solid var(--color-grey-20);
+  border-radius: 12px;
+  background: var(--color-grey-10);
+  text-align: center;
+}
+.review-locked strong {
+  font-size: 15px;
+}
+.review-locked p {
+  margin: 0;
+  color: var(--color-grey-60, #636366);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.review-locked--compact {
+  margin: 15px 22.5px 0;
+  padding: 18px 16px;
+}
+
+/* 좁은 화면에서도 안내 상자가 어색하게 줄바꿈되지 않도록 여백과 줄바꿈을 조정한다. */
+.review-locked {
+  box-sizing: border-box;
+  max-width: calc(100% - 30px);
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.review-locked strong {
+  text-wrap: balance;
+  line-height: 1.4;
+}
+.review-locked p {
+  text-wrap: pretty;
+}
+.review-locked--compact {
+  gap: 6px;
+}
+@media (max-width: 900px) {
+  .review-locked {
+    margin: 15px;
+    max-width: calc(100% - 30px);
+    padding: 20px 14px;
+  }
+  .review-locked strong {
+    font-size: 14px;
+  }
+  .review-locked p {
+    font-size: 13px;
+  }
+  .review-locked--compact {
+    margin: 12px 15px 0;
+    padding: 14px 12px;
+  }
+}
+
+/* 답안 확인 영역: 학생 답안 화면(분할 탭·문항 문장·편집기 틀)과 같은 모양 */
+.teacher-submission .teacher-question {
+  margin: 14px 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.teacher-submission .teacher-question p {
+  color: #1c1c1e;
+  line-height: 1.6;
+}
+.teacher-submission .answer-rich-editor {
+  border: 1px solid #c6c6c6;
+  border-radius: 10.5px;
+  background: #fff;
+  overflow: visible;
+}
+
+/* 학생 화면은 .student-solving 아래에서 편집 영역 테두리를 없앤다. 채점 화면도 같은 모양으로 맞춘다. */
+.teacher-submission .student-answer-content.tiptap {
+  flex: 1;
+  min-height: 240px;
+  border: 0;
+  border-radius: 0;
+  padding: 9px 12px;
+  line-height: 1.5;
+  box-shadow: none;
+  background: #fff;
+  color: #1c1c1e;
+  font-size: 12px;
+}
+.teacher-submission .student-answer-content.tiptap :is(p, h1, h2, h3) {
+  margin: 0 0 6px;
+}
+.teacher-submission .answer-document-viewport {
+  min-height: 240px;
+}
+.teacher-submission .segment-tabs {
+  margin-bottom: 24px;
+}
+.teacher-submission .segment-tabs button:focus:not(:focus-visible) {
+  outline: 0;
+}
+
+.teacher-submission .teacher-question p {
+  font-size: 17px;
+  line-height: 1.65;
+  font-weight: 500;
+}
+
+/* 문항 탭이 없을 때는 제목과 문항 내용 사이 간격을 줄인다. */
+.teacher-submission > h2 + .teacher-question {
+  margin-top: 6px;
+}

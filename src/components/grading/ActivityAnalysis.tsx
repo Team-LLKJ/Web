@@ -1,8 +1,16 @@
 import type { StudentReview } from "../../data/review";
 import { ContributionChart } from "./ContributionChart";
-export function ActivityAnalysis({ review }: { review: StudentReview }) {
+export function ActivityAnalysis({
+  review,
+  warningsOnly = false,
+}: {
+  review: StudentReview;
+  /** 평가 중에는 경고 기록만 보여주고 기여도·AI 사용 분석은 숨깁니다. */
+  warningsOnly?: boolean;
+}) {
   return (
     <div className="review-cards">
+      {!warningsOnly && (
       <section className="review-card contribution-card">
         <ContributionChart value={review.studentContribution} />
         <div className="contribution-legend">
@@ -17,6 +25,8 @@ export function ActivityAnalysis({ review }: { review: StudentReview }) {
           </p>
         </div>
       </section>
+      )}
+      {!warningsOnly && (
       <section className="review-card usage-card">
         <h3>AI사용 방법 분석</h3>
         <div className="usage-rows">
@@ -47,6 +57,7 @@ export function ActivityAnalysis({ review }: { review: StudentReview }) {
           )}
         </div>
       </section>
+      )}
       <section className="review-card warnings-card">
         <h3>경고</h3>
         <div className="warning-list">

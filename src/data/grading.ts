@@ -1,6 +1,11 @@
 export type StudentStatus = "제출완료" | "작성중" | "경고";
 export type Question = { id: number; title: string; content: string };
-export type Answer = { questionId: number; paragraphs: string[] };
+export type Answer = {
+  questionId: number;
+  paragraphs: string[];
+  /** 서버가 내려준 서식 있는 답안(HTML). 있으면 학생 화면과 같은 편집기 모양으로 보여줍니다. */
+  html?: string;
+};
 export type Message = { id: string; role: "user" | "ai"; content: string; pending?: boolean };
 export type Activity = { id: string; time: string; description: string };
 export type Rubric = {
