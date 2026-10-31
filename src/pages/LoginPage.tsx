@@ -1,9 +1,10 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
+import { paths } from "../router/paths";
 import { AuthLayout } from "../components/auth/AuthLayout";
 import { AuthForm, type AuthFormPayload } from "../components/auth/AuthForm";
 
-type RouteState = { from?: { pathname?: string }; notice?: string };
+type RouteState = { notice?: string };
 
 export function LoginPage() {
   const { login } = useAuth();
@@ -14,11 +15,7 @@ export function LoginPage() {
   async function submit(payload: AuthFormPayload) {
     if ("email" in payload) throw new Error("로그인 정보를 확인해주세요.");
     await login(payload);
-    const requestedPath = state?.from?.pathname;
-    const destination = requestedPath?.startsWith("/teacher/")
-      ? requestedPath
-      : "/teacher/evaluations";
-    navigate(destination, { replace: true });
+    navigate(paths.evaluations, { replace: true });
   }
 
   return (
