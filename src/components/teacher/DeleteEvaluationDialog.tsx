@@ -36,30 +36,28 @@ export function DeleteEvaluationDialog({ title, onConfirm, onClose }: Props) {
 
   return (
     <Modal
-      title="평가를 삭제할까요?"
+      title="수행평가를 삭제할까요?"
       className="evaluation-delete-modal"
       onClose={() => {
         if (!inFlight.current) onClose();
       }}
       actions={
         <>
-          <Button variant="secondary" disabled={deleting} onClick={onClose}>
-            취소
-          </Button>
           <Button
             variant="danger"
             disabled={deleting}
             onClick={() => void confirm()}
           >
-            {deleting ? "삭제 중…" : "삭제하기"}
+            {deleting ? "삭제 중…" : "삭제"}
+          </Button>
+          <Button variant="secondary" disabled={deleting} onClick={onClose}>
+            취소
           </Button>
         </>
       }
     >
-      <p className="delete-evaluation-title">{title}</p>
-      <p className="delete-evaluation-copy">
-        이 평가를 삭제합니다. 삭제한 평가는 이 화면에서 되돌릴 수 없습니다.
-        필요한 답안과 학습 기록을 확인한 뒤 삭제해주세요.
+      <p>
+        “{title}” 평가와 모든 문항·제출 기록이 삭제되며 되돌릴 수 없습니다.
       </p>
       {error && (
         <p className="delete-evaluation-error" role="alert">
