@@ -1,15 +1,15 @@
 .answer-document-viewport {
   flex: 1;
-  min-height: 260px;
+  min-height: 195px;
   overflow: auto;
-  border: 1px solid var(--color-grey-20);
-  border-radius: 10px;
+  border: 1px solid #c6c6c6;
+  border-radius: 7.5px;
   background: var(--color-white);
   overscroll-behavior: contain;
 }
 .answer-document-viewport:focus-within {
-  border-color: var(--color-primary-light);
-  box-shadow: 0 0 0 2px var(--color-primary-soft);
+  border-color: #52a6ff;
+  box-shadow: 0 0 0 2px #e2f0ff;
 }
 .answer-document-host {
   display: flex;
@@ -18,26 +18,26 @@
 }
 .student-solving .student-answer-content.tiptap {
   flex: 1;
-  min-height: 320px;
+  min-height: 240px;
   border: 0;
   border-radius: 0;
-  padding: 24px 28px;
-  line-height: var(--line-text-lg);
+  padding: 9px 12px;
+  line-height: 1.5;
   box-shadow: none;
-  font-size: 20px;
+  font-size: 12px;
 }
 .student-answer-content.tiptap h1 {
-  font-size: 36px;
+  font-size: calc(var(--font-title-sm) * 0.75);
 }
 .student-answer-content.tiptap h2 {
-  font-size: 30px;
+  font-size: calc(var(--font-test-lg) * 0.75);
 }
 .student-answer-content.tiptap h3 {
-  font-size: 24px;
+  font-size: calc(var(--font-text-md) * 0.75);
 }
 .student-answer-content.tiptap :is(h1, h2, h3) {
-  color: var(--color-grey-90);
-  font-weight: var(--weight-semibold);
+  color: #2c2c2e;
+  font-weight: 650;
   margin: 0;
   line-height: inherit;
 }
@@ -48,25 +48,25 @@
   content: attr(data-placeholder);
   float: left;
   height: 0;
-  color: var(--color-grey-40);
+  color: #aeaeb2;
   pointer-events: none;
 }
 .student-answer-content.tiptap a {
-  color: var(--color-primary-dark);
+  color: #007bff;
   text-decoration: underline;
-  text-underline-offset: 3px;
+  text-underline-offset: 2px;
   cursor: pointer;
 }
 .student-answer-content.tiptap code {
-  padding: 2px 5px;
-  border-radius: 4px;
-  background: var(--color-grey-10);
+  padding: 2px 4px;
+  border-radius: 3px;
+  background: #f6faff;
   font-family: monospace;
 }
 .student-answer-content.tiptap pre {
-  padding: 16px;
-  background: var(--color-grey-10);
-  border-radius: 8px;
+  padding: 12px;
+  background: #f6faff;
+  border-radius: 6px;
   overflow: auto;
 }
 .student-answer-content.tiptap pre code {
@@ -74,10 +74,10 @@
   background: transparent;
 }
 .student-answer-content.tiptap blockquote {
-  padding: 8px 16px;
-  margin: 12px 0;
-  border-left: 3px solid var(--color-primary-light);
-  background: var(--color-primary-background);
+  padding: 6px 12px;
+  margin: 9px 0;
+  border-left: 3px solid #52a6ff;
+  background: #f6faff;
 }
 .student-answer-content.tiptap mark {
   padding: 1px 0;
@@ -85,7 +85,7 @@
 }
 .student-answer-content.tiptap .tableWrapper {
   overflow-x: auto;
-  margin: 14px 0;
+  margin: 10.5px 0;
 }
 .student-answer-content.tiptap table {
   margin: 0;
@@ -93,13 +93,13 @@
 }
 .student-answer-content.tiptap :is(td, th) {
   position: relative;
-  min-width: 48px;
+  min-width: 36px;
 }
 .student-answer-content.tiptap .selectedCell::after {
   position: absolute;
   inset: 0;
   content: "";
-  background: color-mix(in srgb, var(--color-primary) 15%, transparent);
+  background: #007bff26;
   pointer-events: none;
   z-index: 2;
 }
@@ -108,8 +108,8 @@
   top: 0;
   right: -2px;
   bottom: -2px;
-  width: 4px;
-  background: var(--color-primary-light);
+  width: 3px;
+  background: #52a6ff;
   pointer-events: none;
   z-index: 3;
 }
@@ -123,18 +123,18 @@
 .student-answer-content.tiptap ul[data-type="taskList"] li {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  margin: 5px 0;
+  gap: 7.5px;
+  margin: 4px 0;
 }
 .student-answer-content.tiptap ul[data-type="taskList"] li > label {
   flex: 0 0 auto;
-  margin-top: 3px;
+  margin-top: 2px;
   user-select: none;
 }
 .student-answer-content.tiptap ul[data-type="taskList"] li > label input {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--color-primary);
+  width: 13.5px;
+  height: 13.5px;
+  accent-color: #007bff;
   cursor: pointer;
 }
 .student-answer-content.tiptap ul[data-type="taskList"] li > div {
@@ -142,25 +142,25 @@
   min-width: 0;
 }
 .student-answer-content.tiptap li[data-checked="true"] > div > p {
-  color: var(--color-grey-40);
+  color: #8e8e93;
   text-decoration: line-through;
 }
 .student-answer-content.tiptap img.ProseMirror-selectednode {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid #007bff;
 }
 .student-answer-content.tiptap [data-resize-container] {
   max-width: 100%;
-  margin: 12px 0;
+  margin: 9px 0;
 }
 .student-answer-content.tiptap [data-resize-container] img {
   margin: 0;
 }
 .student-answer-content.tiptap [data-resize-handle] {
-  width: 10px;
-  height: 10px;
+  width: 7.5px;
+  height: 7.5px;
   border: 1px solid var(--color-white);
   border-radius: 2px;
-  background: var(--color-primary);
+  background: #007bff;
   opacity: 0;
 }
 .student-answer-content.tiptap
@@ -172,51 +172,51 @@
   opacity: 1;
 }
 .ribbon-tool.is-active {
-  background: var(--color-primary-soft);
-  border-color: var(--color-primary-light);
-  color: var(--color-primary-dark);
+  background: #e2f0ff;
+  border-color: #52a6ff;
+  color: #0059bc;
 }
 .ribbon-tool.is-active .ribbon-tool-symbol {
-  color: var(--color-primary-dark);
+  color: #0059bc;
 }
 .ribbon-tool:disabled {
   cursor: not-allowed;
 }
 .ribbon-font-size input {
-  flex: 0 0 64px;
-  width: 64px;
+  flex: 0 0 48px;
+  width: 48px;
   min-width: 0;
-  height: 28px;
-  padding: 0 5px;
+  height: 21px;
+  padding: 0 4px;
   border: 0;
   outline: 0;
   background: transparent;
   text-align: center;
-  color: var(--color-grey-60);
-  font-size: var(--font-caption);
+  color: #48484a;
+  font-size: 10px;
   font-variant-numeric: tabular-nums;
 }
 .ribbon-font-size:focus-within {
-  outline: 2px solid var(--color-primary-light);
+  outline: 2px solid #52a6ff;
   outline-offset: 1px;
 }
 .ribbon-paragraph-settings {
   display: grid;
-  gap: 4px;
+  gap: 3px;
   align-content: center;
 }
 .ribbon-paragraph-settings label {
   display: grid;
-  grid-template-columns: 54px 110px;
+  grid-template-columns: 40.5px 82.5px;
   align-items: center;
-  gap: 6px;
-  color: var(--color-grey-50);
-  font-size: var(--font-caption);
+  gap: 4.5px;
+  color: #8e8e93;
+  font-size: 7.5px;
 }
 .answer-ribbon .ribbon-paragraph-settings select {
-  width: 110px;
-  min-width: 110px;
-  height: 26px;
+  width: 82.5px;
+  min-width: 82.5px;
+  height: 19.5px;
 }
 .ribbon-image-settings {
   display: flex;
@@ -228,19 +228,19 @@
 .ribbon-image-settings label {
   display: grid;
   gap: 4px;
-  color: var(--color-grey-50);
-  font-size: var(--font-caption);
+  color: #8e8e93;
+  font-size: 10px;
 }
 .ribbon-image-settings input {
   height: 30px;
   padding: 0 7px;
   width: 90px;
   min-width: 0;
-  border: 1px solid var(--color-grey-20);
+  border: 1px solid #c6c6c6;
   border-radius: 4px;
-  color: var(--color-grey-60);
-  background: var(--color-white);
-  font-size: var(--font-caption);
+  color: #48484a;
+  background: white;
+  font-size: 12px;
 }
 .ribbon-image-settings label:has(input[aria-label="이미지 설명"]) input {
   width: 150px;
@@ -249,8 +249,8 @@
   height: 30px;
   padding: 0 8px;
   border-radius: 4px;
-  color: var(--color-danger-dark);
-  font-size: var(--font-caption);
+  color: #bc0300;
+  font-size: 11px;
 }
 .ribbon-image-settings :disabled {
   opacity: 0.4;
@@ -259,17 +259,17 @@
 .ribbon-context-hint {
   flex-basis: 100%;
   margin: 0;
-  padding: 8px 0 0;
-  color: var(--color-grey-40);
-  font-size: var(--font-caption);
+  padding: 6px 0 0;
+  color: #8e8e93;
+  font-size: 8px;
 }
 .answer-find-panel {
   flex-shrink: 0;
   margin-bottom: 10px;
   padding: 12px 14px;
-  border: 1px solid var(--color-grey-20);
+  border: 1px solid #f6faff;
   border-radius: 8px;
-  background: var(--color-primary-background);
+  background: #f6faff;
 }
 .answer-find-row {
   display: flex;
@@ -285,7 +285,7 @@
   width: min(220px, 100%);
   min-width: 0;
   padding: 0 9px;
-  border: 1px solid var(--color-grey-20);
+  border: 1px solid #f4f4f4;
   border-radius: 5px;
   background: var(--color-white);
   font-size: var(--font-caption);
@@ -293,14 +293,14 @@
 .answer-find-row button {
   height: 32px;
   padding: 0 10px;
-  border: 1px solid var(--color-grey-20);
+  border: 1px solid #f4f4f4;
   border-radius: 5px;
-  background: var(--color-white);
-  font-size: var(--font-caption);
-  color: var(--color-grey-60);
+  background: white;
+  font-size: 12px;
+  color: #636366;
 }
 .answer-find-row button:hover:not(:disabled) {
-  background: var(--color-primary-soft);
+  background: #f6faff;
 }
 .answer-find-row button:disabled {
   opacity: 0.4;
@@ -308,8 +308,8 @@
 .answer-find-row span,
 .answer-find-row label,
 .answer-find-panel p {
-  font-size: var(--font-caption);
-  color: var(--color-grey-50);
+  font-size: 12px;
+  color: #8e8e93;
 }
 .answer-find-row label {
   display: flex;
@@ -320,43 +320,33 @@
   margin: 8px 0 0;
 }
 .answer-search-match {
-  background-color: #ffe69b;
+  background-color: #ffd4d3;
 }
 .answer-search-match.is-current {
-  background-color: #ffc766;
-  outline: 1px solid #e7a53c;
-}
-.answer-tools-modal {
-  width: min(480px, calc(100vw - 32px));
-  padding: 28px;
-}
-.answer-tools-modal .modal-heading {
-  margin-bottom: 24px;
-}
-.answer-tools-modal .modal-heading h2 {
-  font-size: var(--font-title-sm);
+  background-color: #ff7c79;
+  outline: 1px solid #ff7c79;
 }
 .answer-tools-modal form > label,
 .answer-table-size label {
   display: grid;
-  gap: 8px;
-  margin-bottom: 16px;
-  color: var(--color-grey-60);
-  font-size: var(--font-caption);
+  gap: 6px;
+  margin-bottom: 12px;
+  color: #636366;
+  font-size: 10.5px;
 }
 .answer-tools-modal input:not([type="checkbox"]) {
   width: 100%;
   height: 42px;
   min-width: 0;
   padding: 0 12px;
-  border: 1px solid var(--color-grey-20);
+  border: 1px solid #f4f4f4;
   border-radius: 6px;
-  color: var(--color-grey-90);
-  font-size: var(--font-text-sm);
+  color: #363639;
+  font-size: 15px;
 }
 .answer-tools-modal input:disabled {
-  background: var(--color-grey-10);
-  color: var(--color-grey-40);
+  background: #f6faff;
+  color: #8e8e93;
 }
 .answer-tools-modal .answer-checkbox-label {
   display: flex;
@@ -366,7 +356,7 @@
 .answer-table-size {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 12px;
 }
 .answer-dialog-actions {
   display: flex;
@@ -375,14 +365,9 @@
   gap: 8px;
   margin-top: 24px;
 }
-.answer-dialog-actions .button {
-  min-height: 40px;
-  padding: 0 18px;
-  font-size: var(--font-caption);
-}
 .answer-tools-modal [role="alert"] {
-  color: var(--color-danger-dark);
-  font-size: var(--font-caption);
+  color: #bc0300;
+  font-size: 13px;
 }
 .answer-shortcuts {
   margin: 0;
@@ -390,11 +375,11 @@
 .answer-shortcuts div {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--color-grey-20);
-  font-size: var(--font-caption);
-  color: var(--color-grey-50);
+  gap: 9px;
+  padding: 7.5px 0;
+  border-bottom: 1px solid #f6faff;
+  font-size: 10px;
+  color: #636366;
 }
 .answer-shortcuts dd {
   margin: 0;
@@ -402,12 +387,12 @@
 }
 .answer-shortcuts kbd {
   font-family: inherit;
-  color: var(--color-primary-deep);
+  color: #003b7d;
 }
 .answer-tools-modal .answer-editor-help {
   margin: 20px 0 0;
-  font-size: var(--font-caption);
-  color: var(--color-grey-40);
+  font-size: 13px;
+  color: #8e8e93;
   line-height: 1.6;
 }
 
@@ -419,7 +404,7 @@
 }
 
 .answer-ribbon .ribbon-group {
-  padding-inline: 8px;
+  padding-inline: 6px;
 }
 .answer-ribbon .ribbon-group:first-child {
   padding-left: 0;
@@ -427,35 +412,98 @@
 
 .ribbon-context-empty {
   display: flex;
-  flex: 1 1 260px;
+  flex: 1 1 195px;
   min-width: 0;
   flex-direction: column;
   justify-content: center;
-  gap: 7px;
-  padding: 8px 18px;
-  color: var(--color-grey-50);
-  font-size: var(--font-caption);
+  gap: 5px;
+  padding: 6px 13.5px;
+  color: #8e8e93;
+  font-size: 9px;
   line-height: 1.6;
 }
 .ribbon-context-empty strong {
-  color: var(--color-grey-60);
-  font-size: var(--font-caption);
-  font-weight: var(--weight-medium);
+  color: #636366;
+  font-size: 10px;
+  font-weight: 500;
 }
 
 /* Reserve the arrow space ourselves instead of combining native and CSS padding. */
 .answer-ribbon select {
   appearance: none;
   -webkit-appearance: none;
-  padding-right: 32px;
+  padding-right: 24px;
   white-space: nowrap;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='m3 4.5 3 3 3-3' fill='none' stroke='%23636366' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 10px center;
+  background-position: right 7.5px center;
 }
 .student-solving .student-answer-content.tiptap :is(p, h1, h2, h3) {
   line-height: inherit;
 }
 .student-answer-content.tiptap :is(ul, ol) {
   margin-block: 0;
+}
+
+/* 링크 삽입: 선택한 글자 아래에 뜨는 작은 입력창 (구글 문서 스타일) */
+.link-popover {
+  position: fixed;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 340px;
+  max-width: calc(100vw - 16px);
+  padding: 8px;
+  border: 1px solid var(--color-grey-20, #e8e8ea);
+  border-radius: 8px;
+  background: #fff;
+}
+.link-popover-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.link-popover input {
+  flex: 1;
+  min-width: 0;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--color-grey-30, #c6c6c6);
+  border-radius: 6px;
+  font: inherit;
+  font-size: var(--font-caption);
+  background: #fff;
+}
+.link-popover input:focus {
+  outline: none;
+  border-color: var(--color-primary, #007bff);
+}
+.link-popover button {
+  height: 46px;
+  border-radius: 10px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  font: inherit;
+  font-size: var(--font-caption);
+  color: var(--color-grey-60, #48484a);
+  cursor: pointer;
+}
+.link-popover button:hover:not(:disabled) {
+  background: var(--color-grey-10, #f4f4f4);
+}
+.link-popover .link-popover-apply {
+  color: var(--color-primary, #007bff);
+  font-weight: 600;
+}
+.link-popover button:disabled {
+  color: var(--color-grey-40, #aeaeb2);
+  cursor: default;
+}
+.link-popover [role="alert"] {
+  margin: 0;
+  font-size: var(--font-caption);
+  color: var(--color-danger, #ff0500);
 }
