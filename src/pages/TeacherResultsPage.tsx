@@ -8,6 +8,7 @@ import { TeacherHeader } from "../components/teacher/TeacherHeader";
 import { Skeleton, SkeletonStatus } from "../components/ui/Skeleton";
 import { TextInput } from "../components/ui/TextInput";
 import "../components/teacher/teacher.css";
+import { Toast } from "../components/teacher/Toast";
 
 const eventNames: Record<string, string> = {
   ANSWER_SAVED: "답안 저장",
@@ -161,7 +162,7 @@ export function TeacherResultsPage() {
             새로고침
           </Button>
         </div>
-        {notice && <p className="teacher-notice" role="status">{notice}</p>}
+        <Toast message={notice} onClose={() => setNotice("")} />
 
         <div className="teacher-results-summary" aria-label="평가 현황">
           <section className="teacher-card"><span>전체 참가자</span><strong>{participants.length}</strong></section>
