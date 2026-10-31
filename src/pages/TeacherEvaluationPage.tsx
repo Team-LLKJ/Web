@@ -1,7 +1,6 @@
 import {
   useCallback,
   useEffect,
-  useMemo,
   useState,
   type FormEvent,
 } from "react";
@@ -9,26 +8,22 @@ import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   configureEvaluation,
   createEvaluation,
-  deleteEvaluation,
   endEvaluation,
   getEvaluation,
   getEvaluationConfiguration,
   getEvaluationQr,
   getParticipants,
-  getTeacherLearningEvents,
   startEvaluation,
 } from "../api/evaluations";
-import { createTeacherInvitation } from "../api/auth";
 import { apiErrorMessage } from "../api/client";
 import type {
   AiPolicy,
   Evaluation,
-  LearningEvent,
   Lobby,
   QuestionInput,
 } from "../api/types";
-import { useAuth } from "../auth/useAuth";
-import { DeleteEvaluationDialog } from "../components/teacher/DeleteEvaluationDialog";
+import { Modal } from "../components/ui/Modal";
+import { TeacherHeader } from "../components/teacher/TeacherHeader";
 import { RichTextEditor } from "../components/teacher/RichTextEditor";
 import { Button } from "../components/ui/Button";
 import { Skeleton, SkeletonStatus } from "../components/ui/Skeleton";
@@ -99,17 +94,6 @@ const toggleInOrder = <T,>(
   checked
     ? order.filter((value) => value === item || current.includes(value))
     : current.filter((value) => value !== item);
-const visibleEventDetails = (details: Record<string, unknown>) =>
-  Object.fromEntries(
-    ["questionId", "source", "answerVersion", "errorCode"].flatMap((key) => {
-      const value = details[key];
-      return typeof value === "string" ||
-        typeof value === "number" ||
-        typeof value === "boolean"
-        ? [[key, value]]
-        : [];
-    }),
-  );
 
 function QuestionFields({
   questions,
@@ -227,11 +211,45 @@ function QuestionFields({
   );
 }
 
+function ParticipantAvatar() {
+  return (
+    <span className="teacher-lobby-avatar" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="19" height="19">
+        <circle cx="12" cy="8" r="4.2" fill="#3b82f6" />
+        <path
+          d="M3.5 21c0-4.4 3.8-7 8.5-7s8.5 2.6 8.5 7c0 .6-.4 1-1 1h-15c-.6 0-1-.4-1-1z"
+          fill="#3b82f6"
+        />
+      </svg>
+    </span>
+  );
+}
+
+function EmptyParticipantsIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="44"
+      height="44"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="9" cy="8" r="3.2" />
+      <path d="M3 19c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5" />
+      <circle cx="17" cy="9" r="2.5" />
+      <path d="M17 13.8c2.3 0 4 1.6 4 4.2" />
+    </svg>
+  );
+}
+
 export function TeacherEvaluationPage() {
   const { evaluationId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout } = useAuth();
   const [title, setTitle] = useState("");
   const [titleError, setTitleError] = useState("");
   const [evaluationGuidelines, setEvaluationGuidelines] = useState("");
@@ -256,19 +274,10 @@ export function TeacherEvaluationPage() {
   const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
   const [lobby, setLobby] = useState<Lobby | null>(null);
   const [qrUrl, setQrUrl] = useState("");
-  const [selectedParticipant, setSelectedParticipant] = useState("");
-  const [events, setEvents] = useState<LearningEvent[]>([]);
-  const [eventsLoading, setEventsLoading] = useState(false);
-  const [inviteCode, setInviteCode] = useState("");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
-  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [qrOpen, setQrOpen] = useState(false);
   const [loading, setLoading] = useState(Boolean(evaluationId));
-  const isWaiting = evaluation?.state === "WAITING";
-  const joinUrl = useMemo(() => {
-    if (!evaluation) return "";
-    return `${window.location.origin}/student/join?pin=${encodeURIComponent(evaluation.pin)}`;
-  }, [evaluation]);
 
   const refreshLobby = useCallback(async () => {
     if (!evaluationId) return;
@@ -462,35 +471,6 @@ export function TeacherEvaluationPage() {
     }
   }
 
-  async function saveConfiguration() {
-    if (!evaluationId) return;
-    if (!aiPolicy) {
-      setNotice("AI 사용 정책을 선택해주세요.");
-      return;
-    }
-    setNotice("");
-    if (
-      questions.length < 1 ||
-      questions.some((question) => !question.content.trim())
-    ) {
-      setNotice("각 문항의 내용을 입력해주세요.");
-      return;
-    }
-    setBusy(true);
-    try {
-      const config = await configureEvaluation(evaluationId, {
-        aiPolicy,
-        questions: questions.map(toQuestionInput),
-      });
-      setQuestions(config.questions.map(toDraftQuestion));
-      setNotice("평가 설정을 저장했습니다.");
-    } catch (error) {
-      setNotice(apiErrorMessage(error, "평가 설정을 저장하지 못했습니다."));
-    } finally {
-      setBusy(false);
-    }
-  }
-
   async function changeEvaluationState(action: "start" | "end") {
     if (!evaluationId) return;
     setBusy(true);
@@ -511,64 +491,11 @@ export function TeacherEvaluationPage() {
     }
   }
 
-  async function removeEvaluation() {
-    if (!evaluationId || !evaluation) return;
-    await deleteEvaluation(evaluationId);
-    try {
-      localStorage.removeItem(`lit:evaluation-guidelines:${evaluationId}`);
-      localStorage.removeItem(`lit:evaluation-settings:${evaluationId}`);
-    } catch {
-      // Successful server deletion does not depend on browser storage access.
-    }
-    navigate("/teacher/evaluations", {
-      replace: true,
-      state: { notice: `‘${evaluation.title}’ 평가를 삭제했습니다.` },
-    });
-  }
-
-  async function loadEvents(participantId: string) {
-    if (!evaluationId) return;
-    setSelectedParticipant(participantId);
-    setEvents([]);
-    setEventsLoading(true);
-    try {
-      setEvents(await getTeacherLearningEvents(evaluationId, participantId));
-    } catch (error) {
-      setNotice(apiErrorMessage(error, "학습 기록을 불러오지 못했습니다."));
-    } finally {
-      setEventsLoading(false);
-    }
-  }
-
-  function saveGuidelinesForThisDevice() {
-    if (!evaluationId) return;
-    localStorage.setItem(
-      `lit:evaluation-guidelines:${evaluationId}`,
-      evaluationGuidelines,
-    );
-    setNotice(
-      "평가 기준을 이 기기에 저장했습니다. 학생에게 공유되지는 않습니다.",
-    );
-  }
-
-  async function issueInvite() {
-    setNotice("");
-    setBusy(true);
-    try {
-      const invitation = await createTeacherInvitation(24);
-      setInviteCode(invitation.inviteCode);
-    } catch (error) {
-      setNotice(apiErrorMessage(error, "초대 코드를 발급하지 못했습니다."));
-    } finally {
-      setBusy(false);
-    }
-  }
-
   if (loading)
     return (
       <main className="teacher-page teacher-loading-page">
-        <header className="teacher-page-header" aria-hidden="true">
-          <Skeleton style={{ width: 70, height: 30 }} />
+        <header className="header teacher-header" aria-hidden="true">
+          <Skeleton style={{ width: 100, height: 40 }} />
           <div className="teacher-loading-header-actions">
             <Skeleton />
             <Skeleton />
@@ -581,32 +508,32 @@ export function TeacherEvaluationPage() {
         >
           <Skeleton
             className="teacher-skeleton-eyebrow"
-            style={{ width: 190, height: 16, marginBottom: 14 }}
+            style={{ width: 190, height: 20, marginBottom: 10 }}
           />
           <Skeleton
-            style={{ width: "min(520px, 75vw)", height: 48, marginBottom: 24 }}
+            style={{ width: "min(520px, 75vw)", height: "clamp(46px, 4.8vw, 60px)", marginBottom: 24 }}
           />
           <div className="teacher-dashboard-grid" aria-hidden="true">
             <section className="teacher-card teacher-evaluation-card teacher-card-skeleton">
               <div className="teacher-loading-skeleton-pair">
                 <Skeleton style={{ width: 150, height: 52 }} />
-                <Skeleton style={{ width: 92, height: 38 }} />
+                <Skeleton style={{ width: 92, height: 42, borderRadius: 10 }} />
               </div>
-              <Skeleton style={{ width: "72%", height: 16 }} />
-              <Skeleton style={{ width: "85%", height: 16 }} />
+              <Skeleton style={{ width: "72%", height: 22 }} />
+              <Skeleton style={{ width: "85%", height: 22 }} />
               <div className="teacher-loading-skeleton-pair">
-                <Skeleton style={{ width: 135, height: 38 }} />
-                <Skeleton style={{ width: 135, height: 38 }} />
+                <Skeleton style={{ width: 135, height: 42, borderRadius: 10 }} />
+                <Skeleton style={{ width: 135, height: 42, borderRadius: 10 }} />
               </div>
             </section>
             <section className="teacher-card teacher-card-skeleton teacher-skeleton-participants">
-              <Skeleton style={{ width: 135, height: 23 }} />
+              <Skeleton style={{ width: 135, height: 28 }} />
               <Skeleton style={{ width: "100%", height: 42 }} />
               <Skeleton style={{ width: "100%", height: 42 }} />
               <Skeleton style={{ width: "100%", height: 42 }} />
             </section>
             <section className="teacher-card teacher-config-card teacher-card-skeleton">
-              <Skeleton style={{ width: 170, height: 26 }} />
+              <Skeleton style={{ width: 170, height: 28 }} />
               <Skeleton style={{ width: "38%", height: 42 }} />
               <Skeleton style={{ width: "100%", height: 120 }} />
               <Skeleton style={{ width: "100%", height: 120 }} />
@@ -618,24 +545,38 @@ export function TeacherEvaluationPage() {
 
   return (
     <main className="teacher-page">
-      <header className="teacher-page-header">
-        <Link className="teacher-brand" to="/">
-          LIT<span>.</span>
-        </Link>
-        <div className="teacher-account">
-          <Link to="/teacher/evaluations">내 수행평가</Link>
-          <span>{user?.name} 선생님</span>
+      <TeacherHeader onLeave={() => navigate("/teacher/evaluations")}>
+        {evaluation?.state === "STARTED" ? (
           <Button
-            variant="secondary"
-            onClick={() => void logout().then(() => navigate("/login"))}
+            variant="white-danger"
+            disabled={busy}
+            onClick={() => void changeEvaluationState("end")}
           >
-            로그아웃
+            평가 종료하기
           </Button>
-        </div>
-      </header>
+        ) : (
+          <Button
+            disabled={
+              busy ||
+              evaluation?.state !== "WAITING" ||
+              !lobby?.participantCount
+            }
+            title={
+              evaluation?.state === "WAITING"
+                ? undefined
+                : "이미 종료된 평가는 다시 시작할 수 없습니다."
+            }
+            onClick={() => void changeEvaluationState("start")}
+          >
+            평가 시작하기
+          </Button>
+        )}
+      </TeacherHeader>
 
       <div className="teacher-page-content">
-        <p className="teacher-eyebrow">TEACHER / EVALUATION</p>
+        {!evaluationId && (
+          <p className="teacher-eyebrow">TEACHER / EVALUATION</p>
+        )}
         <h1>{evaluation ? evaluation.title : "새 평가 만들기"}</h1>
         {notice && (
           <p className="teacher-notice" role="status">
@@ -862,290 +803,65 @@ export function TeacherEvaluationPage() {
             )}
           </form>
         ) : evaluation ? (
-          <div className="teacher-dashboard-grid">
-            <section className="teacher-card teacher-evaluation-card">
-              <div className="teacher-evaluation-top">
-                <div>
-                  <p>평가 상태</p>
-                  <strong>{evaluation.state}</strong>
-                </div>
-                <div>
-                  <p>참여 PIN</p>
-                  <strong className="teacher-pin">{evaluation.pin}</strong>
-                </div>
-              </div>
-              <p className="teacher-expiry">
-                만료 {new Date(evaluation.expiresAt).toLocaleString("ko-KR")}
-              </p>
-              <div className="teacher-join-link">
-                <a href={joinUrl} target="_blank" rel="noreferrer">
-                  참여 링크 열기 <span aria-hidden="true">↗</span>
-                </a>
-                <Button
-                  variant="secondary"
-                  onClick={() =>
-                    void navigator.clipboard
-                      ?.writeText(joinUrl)
-                      .then(() => setNotice("참여 링크를 복사했습니다."))
-                  }
-                >
-                  링크 복사
-                </Button>
-              </div>
-              {qrUrl && (
-                <img
-                  className="teacher-qr"
-                  src={qrUrl}
-                  alt="학생 참가용 QR 코드"
-                />
-              )}
-              <div className="teacher-state-actions">
-                {evaluation.state === "WAITING" && (
-                  <Button
-                    disabled={busy || !lobby?.participantCount}
-                    onClick={() => void changeEvaluationState("start")}
-                  >
-                    평가 시작
-                  </Button>
-                )}
-                {evaluation.state === "STARTED" && (
-                  <Button
-                    variant="white-danger"
-                    disabled={busy}
-                    onClick={() => void changeEvaluationState("end")}
-                  >
-                    평가 종료
-                  </Button>
-                )}
-                <Button
-                  variant="secondary"
-                  onClick={() =>
-                    void refreshLobby().catch((error) =>
-                      setNotice(apiErrorMessage(error)),
-                    )
-                  }
-                >
-                  참가자 새로고침
-                </Button>
-                <Button
-                  variant="secondary"
-                  onClick={() =>
-                    navigate(
-                      `/teacher/evaluations/${encodeURIComponent(evaluation.id)}/results`,
-                    )
-                  }
-                >
-                  학습 기록 보기
-                </Button>
-              </div>
-              {evaluation.state === "WAITING" && !lobby?.participantCount && (
-                <p className="teacher-hint">
-                  연결된 학생이 1명 이상이어야 평가를 시작할 수 있습니다.
+          <div className="teacher-lobby">
+            <section className="teacher-card teacher-join-card">
+              <div>
+                <p className="teacher-join-label">참여 PIN</p>
+                <p className="teacher-lobby-pin">{evaluation.pin}</p>
+                <p className="teacher-join-hint">
+                  QR코드를 스캔하거나 PIN을 입력해 참여하세요
                 </p>
-              )}
+              </div>
+              <div className="teacher-join-qr">
+                {qrUrl ? (
+                  <button
+                    type="button"
+                    className="teacher-lobby-qr-button"
+                    aria-label="QR 코드 크게 보기"
+                    onClick={() => setQrOpen(true)}
+                  >
+                    <img
+                      className="teacher-lobby-qr"
+                      src={qrUrl}
+                      alt="학생 참가용 QR 코드"
+                    />
+                  </button>
+                ) : (
+                  <div className="teacher-lobby-qr" aria-hidden="true" />
+                )}
+              </div>
             </section>
 
-            <section className="teacher-card teacher-invite-card">
-              <div className="teacher-card-heading">
-                <h2>교사 초대 코드</h2>
-                <Button
-                  variant="secondary"
-                  disabled={busy}
-                  onClick={() => void issueInvite()}
-                >
-                  24시간 코드 발급
-                </Button>
-              </div>
-              {inviteCode ? (
-                <p
-                  className="teacher-invite-code"
-                  aria-label="발급된 교사 초대 코드"
-                >
-                  {inviteCode}
-                </p>
-              ) : (
-                <p className="teacher-hint">
-                  같은 학교의 교사가 가입할 때 사용할 일회용 코드를 발급합니다.
-                </p>
-              )}
-            </section>
-
-            <section className="teacher-card teacher-participants-card">
-              <div className="teacher-card-heading">
-                <h2>
-                  참가자 <span>{lobby?.participantCount ?? 0}</span>
-                </h2>
-                <span className="teacher-live-dot">실시간 갱신</span>
+            <section className="teacher-card teacher-lobby-people">
+              <div className="teacher-lobby-people-head">
+                <h2>참여자</h2>
               </div>
               {lobby?.participants.length ? (
-                <ul className="teacher-participant-list">
+                <ul className="teacher-lobby-pills">
                   {lobby.participants.map((participant) => (
-                    <li key={participant.id}>
-                      <button
-                        className={
-                          selectedParticipant === participant.id
-                            ? "is-selected"
-                            : ""
-                        }
-                        type="button"
-                        onClick={() => void loadEvents(participant.id)}
-                      >
-                        <span>{participant.nickname}</span>
-                        <span
-                          className={`presence presence-${participant.presence.toLowerCase()}`}
-                        >
-                          {participant.presence === "CONNECTED"
-                            ? "접속 중"
-                            : "연결 끊김"}
-                        </span>
-                      </button>
+                    <li
+                      key={participant.id}
+                      className={`teacher-lobby-pill${participant.presence === "CONNECTED" ? "" : " is-offline"}`}
+                    >
+                      <ParticipantAvatar />
+                      <span>{participant.nickname}</span>
+                      {participant.presence !== "CONNECTED" && (
+                        <small>연결 끊김</small>
+                      )}
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p className="teacher-hint">
-                  아직 참가자가 없습니다. PIN 또는 QR을 공유하세요.
-                </p>
+                <div className="teacher-lobby-empty">
+                  <EmptyParticipantsIcon />
+                  <p>참여자를 기다리고 있습니다.</p>
+                  {evaluation.state === "WAITING" && (
+                    <small>
+                      연결된 학생이 1명 이상이어야 평가를 시작할 수 있습니다.
+                    </small>
+                  )}
+                </div>
               )}
-            </section>
-
-            <section className="teacher-card teacher-events-card">
-              <div className="teacher-card-heading">
-                <h2>학생 학습 기록</h2>
-                {selectedParticipant && (
-                  <span className="teacher-event-count">{events.length}개</span>
-                )}
-              </div>
-              {selectedParticipant ? (
-                eventsLoading ? (
-                  <SkeletonStatus
-                    className="teacher-event-list-skeleton"
-                    label="학생 학습 기록을 불러오고 있습니다."
-                  >
-                    {Array.from({ length: 4 }, (_, index) => (
-                      <div
-                        className="teacher-loading-event-row"
-                        key={index}
-                        aria-hidden="true"
-                      >
-                        <Skeleton style={{ width: 120, height: 15 }} />
-                        <Skeleton style={{ width: 150, height: 15 }} />
-                        <Skeleton
-                          style={{
-                            gridColumn: "1 / -1",
-                            width: "74%",
-                            height: 14,
-                          }}
-                        />
-                      </div>
-                    ))}
-                  </SkeletonStatus>
-                ) : events.length ? (
-                  <ol className="teacher-event-list">
-                    {events.map((event) => (
-                      <li key={event.id}>
-                        <span className="event-type">{event.type}</span>
-                        <time>
-                          {new Date(event.createdAt).toLocaleString("ko-KR")}
-                        </time>
-                        <pre>
-                          {JSON.stringify(
-                            visibleEventDetails(event.details),
-                            null,
-                            2,
-                          )}
-                        </pre>
-                      </li>
-                    ))}
-                  </ol>
-                ) : (
-                  <p className="teacher-hint">표시할 학습 기록이 없습니다.</p>
-                )
-              ) : (
-                <p className="teacher-hint">
-                  참가자를 선택하면 해당 평가의 학습 이벤트가 표시됩니다.
-                </p>
-              )}
-            </section>
-
-            <section className="teacher-card teacher-config-card">
-              <div className="teacher-card-heading">
-                <h2>문항 및 AI 정책</h2>
-                <Button
-                  disabled={busy || !isWaiting}
-                  onClick={() => void saveConfiguration()}
-                >
-                  {busy ? "저장 중…" : "설정 저장"}
-                </Button>
-              </div>
-              {!isWaiting && (
-                <p className="teacher-hint">
-                  평가가 시작된 뒤에는 설정을 변경할 수 없습니다.
-                </p>
-              )}
-              <label className="teacher-select-label">
-                <span>AI 사용 정책</span>
-                <select
-                  value={aiPolicy}
-                  disabled={busy || !isWaiting}
-                  onChange={(event) =>
-                    setAiPolicy(event.target.value as AiPolicy)
-                  }
-                >
-                  <option value="DISABLED">사용 안 함</option>
-                  <option value="HINT_ONLY">힌트만 허용</option>
-                  <option value="FULL">전체 응답 허용</option>
-                </select>
-              </label>
-              <QuestionFields
-                questions={questions}
-                disabled={busy || !isWaiting}
-                {...questionHandlers}
-              />
-            </section>
-
-            <section className="teacher-card teacher-config-card">
-              <div className="teacher-card-heading">
-                <h2>평가 기준 메모</h2>
-                <Button
-                  variant="secondary"
-                  disabled={busy}
-                  onClick={saveGuidelinesForThisDevice}
-                >
-                  이 기기에 저장
-                </Button>
-              </div>
-              <p className="teacher-hint">
-                명세의 평가 기준 입력 칸입니다. 현재 서버 API가 평가 설명/세부
-                규칙 필드를 제공하지 않아 이 메모는 이 브라우저에만 저장되고
-                학생 화면에는 전달되지 않습니다.
-              </p>
-              <RichTextEditor
-                label="평가 기준이나 규칙"
-                value={evaluationGuidelines}
-                disabled={busy}
-                placeholder="예: 답안에는 풀이 과정을 포함하고, 결론에는 근거를 제시해주세요."
-                onChange={setEvaluationGuidelines}
-              />
-            </section>
-            <section
-              className="teacher-card teacher-delete-section"
-              aria-labelledby="evaluation-delete-heading"
-            >
-              <div>
-                <h2 id="evaluation-delete-heading">평가 삭제</h2>
-                <p>
-                  더 이상 필요하지 않은 평가를 삭제합니다. 삭제 전 평가와 학습
-                  기록을 확인해주세요.
-                </p>
-              </div>
-              <Button
-                variant="white-danger"
-                disabled={busy}
-                onClick={() => setDeleteOpen(true)}
-              >
-                평가 삭제하기
-              </Button>
             </section>
           </div>
         ) : (
@@ -1155,12 +871,18 @@ export function TeacherEvaluationPage() {
           </section>
         )}
       </div>
-      {deleteOpen && evaluation && (
-        <DeleteEvaluationDialog
-          title={evaluation.title}
-          onConfirm={removeEvaluation}
-          onClose={() => setDeleteOpen(false)}
-        />
+      {qrOpen && qrUrl && (
+        <Modal
+          title="참여 QR 코드"
+          className="teacher-qr-modal"
+          onClose={() => setQrOpen(false)}
+        >
+          <img
+            className="teacher-qr-large"
+            src={qrUrl}
+            alt="학생 참가용 QR 코드 (확대)"
+          />
+        </Modal>
       )}
     </main>
   );

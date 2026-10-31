@@ -51,3 +51,20 @@ export const evaluationCriteria = [
       "AI에 입력한 질문과 활용 내용을 명확하게 기록하고, AI의 도움을 받은 부분을 적절하게 공개했는지 평가해요.",
   },
 ];
+export const landingSteps = [
+  {
+    title: "평가 만들기",
+    description:
+      "문항과 AI 사용 정책을 정하면 참여용 PIN과 QR코드가 만들어져요.",
+  },
+  {
+    title: "학생 참여",
+    description:
+      "학생이 PIN 또는 QR코드로 입장해 답안을 쓰고 AI와 대화하며 문제를 풀어요.",
+  },
+  {
+    title: "분석 결과 확인",
+    description:
+      "답안과 AI 대화 내용을 함께 분석한 결과를 보고 평가 근거를 확인해요.",
+  },
+];

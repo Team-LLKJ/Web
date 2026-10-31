@@ -1,14 +1,29 @@
 import { useEffect, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { apiErrorMessage } from "../api/client";
 import { getMyEvaluations } from "../api/evaluations";
 import type { PageResponse, TeacherEvaluationSummary } from "../api/types";
-import { useAuth } from "../auth/useAuth";
+import { TeacherHeader } from "../components/teacher/TeacherHeader";
 import { Button } from "../components/ui/Button";
 import { Skeleton, SkeletonStatus } from "../components/ui/Skeleton";
 import "../components/teacher/teacher.css";
 
 const PAGE_SIZE = 20;
+
+type StateFilter = "ALL" | "STARTED" | "WAITING" | "ENDED";
+
+const FILTERS: { value: StateFilter; label: string }[] = [
+  { value: "ALL", label: "전체" },
+  { value: "STARTED", label: "진행 중" },
+  { value: "WAITING", label: "대기 중" },
+  { value: "ENDED", label: "종료" },
+];
+
+function matchesFilter(state: string, filter: StateFilter) {
+  if (filter === "ALL") return true;
+  if (filter === "ENDED") return state === "ENDED" || state === "EXPIRED";
+  return state === filter;
+}
 
 function stateLabel(state: string) {
   switch (state) {
@@ -25,17 +40,21 @@ function stateLabel(state: string) {
   }
 }
 
+const EMPTY_DATE = "정보 없음";
+const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
+
 function dateLabel(value?: string) {
-  if (!value) return "정보 없음";
+  if (!value) return EMPTY_DATE;
   const date = new Date(value);
-  return Number.isNaN(date.getTime())
-    ? "정보 없음"
-    : date.toLocaleString("ko-KR");
+  if (Number.isNaN(date.getTime())) return EMPTY_DATE;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const hours = date.getHours();
+  const meridiem = hours < 12 ? "오전" : "오후";
+  const hour12 = hours % 12 === 0 ? 12 : hours % 12;
+  return `${date.getFullYear()}.${pad(date.getMonth() + 1)}.${pad(date.getDate())} (${WEEKDAYS[date.getDay()]}) ${meridiem} ${hour12}:${pad(date.getMinutes())}`;
 }
 
 export function MyEvaluationsPage() {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
   const location = useLocation();
   const navigationNotice =
     typeof (location.state as { notice?: unknown } | null)?.notice === "string"
@@ -46,6 +65,7 @@ export function MyEvaluationsPage() {
     result: PageResponse<TeacherEvaluationSummary>;
   } | null>(null);
   const [page, setPage] = useState(0);
+  const [filter, setFilter] = useState<StateFilter>("ALL");
   const [refreshKey, setRefreshKey] = useState(0);
   const [loadedKey, setLoadedKey] = useState("");
   const [noticeState, setNoticeState] = useState<{
@@ -84,31 +104,20 @@ export function MyEvaluationsPage() {
   }, [page, refreshKey, requestKey]);
 
   const items = result?.items ?? [];
+  const visibleItems = items.filter((item) => matchesFilter(item.state, filter));
   const totalPages = result?.totalPages ?? 0;
   const currentPage = result?.page ?? page;
 
   return (
     <main className="teacher-page">
-      <header className="teacher-page-header">
-        <Link className="teacher-brand" to="/">
-          LIT<span>.</span>
-        </Link>
-        <div className="teacher-account">
-          <span>{user?.name} 선생님</span>
-          <Button
-            variant="secondary"
-            onClick={() => setRefreshKey((value) => value + 1)}
-          >
-            새로고침
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={() => void logout().then(() => navigate("/login"))}
-          >
-            로그아웃
-          </Button>
-        </div>
-      </header>
+      <TeacherHeader>
+        <Button
+          variant="secondary"
+          onClick={() => setRefreshKey((value) => value + 1)}
+        >
+          새로고침
+        </Button>
+      </TeacherHeader>
 
       <div className="teacher-page-content">
         <p className="teacher-eyebrow">TEACHER / MY EVALUATIONS</p>
@@ -141,47 +150,66 @@ export function MyEvaluationsPage() {
                 key={index}
                 aria-hidden="true"
               >
-                <div
-                  className="teacher-evaluation-item-main"
-                  aria-hidden="true"
-                >
-                  <Skeleton
-                    style={{ width: 72, height: 22, borderRadius: 999 }}
-                  />
-                  <Skeleton
-                    style={{
-                      width: "min(360px, 70vw)",
-                      height: 24,
-                      margin: "12px 0",
-                    }}
-                  />
-                  <div className="teacher-evaluation-skeleton-meta">
-                    <Skeleton style={{ width: 170, height: 14 }} />
-                    <Skeleton style={{ width: 170, height: 14 }} />
-                  </div>
+                <Skeleton style={{ width: 68, height: 28, borderRadius: 8 }} />
+                <Skeleton
+                  style={{ width: "60%", height: 30, margin: "18px 0 0" }}
+                />
+                <div className="teacher-evaluation-skeleton-meta">
+                  <Skeleton style={{ width: "50%", height: 36 }} />
+                  <Skeleton style={{ width: "80%", height: 36 }} />
                 </div>
                 <div
                   className="teacher-evaluation-skeleton-actions"
                   aria-hidden="true"
                 >
-                  <Skeleton style={{ width: 94, height: 40 }} />
-                  <Skeleton style={{ width: 94, height: 40 }} />
+                  <Skeleton style={{ width: "100%", height: 44, borderRadius: 12 }} />
+                  <Skeleton style={{ width: "100%", height: 44, borderRadius: 12 }} />
                 </div>
               </article>
             ))}
           </SkeletonStatus>
         ) : items.length ? (
           <>
-            <p className="teacher-list-count">
-              총 {result?.totalElements ?? items.length}개
-            </p>
+            <div className="teacher-list-toolbar">
+              <div
+                className="teacher-filter-chips"
+                role="group"
+                aria-label="진행 상태 필터"
+              >
+                {FILTERS.map(({ value, label }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    className={`teacher-filter-chip${filter === value ? " is-active" : ""}`}
+                    aria-pressed={filter === value}
+                    onClick={() => setFilter(value)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <p className="teacher-list-count">
+                총 <b>{result?.totalElements ?? items.length}</b>개
+              </p>
+            </div>
+            {visibleItems.length === 0 && (
+              <p className="teacher-list-state">
+                이 페이지에는 해당 상태의 평가가 없습니다.
+              </p>
+            )}
             <div className="teacher-evaluation-list">
-              {items.map((evaluation) => (
-                <article
-                  className="teacher-card teacher-evaluation-item"
-                  key={evaluation.id}
-                >
-                  <div className="teacher-evaluation-item-main">
+              {visibleItems.map((evaluation) => {
+                const done =
+                  evaluation.state === "ENDED" ||
+                  evaluation.state === "EXPIRED";
+                const detailPath = `/teacher/evaluations/${encodeURIComponent(evaluation.id)}`;
+                const created = dateLabel(evaluation.createdAt);
+                const expires = dateLabel(evaluation.expiresAt);
+                return (
+                  <article
+                    className={`teacher-card teacher-evaluation-item${done ? " teacher-evaluation-item--done" : ""}`}
+                    key={evaluation.id}
+                  >
                     <span
                       className={`evaluation-state evaluation-state--${evaluation.state.toLowerCase()}`}
                     >
@@ -191,30 +219,43 @@ export function MyEvaluationsPage() {
                     <dl>
                       <div>
                         <dt>생성일</dt>
-                        <dd>{dateLabel(evaluation.createdAt)}</dd>
+                        <dd className={created === EMPTY_DATE ? "is-empty" : undefined}>
+                          {created}
+                        </dd>
                       </div>
                       <div>
                         <dt>만료일</dt>
-                        <dd>{dateLabel(evaluation.expiresAt)}</dd>
+                        <dd className={expires === EMPTY_DATE ? "is-empty" : undefined}>
+                          {expires}
+                        </dd>
                       </div>
                     </dl>
-                  </div>
-                  <div className="teacher-evaluation-item-actions">
-                    <Link
-                      className="button button--secondary neutral"
-                      to={`/teacher/evaluations/${encodeURIComponent(evaluation.id)}`}
-                    >
-                      평가 관리
-                    </Link>
-                    <Link
-                      className="button button--secondary neutral"
-                      to={`/teacher/evaluations/${encodeURIComponent(evaluation.id)}/results`}
-                    >
-                      학습 기록
-                    </Link>
-                  </div>
-                </article>
-              ))}
+                    <div className="teacher-evaluation-item-actions">
+                      <Link
+                        className="button button--primary primary"
+                        to={detailPath}
+                      >
+                        평가 관리
+                      </Link>
+                      <Link
+                        className="button button--secondary neutral"
+                        to={`${detailPath}/results`}
+                      >
+                        학습 기록
+                      </Link>
+                    </div>
+                  </article>
+                );
+              })}
+              {filter === "ALL" && currentPage + 1 >= totalPages && (
+                <Link
+                  className="teacher-evaluation-new"
+                  to="/teacher/evaluations/new"
+                >
+                  <span aria-hidden="true">+</span>
+                  새 평가 만들기
+                </Link>
+              )}
             </div>
             {totalPages > 1 && (
               <nav
