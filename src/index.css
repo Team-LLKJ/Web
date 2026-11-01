@@ -1,20 +1,18 @@
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css");
+@import "./design-tokens.css";
+
 :root {
-  font-family:
-    Pretendard,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
-  color: #000;
-  background: #f6faff;
+  font-family: var(--font-family-base);
+  color: var(--color-black);
+  background: var(--color-primary-background);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-weight: 400;
-  font-size: 16px;
-  line-height: 1.4;
+  font-weight: var(--weight-regular);
+  letter-spacing: 0;
+  font-size: var(--font-text-sm);
+  line-height: var(--line-text-sm);
 }
 * {
   box-sizing: border-box;
@@ -23,7 +21,9 @@ body {
   margin: 0;
 }
 button,
-input {
+input,
+textarea,
+select {
   font: inherit;
 }
 button {
@@ -33,8 +33,10 @@ button {
   color: inherit;
 }
 button:focus-visible,
-input:focus-visible {
-  outline: 2px solid #007bff;
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--color-primary);
   outline-offset: 3px;
 }
 p,
@@ -45,4 +47,15 @@ h3 {
 }
 button:disabled {
   cursor: default;
+}
+
+textarea,
+select {
+  font-family: inherit;
+}
+
+/* 모든 textarea: 크기 조절 핸들 없이 내용 높이에 맞춰 늘어난다(최소/최대 높이는 각 화면 CSS가 정한다). */
+textarea {
+  resize: none;
+  field-sizing: content;
 }

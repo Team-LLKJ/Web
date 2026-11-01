@@ -1,24 +1,29 @@
-import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../auth/useAuth";
+import { paths } from "../router/paths";
 import { AuthLayout } from "../components/auth/AuthLayout";
-import { AuthForm } from "../components/auth/AuthForm";
-import { Modal } from "../components/ui/Modal";
-import { Button } from "../components/ui/Button";
+import { AuthForm, type AuthFormPayload } from "../components/auth/AuthForm";
+
+type RouteState = { notice?: string };
+
 export function LoginPage() {
-  const [resetOpen, setResetOpen] = useState(false);
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const state = location.state as RouteState | null;
+
+  async function submit(payload: AuthFormPayload) {
+    if ("email" in payload) throw new Error("로그인 정보를 확인해주세요.");
+    await login(payload);
+    navigate(paths.evaluations, { replace: true });
+  }
+
   return (
     <>
       <AuthLayout mode="login">
-        <AuthForm mode="login" onResetPassword={() => setResetOpen(true)} />
+        {state?.notice && <p className="auth-page-notice" role="status">{state.notice}</p>}
+        <AuthForm mode="login" onSubmit={submit} />
       </AuthLayout>
-      {resetOpen && (
-        <Modal
-          title="비밀번호 재설정"
-          onClose={() => setResetOpen(false)}
-          actions={<Button onClick={() => setResetOpen(false)}>확인</Button>}
-        >
-          <p>비밀번호 재설정 서비스는 아직 연결되지 않았습니다.</p>
-        </Modal>
-      )}
     </>
   );
 }

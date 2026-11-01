@@ -1,7 +1,12 @@
 export type StudentStatus = "제출완료" | "작성중" | "경고";
 export type Question = { id: number; title: string; content: string };
-export type Answer = { questionId: number; paragraphs: string[] };
-export type Message = { id: string; role: "user" | "ai"; content: string };
+export type Answer = {
+  questionId: number;
+  paragraphs: string[];
+  /** 서버가 내려준 서식 있는 답안(HTML). 있으면 학생 화면과 같은 편집기 모양으로 보여줍니다. */
+  html?: string;
+};
+export type Message = { id: string; role: "user" | "ai"; content: string; pending?: boolean };
 export type Activity = { id: string; time: string; description: string };
 export type Rubric = {
   id: string;
@@ -47,7 +52,7 @@ export const students: Student[] = [
   {
     id: "student-1",
     name: "이하랑",
-    color: "#FFD4D3",
+    color: "#ffd4d3",
     status: "제출완료",
     submittedAt: "2026. 10. 15",
     answers: [
@@ -104,7 +109,7 @@ export const students: Student[] = [
   {
     id: "student-2",
     name: "이정연",
-    color: "#FFD4D3",
+    color: "#ffd4d3",
     status: "작성중",
     submittedAt: null,
     answers: [
@@ -146,7 +151,7 @@ export const students: Student[] = [
   {
     id: "student-3",
     name: "김도현",
-    color: "#E2F0FF",
+    color: "#e2f0ff",
     status: "작성중",
     submittedAt: null,
     answers: [
@@ -186,7 +191,7 @@ export const students: Student[] = [
   {
     id: "student-4",
     name: "정서진",
-    color: "#52A6FF",
+    color: "#52a6ff",
     status: "경고",
     submittedAt: null,
     answers: [

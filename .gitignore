@@ -22,3 +22,14 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# 환경변수 파일 제외
+.env
+.env.local
+.env.*.local
+.env.example
+
+# 기타 제외 대상 예시
+node_modules/
+dist/
+build/

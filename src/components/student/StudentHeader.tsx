@@ -1,20 +1,23 @@
 import { Link } from "react-router-dom";
+import { useScrolled } from "../../hooks/useScrolled";
 import { Button } from "../ui/Button";
-import { IconButton } from "../ui/IconButton";
-import { Icon } from "../ui/Icon";
+import { HeaderUtilities } from "../ui/HeaderDialogs";
 export function StudentHeader({
   submitted,
+  disabledSubmit = false,
   onLeave,
   onSubmit,
-  onNotice,
+  onPolicy,
 }: {
   submitted: boolean;
+  disabledSubmit?: boolean;
   onLeave: () => void;
   onSubmit: () => void;
-  onNotice: (title: string) => void;
+  onPolicy: () => void;
 }) {
+  const scrolled = useScrolled();
   return (
-    <header className="header student-header">
+    <header className={`header student-header${scrolled ? " is-scrolled" : ""}`}>
       <Link
         to="/views"
         className="lit-logo-link"
@@ -23,19 +26,11 @@ export function StudentHeader({
         <img src="/lit-logo.png" width="100" height="50" alt="LIT" />
       </Link>
       <nav aria-label="학생 평가 도구">
-        <IconButton
-          label="알림"
-          onClick={() => onNotice("새로운 알림이 없습니다.")}
-        >
-          <Icon name="bell" />
-        </IconButton>
-        <IconButton label="설정" onClick={() => onNotice("평가 설정")}>
-          <Icon name="settings" />
-        </IconButton>
+        <HeaderUtilities onSettings={onPolicy} />
         <Button variant="secondary" onClick={onLeave}>
           나가기
         </Button>
-        <Button onClick={onSubmit} disabled={submitted}>
+        <Button onClick={onSubmit} disabled={submitted || disabledSubmit}>
           {submitted ? "제출 완료" : "제출하기"}
         </Button>
       </nav>

@@ -1,29 +1,21 @@
 import { useRef, useState, type CSSProperties, type ReactNode } from "react";
-
-const DEFAULT_CHAT_WIDTH = 32;
-const MIN_CHAT_WIDTH = 22;
-const MAX_CHAT_WIDTH = 50;
-
-const clamp = (width: number) =>
-  Math.min(MAX_CHAT_WIDTH, Math.max(MIN_CHAT_WIDTH, width));
-
-function readWidth(storageKey: string, defaultWidth: number) {
-  try {
-    const saved = localStorage.getItem(storageKey);
-    const width = saved === null ? defaultWidth : Number(saved);
-    return Number.isFinite(width) ? clamp(width) : defaultWidth;
-  } catch {
-    return defaultWidth;
-  }
-}
+import {
+  CHAT_WIDTH_KEY,
+  DEFAULT_CHAT_WIDTH,
+  MAX_CHAT_WIDTH,
+  MIN_CHAT_WIDTH,
+  clampChatWidth as clamp,
+  readChatWidth as readWidth,
+} from "./chatWidth";
 
 export function StudentWorkspace({
   editor,
   chat,
   className = "",
-  storageKey = "lit:student-chat-width:v2",
+  storageKey = CHAT_WIDTH_KEY,
   label = "AI 대화창 너비 조절",
   defaultWidth = DEFAULT_CHAT_WIDTH,
+  sidebarExpanded = false,
 }: {
   editor: ReactNode;
   chat: ReactNode;
@@ -31,6 +23,7 @@ export function StudentWorkspace({
   storageKey?: string;
   label?: string;
   defaultWidth?: number;
+  sidebarExpanded?: boolean;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{
@@ -57,7 +50,7 @@ export function StudentWorkspace({
   return (
     <div
       ref={containerRef}
-      className={`student-solving-body ${className} ${collapsed ? "is-sidebar-collapsed" : ""} ${resizing ? "is-resizing" : ""}`}
+      className={`student-solving-body ${className} ${collapsed && !sidebarExpanded ? "is-sidebar-collapsed" : ""} ${sidebarExpanded ? "is-sidebar-expanded" : ""} ${resizing ? "is-resizing" : ""}`}
       style={{ "--student-chat-width": `${width}%` } as CSSProperties}
     >
       {editor}
@@ -158,8 +151,8 @@ export function StudentWorkspace({
       </div>
       <div
         className="workspace-sidebar"
-        aria-hidden={collapsed}
-        inert={collapsed}
+        aria-hidden={collapsed && !sidebarExpanded}
+        inert={collapsed && !sidebarExpanded}
       >
         {chat}
       </div>

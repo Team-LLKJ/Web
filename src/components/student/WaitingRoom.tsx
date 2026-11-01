@@ -2,9 +2,11 @@ import { Button } from "../ui/Button";
 export function WaitingRoom({
   nickname,
   onLeave,
+  notice,
 }: {
   nickname: string;
   onLeave: () => void;
+  notice?: string;
 }) {
   return (
     <main className="student-join waiting-room">
@@ -32,6 +34,7 @@ export function WaitingRoom({
           <br />
           잠시만 기다려주세요.
         </h1>
+        {notice && <p className="student-runtime-notice" role="alert">{notice}</p>}
       </div>
     </main>
   );
