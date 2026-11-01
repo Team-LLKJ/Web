@@ -1,10 +1,10 @@
 <svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="169" height="169" viewBox="0 0 169 169" fill="none" xmlns="http://www.w3.org/2000/svg">
 <g id="school">
 <mask id="mask0_0_11" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="169" height="169">
-<rect id="Bounding box" width="169" height="169" fill="#D9D9D9"/>
+<rect id="Bounding box" width="169" height="169" fill="#F4F4F4"/>
 </mask>
 <g mask="url(#mask0_0_11)">
-<path id="school_2" d="M84.5003 147.875L35.2087 121.117V78.8667L7.04199 63.375L84.5003 21.125L161.959 63.375V119.708H147.875V71.1208L133.792 78.8667V121.117L84.5003 147.875ZM84.5003 89.4292L132.736 63.375L84.5003 37.3208L36.2649 63.375L84.5003 89.4292ZM84.5003 131.855L119.709 112.843V86.2604L84.5003 105.625L49.292 86.2604V112.843L84.5003 131.855Z" fill="#007BFF" fill-opacity="0.25"/>
+<path id="school_2" d="M84.5003 147.875L35.2087 121.117V78.8667L7.04199 63.375L84.5003 21.125L161.959 63.375V119.708H147.875V71.1208L133.792 78.8667V121.117L84.5003 147.875ZM84.5003 89.4292L132.736 63.375L84.5003 37.3208L36.2649 63.375L84.5003 89.4292ZM84.5003 131.855L119.709 112.843V86.2604L84.5003 105.625L49.292 86.2604V112.843L84.5003 131.855Z" fill="#E2F0FF"/>
 </g>
 </g>
 </svg>
