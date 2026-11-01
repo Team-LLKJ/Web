@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "../ui/Button";
-import { IconButton } from "../ui/IconButton";
-import { Icon } from "../ui/Icon";
+import { HeaderUtilities } from "../ui/HeaderDialogs";
 export function Header({
   ended,
   onDialog,
@@ -12,22 +11,14 @@ export function Header({
   return (
     <header className="header">
       <Link
-        to="/views"
+        to="/teacher/evaluations"
         className="lit-logo-link"
-        aria-label="LIT 화면 목록으로 이동"
+        aria-label="내 수행평가로 이동"
       >
         <img src="/lit-logo.png" width="100" height="50" alt="LIT" />
       </Link>
       <nav aria-label="평가 도구">
-        <IconButton
-          label="알림"
-          onClick={() => onDialog("새로운 알림이 없습니다.")}
-        >
-          <Icon name="bell" />
-        </IconButton>
-        <IconButton label="설정" onClick={() => onDialog("평가 설정")}>
-          <Icon name="settings" />
-        </IconButton>
+        <HeaderUtilities />
         <Button
           variant="secondary"
           onClick={() => onDialog("채점 화면에서 나가시겠습니까?")}

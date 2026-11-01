@@ -3,8 +3,8 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { apiErrorMessage } from "../api/client";
 import { getEvaluation, getParticipants, getTeacherLearningEvents } from "../api/evaluations";
 import type { Evaluation, LearningEvent, Lobby, Participant } from "../api/types";
-import { useAuth } from "../auth/useAuth";
 import { Button } from "../components/ui/Button";
+import { TeacherHeader } from "../components/teacher/TeacherHeader";
 import { Skeleton, SkeletonStatus } from "../components/ui/Skeleton";
 import { TextInput } from "../components/ui/TextInput";
 import "../components/teacher/teacher.css";
@@ -31,7 +31,6 @@ function visibleDetails(details: Record<string, unknown>) {
 export function TeacherResultsPage() {
   const { evaluationId = "" } = useParams();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
   const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
   const [lobby, setLobby] = useState<Lobby | null>(null);
   const [selectedId, setSelectedId] = useState("");
@@ -122,26 +121,26 @@ export function TeacherResultsPage() {
 
   if (loading) return (
     <main className="teacher-page teacher-loading-page">
-      <header className="teacher-page-header" aria-hidden="true">
-        <Skeleton style={{ width: 70, height: 30 }} />
+      <header className="header teacher-header no-print" aria-hidden="true">
+        <Skeleton style={{ width: 100, height: 40 }} />
         <div className="teacher-loading-header-actions"><Skeleton /><Skeleton /><Skeleton /></div>
       </header>
       <SkeletonStatus className="teacher-page-content teacher-results-skeleton" label="평가 학습 기록을 불러오고 있습니다.">
-        <Skeleton className="teacher-skeleton-eyebrow" style={{ width: 145, height: 16, marginBottom: 14 }} />
-        <Skeleton style={{ width: "min(500px, 72vw)", height: 48, marginBottom: 22 }} />
-        <div className="teacher-results-toolbar" aria-hidden="true"><Skeleton style={{ width: 160, height: 18 }} /><Skeleton style={{ width: 90, height: 40 }} /></div>
+        <Skeleton className="teacher-skeleton-eyebrow" style={{ width: 145, height: 20, marginBottom: 10 }} />
+        <Skeleton style={{ width: "min(500px, 72vw)", height: "clamp(46px, 4.8vw, 60px)", marginBottom: 24 }} />
+        <div className="teacher-results-toolbar" aria-hidden="true"><Skeleton style={{ width: 160, height: 22 }} /><Skeleton style={{ width: 90, height: 42, borderRadius: 10 }} /></div>
         <div className="teacher-results-summary" aria-hidden="true">
-          {Array.from({ length: 4 }, (_, index) => <section className="teacher-card" key={index}><Skeleton style={{ width: "70%", height: 14 }} /><Skeleton style={{ width: 48, height: 30 }} /></section>)}
+          {Array.from({ length: 4 }, (_, index) => <section className="teacher-card" key={index}><Skeleton style={{ width: "70%", height: 20 }} /><Skeleton style={{ width: 48, height: 34 }} /></section>)}
         </div>
         <section className="teacher-card teacher-results-card teacher-card-skeleton" aria-hidden="true">
-          <div className="teacher-loading-skeleton-pair"><Skeleton style={{ width: 95, height: 24 }} /><Skeleton style={{ width: 120, height: 16 }} /></div>
+          <div className="teacher-loading-skeleton-pair"><Skeleton style={{ width: 95, height: 28 }} /><Skeleton style={{ width: 120, height: 20 }} /></div>
           <Skeleton style={{ width: "100%", height: 42 }} />
           <Skeleton style={{ width: "100%", height: 42 }} />
           <Skeleton style={{ width: "100%", height: 42 }} />
         </section>
         <section className="teacher-card teacher-results-card teacher-card-skeleton" aria-hidden="true">
-          <Skeleton style={{ width: 210, height: 24 }} />
-          {Array.from({ length: 4 }, (_, index) => <div className="teacher-loading-event-row" key={index}><Skeleton style={{ width: 120, height: 15 }} /><Skeleton style={{ width: 150, height: 15 }} /><Skeleton style={{ gridColumn: "1 / -1", width: "74%", height: 14 }} /></div>)}
+          <Skeleton style={{ width: 210, height: 28 }} />
+          {Array.from({ length: 4 }, (_, index) => <div className="teacher-loading-event-row" key={index}><Skeleton style={{ width: 120, height: 20 }} /><Skeleton style={{ width: 150, height: 20 }} /><Skeleton style={{ gridColumn: "1 / -1", width: "74%", height: 20 }} /></div>)}
         </section>
       </SkeletonStatus>
     </main>
@@ -149,14 +148,9 @@ export function TeacherResultsPage() {
 
   return (
     <main className="teacher-page teacher-results-page">
-      <header className="teacher-page-header no-print">
-        <Link className="teacher-brand" to="/">LIT<span>.</span></Link>
-        <div className="teacher-account">
-          <span>{user?.name} 선생님</span>
-          <Button variant="secondary" onClick={() => window.print()}>기록 인쇄 / PDF</Button>
-          <Button variant="secondary" onClick={() => void logout().then(() => navigate("/login"))}>로그아웃</Button>
-        </div>
-      </header>
+      <TeacherHeader className="no-print" onLeave={() => navigate("/teacher/evaluations")}>
+        <Button onClick={() => window.print()}>기록 인쇄 / PDF</Button>
+      </TeacherHeader>
 
       <div className="teacher-page-content">
         <p className="teacher-eyebrow">TEACHER / REVIEW</p>
@@ -207,9 +201,9 @@ export function TeacherResultsPage() {
             <SkeletonStatus className="teacher-event-list-skeleton" label="학습 기록을 불러오고 있습니다.">
               {Array.from({ length: 4 }, (_, index) => (
                 <div className="teacher-loading-event-row" key={index} aria-hidden="true">
-                  <Skeleton style={{ width: 120, height: 15 }} />
-                  <Skeleton style={{ width: 150, height: 15 }} />
-                  <Skeleton style={{ gridColumn: "1 / -1", width: "74%", height: 14 }} />
+                  <Skeleton style={{ width: 120, height: 20 }} />
+                  <Skeleton style={{ width: 150, height: 20 }} />
+                  <Skeleton style={{ gridColumn: "1 / -1", width: "74%", height: 20 }} />
                 </div>
               ))}
             </SkeletonStatus>

@@ -43,6 +43,8 @@ export function StudentDialogs({
       title={title}
       onClose={onClose}
       className="student-modal"
+      dismissOnBackdrop={kind !== "warning"}
+      dismissOnEscape={kind !== "warning"}
       actions={
         <>
           {kind === "submit" ? (
@@ -52,11 +54,11 @@ export function StudentDialogs({
             </>
           ) : kind === "leave" ? (
             <>
-              <Button variant="white-danger" onClick={onLeave}>나가기</Button>
+              <Button variant="danger" onClick={onLeave}>나가기</Button>
               <Button variant="secondary" onClick={onClose}>취소</Button>
             </>
           ) : (
-            <Button variant={kind === "warning" ? "white-danger" : "primary"} onClick={onClose}>{kind === "policy" ? "확인하고 계속" : "확인하기"}</Button>
+            <Button variant={kind === "warning" ? "danger" : "primary"} onClick={onClose}>{kind === "policy" ? "확인하고 계속" : "확인하기"}</Button>
           )}
         </>
       }
@@ -69,7 +71,13 @@ export function StudentDialogs({
           {error && <p className="dialog-error" role="alert">{error}</p>}
         </div>
       ) : kind === "leave" ? (
-        <p>정말로 평가에서 나가시겠습니까? 제출하지 않은 답안은 최종 제출되지 않습니다.</p>
+        <p>
+          정말로 평가에서 나가시겠습니까?
+          <br />
+          제출 완료 버튼을 누르지 않고 나갈 시
+          <br />
+          미제출 처리가 될 수 있습니다.
+        </p>
       ) : kind === "warning" ? (
         <p>화면 이탈 또는 캡처 단축키가 감지되었습니다. 이 알림만으로 부정행위가 확인되는 것은 아닙니다. 평가 운영 기준을 확인해주세요.</p>
       ) : kind === "policy" ? (

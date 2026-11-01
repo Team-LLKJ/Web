@@ -6,6 +6,9 @@ type Props = {
   children?: ReactNode;
   actions?: ReactNode;
   className?: string;
+  size?: "small" | "medium" | "large";
+  dismissOnBackdrop?: boolean;
+  dismissOnEscape?: boolean;
 };
 export function Modal({
   title,
@@ -13,6 +16,9 @@ export function Modal({
   children,
   actions,
   className = "",
+  size = "medium",
+  dismissOnBackdrop = true,
+  dismissOnEscape = true,
 }: Props) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -23,14 +29,14 @@ export function Modal({
   return (
     <dialog
       ref={ref}
-      className={`modal ${className}`}
+      className={`modal${size === "medium" ? "" : ` modal--${size}`} ${className}`}
       aria-label={title}
       onCancel={(e) => {
         e.preventDefault();
-        onClose();
+        if (dismissOnEscape) onClose();
       }}
       onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        if (dismissOnBackdrop && e.target === e.currentTarget) onClose();
       }}
     >
       <div className="modal-heading">

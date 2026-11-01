@@ -20,6 +20,11 @@ export function ViewIndex() {
         <Link to="/student/solve">학생 풀이</Link>
         <Link to="/teacher/evaluations">내 수행평가</Link>
         <Link to="/teacher/evaluations/new">선생님 평가 만들기</Link>
+        <Link to="/teacher/grading">선생님 채점 화면</Link>
+        <Link to="/settings">설정</Link>
+        <Link to="/notifications">알림</Link>
+        <Link to="/terms">이용약관</Link>
+        <Link to="/privacy">개인정보 처리방침</Link>
       </nav>
     </main>
   );
