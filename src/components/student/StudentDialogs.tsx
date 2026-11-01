@@ -54,11 +54,11 @@ export function StudentDialogs({
             </>
           ) : kind === "leave" ? (
             <>
-              <Button variant="white-danger" onClick={onLeave}>나가기</Button>
+              <Button variant="danger" onClick={onLeave}>나가기</Button>
               <Button variant="secondary" onClick={onClose}>취소</Button>
             </>
           ) : (
-            <Button variant={kind === "warning" ? "white-danger" : "primary"} onClick={onClose}>{kind === "policy" ? "확인하고 계속" : "확인하기"}</Button>
+            <Button variant={kind === "warning" ? "danger" : "primary"} onClick={onClose}>{kind === "policy" ? "확인하고 계속" : "확인하기"}</Button>
           )}
         </>
       }

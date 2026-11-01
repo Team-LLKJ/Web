@@ -2606,11 +2606,3 @@
   width: 30px;
   height: 30px;
 }
-
-/* 문항 내용(문제 텍스트)을 더 크게 */
-.student-solving .student-editor .question-box,
-.student-solving .student-editor .question-box p {
-  font-size: 17px;
-  line-height: 1.65;
-  font-weight: 500;
-}

@@ -529,6 +529,7 @@
 }
 
 /* ───── 공통 입력창: 입력칸·선택칸·글상자가 같은 모양과 효과를 가집니다 ───── */
+:root .text-input,
 :root .teacher-select-label select,
 :root .auth-role-select select,
 :root .teacher-textarea-label textarea,
@@ -547,6 +548,7 @@
     border-color 0.18s ease,
     background-color 0.18s ease;
 }
+:root .text-input,
 :root .teacher-select-label select,
 :root .auth-role-select select,
 :root .answer-tools-modal input:not([type="checkbox"]),
@@ -559,6 +561,7 @@
 :root .teacher-question-field textarea {
   padding: 12px 15px;
 }
+:root .text-input:hover:not([data-error="true"]),
 :root .teacher-select-label select:hover:not(:disabled),
 :root .auth-role-select select:hover:not(:disabled),
 :root .teacher-textarea-label textarea:hover:not(:disabled),
@@ -568,6 +571,7 @@
 :root .link-popover input:hover:not(:disabled) {
   border-color: var(--color-grey-30);
 }
+:root .text-input:focus-within,
 :root .teacher-select-label select:focus,
 :root .auth-role-select select:focus,
 :root .teacher-textarea-label textarea:focus,
@@ -587,6 +591,7 @@
   color: var(--color-grey-40);
   cursor: not-allowed;
 }
+:root .text-input input::placeholder,
 :root .teacher-textarea-label textarea::placeholder,
 :root .teacher-question-field textarea::placeholder,
 :root .link-popover input::placeholder {

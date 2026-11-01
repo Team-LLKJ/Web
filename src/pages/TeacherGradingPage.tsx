@@ -242,7 +242,7 @@ function TeacherGradingPage() {
             <>
               {dialog === "평가를 종료하시겠습니까?" && (
                 <Button
-                  variant="white-danger"
+                  variant="danger"
                   onClick={() => {
                     endNow();
                     setDialog("");

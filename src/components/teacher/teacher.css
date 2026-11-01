@@ -2593,4 +2593,34 @@
   margin: 0;
   color: var(--color-grey-50);
   font-size: var(--font-text-sm);
+
+/* 평가 카드의 수정·삭제 */
+.evaluation-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.evaluation-card-actions > a,
+.evaluation-card-actions > button {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #aeaeb2;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+.evaluation-card-actions > a:hover,
+.evaluation-card-actions > button:hover {
+  background: var(--color-grey-10);
+  color: #8e8e93;
+}
+.evaluation-card-actions > button:hover {
+  color: var(--color-danger);
 }
