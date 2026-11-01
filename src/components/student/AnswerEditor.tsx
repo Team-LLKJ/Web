@@ -85,7 +85,7 @@ function OverviewPanel({
           {questions.map((item) => (
             <li key={item.id}>
               <button type="button" onClick={() => onStart(item.id)}>
-                <strong>{item.title}</strong>
+                <strong>{questions.length === 1 ? "문항" : item.title}</strong>
                 <span>{item.content}</span>
               </button>
             </li>
@@ -162,7 +162,10 @@ export function AnswerEditor({
         value={overview ? OVERVIEW : questionId}
         items={[
           { value: OVERVIEW, label: "안내" },
-          ...questions.map((item) => ({ value: item.id, label: item.title })),
+          ...questions.map((item) => ({
+            value: item.id,
+            label: questions.length === 1 ? "문항" : item.title,
+          })),
         ]}
         onChange={(id) => {
           if (id === OVERVIEW) {
@@ -199,6 +202,8 @@ export function AnswerEditor({
               readOnly={readOnly}
               saving={savingQuestionId === questionId}
               notice={notice}
+              minChars={question.minChars}
+              maxChars={question.maxChars}
               onChange={onAnswer}
               onBlur={() => {
                 if (!readOnly) onSave(questionId);

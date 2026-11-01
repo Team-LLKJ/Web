@@ -40,7 +40,7 @@ export function PinJoinForm({
         }}
         error={error}
       />
-      <Button type="submit" size="large" disabled={busy}>
+      <Button type="submit" size="large" loading={busy}>
         {busy ? "확인 중…" : "참여하기"}
       </Button>
     </JoinCard>

@@ -53,3 +53,9 @@ textarea,
 select {
   font-family: inherit;
 }
+
+/* 모든 textarea: 크기 조절 핸들 없이 내용 높이에 맞춰 늘어난다(최소/최대 높이는 각 화면 CSS가 정한다). */
+textarea {
+  resize: none;
+  field-sizing: content;
+}

@@ -49,7 +49,7 @@ export function StudentDialogs({
         <>
           {kind === "submit" ? (
             <>
-              <Button onClick={onSubmit} disabled={submitting || !preview?.canConfirm}>{submitting ? "제출 중…" : "제출 확정"}</Button>
+              <Button onClick={onSubmit} loading={submitting} disabled={!preview?.canConfirm}>{submitting ? "제출 중…" : "제출 확정"}</Button>
               <Button variant="secondary" onClick={onClose} disabled={submitting}>취소</Button>
             </>
           ) : kind === "leave" ? (

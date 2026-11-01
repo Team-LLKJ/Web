@@ -13,6 +13,7 @@ import { Button } from "../components/ui/Button";
 import { DeleteEvaluationDialog } from "../components/teacher/DeleteEvaluationDialog";
 import { Skeleton, SkeletonStatus } from "../components/ui/Skeleton";
 import "../components/teacher/teacher.css";
+import { Toast } from "../components/teacher/Toast";
 
 const FETCH_SIZE = 100;
 const PAGE_SIZE = 12;
@@ -232,11 +233,14 @@ export function MyEvaluationsPage() {
           </Link>
         </div>
 
-        {notice && (
-          <p className="teacher-notice" role="alert">
-            {notice}
-          </p>
-        )}
+        <Toast
+          message={notice}
+          tone={
+            noticeState?.key === requestKey && noticeState.message
+              ? "error"
+              : "info"
+          }
+        />
         {loading ? (
           <SkeletonStatus
             className="teacher-evaluation-list teacher-evaluation-list-skeleton"
@@ -388,7 +392,9 @@ export function MyEvaluationsPage() {
                     <Link
                       className="evaluation-card-cta"
                       to={
-                        evaluation.state === "WAITING" ? detailPath : paths.grading
+                        evaluation.state === "WAITING"
+                          ? detailPath
+                          : `${paths.grading}/${encodeURIComponent(evaluation.id)}`
                       }
                     >
                       {evaluation.state === "WAITING"

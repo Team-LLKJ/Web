@@ -28,6 +28,9 @@ type Props = {
   readOnly: boolean;
   saving: boolean;
   notice: string;
+  /** 교사가 정한 글자 수 제한(선택). */
+  minChars?: number | null;
+  maxChars?: number | null;
   onChange: (id: string, html: string) => void;
   onBlur: () => void;
 };
@@ -38,6 +41,8 @@ export function RichAnswerField({
   readOnly,
   saving,
   notice,
+  minChars,
+  maxChars,
   onChange,
   onBlur,
 }: Props) {
@@ -58,7 +63,13 @@ export function RichAnswerField({
     };
   }, []);
   const editor: Editor | null = useEditor({
-    extensions: answerExtensions(),
+    extensions: answerExtensions().map((extension) =>
+      extension.name === "characterCount"
+        ? extension.configure({
+            limit: Math.min(maxChars ?? MAX_ANSWER_LENGTH, MAX_ANSWER_LENGTH),
+          })
+        : extension,
+    ),
     content: initialHtml,
     editable: !readOnly,
     immediatelyRender: false,
@@ -158,6 +169,8 @@ export function RichAnswerField({
         message={message}
         saving={saving}
         notice={notice}
+        minChars={minChars}
+        maxChars={maxChars}
       />
       {!readOnly && dialog === "link" && (
         <AnswerLinkDialog editor={editor} onClose={() => setDialog("")} />
@@ -174,8 +187,12 @@ function AnswerStatus({
   message,
   saving,
   notice,
+  minChars,
+  maxChars,
 }: {
   editor: Editor;
+  minChars?: number | null;
+  maxChars?: number | null;
   message: string;
   saving: boolean;
   notice: string;
@@ -199,8 +216,11 @@ function AnswerStatus({
       </span>
       <span>
         {stats?.selected ? `선택 ${stats.selected}자 · ` : ""}
+        {minChars && (stats?.characters || 0) < minChars
+          ? `최소 ${minChars.toLocaleString()}자 · `
+          : ""}
         {stats?.words || 0}단어 · {stats?.characters || 0} /{" "}
-        {MAX_ANSWER_LENGTH.toLocaleString()}자
+        {Math.min(maxChars ?? MAX_ANSWER_LENGTH, MAX_ANSWER_LENGTH).toLocaleString()}자
       </span>
     </div>
   );

@@ -626,12 +626,14 @@
 }
 :root .button--white-primary:not(:disabled):hover {
   background: var(--hover-primary-soft);
+  color: var(--color-primary);
 }
 :root .button--white-primary:not(:disabled):active {
   background: #c6e0ff;
 }
 :root .button--white-danger:not(:disabled):hover {
   background: var(--hover-danger-soft);
+  color: var(--color-danger);
 }
 :root .button--white-danger:not(:disabled):active {
   background: #ffbab8;
@@ -1037,5 +1039,27 @@
 @media (prefers-reduced-motion: reduce) {
   .header-popover {
     animation: none;
+  }
+}
+
+/* 버튼 로딩 표시: 글자 색을 따라가는 작은 회전 링 */
+.button-spinner {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  box-sizing: border-box;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: button-spinner-spin 700ms linear infinite;
+}
+@keyframes button-spinner-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .button-spinner {
+    animation-duration: 1.6s;
   }
 }

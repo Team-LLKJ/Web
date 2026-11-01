@@ -6,7 +6,9 @@ import { TeacherEvaluationPage } from "../pages/TeacherEvaluationPage";
 import { TeacherEvaluationEditPage } from "../pages/TeacherEvaluationEditPage";
 import TeacherGradingPage from "../pages/TeacherGradingPage";
 import { TeacherResultsPage } from "../pages/TeacherResultsPage";
-import { MyEvaluationsPage } from "../pages/MyEvaluationsPage";
+import { TeacherFoldersPage } from "../pages/TeacherFoldersPage";
+import { TeacherClassLobbyPage } from "../pages/TeacherClassLobbyPage";
+import { TeacherFolderDetailPage } from "../pages/TeacherFolderDetailPage";
 import { PasswordResetPage } from "../pages/PasswordResetPage";
 import { StudentFlow } from "../pages/StudentFlow";
 import { ViewIndex } from "../pages/ViewIndex";
@@ -43,12 +45,24 @@ export function AppRoutes() {
         path="/teacher"
         element={<Navigate to={paths.evaluations} replace />}
       />
-      <Route path={paths.evaluations} element={<RequireAuth role="TEACHER"><MyEvaluationsPage /></RequireAuth>} />
+      <Route path={paths.folderCreate} element={<RequireAuth role="TEACHER"><TeacherEvaluationPage folderMode /></RequireAuth>} />
+      <Route path={paths.classLobby} element={<RequireAuth role="TEACHER"><TeacherClassLobbyPage /></RequireAuth>} />
+      <Route path={paths.folders} element={<RequireAuth role="TEACHER"><TeacherFoldersPage /></RequireAuth>} />
+      <Route path={paths.folder} element={<RequireAuth role="TEACHER"><TeacherFolderDetailPage /></RequireAuth>} />
+      <Route path={paths.evaluations} element={<Navigate to={paths.folders} replace />} />
       <Route path={paths.evaluationCreate} element={<RequireAuth role="TEACHER"><TeacherEvaluationPage /></RequireAuth>} />
       <Route path={paths.results} element={<RequireAuth role="TEACHER"><TeacherResultsPage /></RequireAuth>} />
       <Route path={paths.evaluationEdit} element={<RequireAuth role="TEACHER"><TeacherEvaluationEditPage /></RequireAuth>} />
       <Route path={paths.evaluation} element={<RequireAuth role="TEACHER"><TeacherEvaluationPage /></RequireAuth>} />
       <Route path={paths.grading} element={<TeacherGradingPage />} />
+      <Route
+        path={`${paths.grading}/:evaluationId`}
+        element={
+          <RequireAuth role="TEACHER">
+            <TeacherGradingPage />
+          </RequireAuth>
+        }
+      />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
