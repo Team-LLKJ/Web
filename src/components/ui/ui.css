@@ -140,8 +140,26 @@
   background: transparent;
   color: #000;
 }
-.button:not(:disabled):hover {
-  filter: brightness(0.96);
+.button--primary:not(:disabled):hover {
+  background: #0059bc;
+}
+.button--secondary:not(:disabled):hover {
+  background: #c6c6c6;
+}
+.button--danger:not(:disabled):hover {
+  background: #bc0300;
+}
+.button--white-primary:not(:disabled):hover {
+  background: #52a6ff;
+  color: #003b7d;
+}
+.button--white-danger:not(:disabled):hover {
+  background: #ff7c79;
+  color: #810200;
+}
+.button--ghost:not(:disabled):hover,
+.button--text:not(:disabled):hover {
+  background: #f4f4f4;
 }
 .button:disabled {
   background: #c6c6c6;
