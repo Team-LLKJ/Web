@@ -44,6 +44,7 @@ import { Skeleton, SkeletonStatus } from "../components/ui/Skeleton";
 import { TextInput } from "../components/ui/TextInput";
 import { evaluationCriteria } from "../data/landing";
 import "../components/teacher/teacher.css";
+import { avatarColor } from "../lib/avatarColor";
 import { createFolder } from "../lib/evaluationFolders";
 import { Toast } from "../components/teacher/Toast";
 
@@ -71,21 +72,20 @@ const toggleInOrder = <T,>(
     ? order.filter((value) => value === item || current.includes(value))
     : current.filter((value) => value !== item);
 
-function ParticipantAvatar() {
+// 닉네임 첫 글자를 색이 있는 동그라미에 보여 줍니다(채점 화면의 학생 아바타와 같은 방식).
+export function ParticipantAvatar({ name }: { name: string }) {
   return (
-    <span className="teacher-lobby-avatar" aria-hidden="true">
-      <svg viewBox="0 0 24 24" width="19" height="19">
-        <circle cx="12" cy="8" r="4.2" fill="#3b82f6" />
-        <path
-          d="M3.5 21c0-4.4 3.8-7 8.5-7s8.5 2.6 8.5 7c0 .6-.4 1-1 1h-15c-.6 0-1-.4-1-1z"
-          fill="#3b82f6"
-        />
-      </svg>
+    <span
+      className="teacher-lobby-avatar"
+      style={{ background: avatarColor(name) }}
+      aria-hidden="true"
+    >
+      {name.trim().charAt(0)}
     </span>
   );
 }
 
-function EmptyParticipantsIcon() {
+export function EmptyParticipantsIcon() {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -464,7 +464,8 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
   return (
     <main className="teacher-page">
       <TeacherHeader onLeave={() => navigate("/teacher/evaluations")}>
-        {evaluation?.state === "STARTED" ? (
+        {evaluationId &&
+          (evaluation?.state === "STARTED" ? (
           <Button
             variant="white-danger"
             disabled={busy}
@@ -488,21 +489,13 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
           >
             평가 시작하기
           </Button>
-        )}
+        ))}
       </TeacherHeader>
 
       <div
         className={`teacher-page-content${evaluationId ? "" : " teacher-page-content--create"}`}
       >
-        {!evaluationId && (
-          <p className="teacher-eyebrow">TEACHER / EVALUATION</p>
-        )}
         <h1>{evaluation ? evaluation.title : "수행평가 만들기"}</h1>
-        {!evaluationId && (
-          <p className="teacher-create-sub">
-            {folderMode ? "한 번 정해 두고, 반을 추가해 반마다 시작하세요." : "평가 정보와 설정을 정하고, 마지막 단계에서 문항을 작성해요."}
-          </p>
-        )}
         <Toast message={notice} onClose={() => setNotice("")} />
 
         {!evaluationId ? (
@@ -860,7 +853,7 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
                       key={participant.id}
                       className={`teacher-lobby-pill${participant.presence === "CONNECTED" ? "" : " is-offline"}`}
                     >
-                      <ParticipantAvatar />
+                      <ParticipantAvatar name={participant.nickname} />
                       <span>{participant.nickname}</span>
                       {participant.presence !== "CONNECTED" && (
                         <small>연결 끊김</small>

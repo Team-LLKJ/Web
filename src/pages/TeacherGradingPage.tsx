@@ -1,6 +1,7 @@
 import { StudentWorkspace } from "../components/student/StudentWorkspace";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useState } from "react";
+import { apiErrorMessage } from "../api/client";
 import "../App.css";
 import "../components/ui/ui.css";
 import { studentReviews } from "../data/review";
@@ -11,6 +12,7 @@ import {
   type Student,
 } from "../data/grading";
 import { useGradingData } from "../hooks/useGradingData";
+import { Toast } from "../components/teacher/Toast";
 import { Button } from "../components/ui/Button";
 import { Modal } from "../components/ui/Modal";
 import { Header } from "../components/grading/Header";
@@ -36,6 +38,10 @@ function TeacherGradingPage() {
   const [liveQuestion, setLiveQuestion] = useState(1);
   const [tab, setTab] = useState("AI 대화창");
   const [dialog, setDialog] = useState("");
+  const [extendOpen, setExtendOpen] = useState(false);
+  const [extendCustom, setExtendCustom] = useState("");
+  const [extending, setExtending] = useState(false);
+  const [notice, setNotice] = useState<{ message: string; tone: "info" | "error" } | null>(null);
   const [mockEnded, setMockEnded] = useState(false);
   const [mockReviews, setMockReviews] = useState(studentReviews);
   const students: Student[] = isLive ? live.students : mockStudents;
@@ -78,7 +84,7 @@ function TeacherGradingPage() {
   if (!student && !showLoading) {
     return (
       <div className="app-shell grading-workspace">
-        <Header ended={ended} onDialog={setDialog} />
+        <Header ended={ended} onDialog={setDialog} onExtend={() => { setExtendCustom(""); setExtendOpen(true); }} />
         <div className="workspace teacher-workspace">
           <p className="empty grading-empty">
             {live.error || "참여한 학생이 아직 없습니다."}
@@ -101,7 +107,17 @@ function TeacherGradingPage() {
   };
   return (
     <div className="app-shell grading-workspace">
-      <Header ended={ended} onDialog={setDialog} />
+      <Header ended={ended} onDialog={setDialog} onExtend={() => { setExtendCustom(""); setExtendOpen(true); }} />
+      {notice ? (
+        <Toast message={notice.message} tone={notice.tone} onClose={() => setNotice(null)} />
+      ) : null}
+      {!notice && isLive && live.events[0] && (
+        <Toast
+          message={live.events[0].message}
+          tone={live.events[0].tone}
+          onClose={() => live.dismissEvent(live.events[0].key)}
+        />
+      )}
       {isLive && live.error && (
         <p className="grading-error" role="alert">
           {live.error}
@@ -168,6 +184,56 @@ function TeacherGradingPage() {
         />
       </div>
       <PrintReport student={current} questions={questions} review={review} />
+      {extendOpen && (
+        <Modal title="평가 시간 연장" onClose={() => !extending && setExtendOpen(false)}>
+          <form
+            className="extend-form"
+            onSubmit={async (event) => {
+              event.preventDefault();
+              const minutes = Number(extendCustom);
+              if (!Number.isInteger(minutes) || minutes < 1 || minutes > 600) {
+                setNotice({ message: "1분 ~ 10시간(600분) 사이로 입력해주세요.", tone: "error" });
+                return;
+              }
+              setExtending(true);
+              try {
+                if (isLive) await live.extendTime(minutes);
+                setExtendOpen(false);
+                setNotice({ message: `평가 시간을 ${minutes}분 연장했어요.`, tone: "info" });
+              } catch (error) {
+                setNotice({
+                  message: apiErrorMessage(error, "평가 시간을 연장하지 못했습니다."),
+                  tone: "error",
+                });
+              } finally {
+                setExtending(false);
+              }
+            }}
+          >
+            <p>학생들이 계속 작성할 수 있도록 남은 시간을 늘려요.</p>
+            <label className="extend-custom">
+              <span>연장할 시간</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="예) 10"
+                autoFocus
+                value={extendCustom}
+                onChange={(event) => setExtendCustom(event.target.value.replace(/\D/g, "").slice(0, 3))}
+              />
+              <em>분</em>
+            </label>
+            <div className="extend-actions">
+              <Button type="submit" loading={extending}>
+                연장하기
+              </Button>
+              <Button variant="secondary" disabled={extending} onClick={() => setExtendOpen(false)}>
+                취소
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      )}
       {dialog && (
         <Modal
           title={dialog}

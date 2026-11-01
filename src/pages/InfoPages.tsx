@@ -98,7 +98,7 @@ export function SettingsPage() {
         )}
         <div className="info-actions">
           {user ? (
-            <Button variant="secondary" onClick={() => void logout().then(() => navigate(paths.login))}>
+            <Button variant="secondary" onClick={() => void logout().then(() => navigate(paths.home))}>
               로그아웃
             </Button>
           ) : (

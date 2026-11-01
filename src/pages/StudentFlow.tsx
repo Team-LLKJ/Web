@@ -43,6 +43,7 @@ import {
   type StudentSession,
 } from "../data/studentSession";
 import type { Message, Student } from "../data/grading";
+import { Toast } from "../components/teacher/Toast";
 import { PinJoinForm } from "../components/student/PinJoinForm";
 import { NicknameForm } from "../components/student/NicknameForm";
 import { WaitingRoom } from "../components/student/WaitingRoom";
@@ -151,6 +152,9 @@ export function StudentFlow({ route }: { route: string }) {
   // Chat history already loaded per question, so revisiting a tab shows it instantly.
   const [dialog, setDialog] = useState<StudentDialog>("");
   const [notice, setNotice] = useState("");
+  // 선생님이 평가 시간을 늘렸을 때 학생에게 알리는 토스트입니다.
+  const [timeToast, setTimeToast] = useState("");
+  const lastEndsAt = useRef<number | null>(null);
   const [editorNotice, setEditorNotice] = useState("");
   const [chatNotice, setChatNotice] = useState("");
   const [preview, setPreview] = useState<Review | null>(null);
@@ -219,6 +223,15 @@ export function StudentFlow({ route }: { route: string }) {
         const next = await getStudentState(session.evaluationId);
         if (!active) return;
         const screen = screenFor(next);
+        if (next.endsAt) {
+          const endsAt = new Date(next.endsAt).getTime();
+          const previous = lastEndsAt.current;
+          if (previous !== null && endsAt - previous >= 30000) {
+            const minutes = Math.round((endsAt - previous) / 60000);
+            setTimeToast(`선생님이 평가 시간을 ${minutes}분 늘렸어요.`);
+          }
+          lastEndsAt.current = endsAt;
+        }
         if (screen === "ENDED" && isSolving && !endHandled.current) {
           endHandled.current = true;
           void forceEndRef.current();
@@ -1017,6 +1030,7 @@ export function StudentFlow({ route }: { route: string }) {
           />
         }
       />
+      <Toast message={timeToast} tone="info" onClose={() => setTimeToast("")} />
       {notice && (
         <p className="student-runtime-notice" role="status">
           {notice}

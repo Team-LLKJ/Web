@@ -2340,36 +2340,257 @@
   background: var(--color-primary-background);
   color: var(--color-primary);
 }
+.folder-desc {
+  white-space: pre-wrap;
+}
 
-/* 수행평가 카드를 더 크게 */
-.folder-grid {
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+/* 목록·상세 화면의 제목 크기를 "수행평가 만들기"와 같게 */
+.teacher-list-title-row h1 {
+  font-size: var(--font-title-md);
+  line-height: var(--line-title-md);
+}
+
+/* 수행평가 상세: 평가 설정 */
+.folder-settings {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+.folder-settings > div {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 16px;
+  padding: 14px 0;
+  border-top: 1px solid var(--color-grey-10);
+}
+.folder-settings > div:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+.folder-settings > div:last-child {
+  padding-bottom: 0;
+}
+.folder-settings dt {
+  color: var(--color-grey-50);
+  font-size: var(--font-text-sm);
+  line-height: 1.6;
+}
+.folder-settings dd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  margin: 0;
+  font-size: var(--font-text-sm);
+  line-height: 1.6;
+}
+.folder-settings dd strong {
+  font-weight: var(--weight-semibold);
+}
+.folder-settings dd span {
+  color: var(--color-grey-50);
+}
+.folder-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.folder-chips li {
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-size: 13px;
+  font-weight: var(--weight-semibold);
+}
+@media (max-width: 720px) {
+  .folder-settings > div {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}
+
+/* 평가 설정: 라벨과 값을 같은 줄 중앙에 맞추고 간격을 고르게 */
+.folder-settings > div {
+  grid-template-columns: 112px minmax(0, 1fr);
+  align-items: center;
   gap: 20px;
+  padding: 18px 0;
 }
-.folder-card-link {
-  gap: 10px;
-  min-height: 210px;
-  padding: 28px;
+.folder-settings dt {
+  color: var(--color-grey-60);
+  font-weight: var(--weight-semibold);
 }
-.folder-card-icon {
-  width: 60px;
-  height: 60px;
-  margin-bottom: 10px;
+.folder-settings dd {
+  display: block;
+}
+.folder-policy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.folder-policy strong {
+  color: var(--color-black, #1c1c1e);
+  font-size: var(--font-text-sm);
+}
+.folder-policy small {
+  color: var(--color-grey-50);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.folder-settings dd .folder-muted {
+  color: var(--color-grey-40);
+}
+.folder-chips li {
+  padding: 6px 12px;
+  font-weight: var(--weight-medium, 500);
+}
+.folder-policy {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+}
+
+/* 평가 정보·평가 설정·반별 평가: 제목과 내용 사이 간격을 모두 같게 */
+.folder-section-head {
+  margin-bottom: 20px;
+}
+.folder-section .folder-desc {
+  margin-top: 0;
+}
+
+.folder-filter {
+  margin-bottom: 16px;
+}
+
+/* 반별 평가: 제목과 상태 태그 사이는 좁게 */
+.folder-section--plain .folder-section-head {
+  margin-bottom: 12px;
+}
+.folder-filter {
+  margin-bottom: 14px;
+}
+
+/* 내 수행평가 / 공유된 수행평가 탭 */
+.folder-tabs {
+  display: flex;
+  gap: 24px;
+  margin: 0 0 20px;
+  padding: 0;
+  border-bottom: 1px solid var(--color-grey-20);
+  border-radius: 0;
+  background: none;
+}
+.folder-tabs button {
+  position: relative;
+  padding: 10px 2px 12px;
+  color: var(--color-grey-50);
+  font-size: var(--font-text-md);
+  font-weight: var(--weight-semibold);
+}
+.folder-tabs button b {
+  margin-left: 4px;
+  font-weight: var(--weight-semibold);
+}
+.folder-tabs button:hover {
+  color: var(--color-grey-70, #48484a);
+}
+.folder-tabs button.is-active {
+  color: var(--color-primary);
+}
+.folder-tabs button.is-active::after {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 2px;
+  background: var(--color-primary);
+  content: "";
+}
+.folder-card--shared .folder-card-link .button {
+  margin-top: 8px;
+  align-self: flex-start;
+}
+.folder-shared-by {
+  margin: 8px 0 0;
+  color: var(--color-primary);
+  font-size: var(--font-text-sm);
+  font-weight: var(--weight-semibold);
+}
+
+/* 참여자 알약: 조금 크게, 아바타는 닉네임 첫 글자 */
+.teacher-lobby-pills {
+  gap: 12px;
+}
+.teacher-lobby-pill {
+  gap: 12px;
+  height: 54px;
+  padding: 0 24px 0 8px;
+  font-size: 19px;
+}
+.teacher-lobby-avatar {
+  width: 38px;
+  height: 38px;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 600;
+}
+@media (max-width: 640px) {
+  .teacher-lobby-pill {
+    height: 48px;
+    font-size: 17px;
+  }
+  .teacher-lobby-avatar {
+    width: 34px;
+    height: 34px;
+  }
+}
+
+/* 반 대기 화면 제목: 수행평가 이름 아래 줄에 반 이름 */
+.lobby-title {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.lobby-title span {
+  color: var(--color-primary);
+  font-size: var(--font-text-lg, 18px);
+  font-weight: var(--weight-semibold);
+  line-height: 1.4;
+}
+
+/* 반이 없을 때의 안내 */
+.folder-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 44px 20px;
+  border: 1.5px dashed var(--color-grey-20);
   border-radius: 16px;
+  background: var(--color-white);
+  text-align: center;
 }
-.folder-card-icon svg {
-  width: 32px;
-  height: 32px;
+.folder-empty-icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 8px;
+  border-radius: 50%;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
 }
-.folder-card strong {
-  margin-top: auto;
-  font-size: 20px;
-  line-height: 1.35;
+.folder-empty-state strong {
+  font-size: var(--font-text-md);
+  font-weight: var(--weight-semibold);
 }
-.folder-card-meta {
-  font-size: 15px;
-}
-.folder-card-actions {
-  top: 18px;
-  right: 18px;
+.folder-empty-state p {
+  margin: 0;
+  color: var(--color-grey-50);
+  font-size: var(--font-text-sm);
 }

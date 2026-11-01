@@ -160,7 +160,7 @@ function SettingsPopover() {
             <Button
               size="small"
               variant="secondary"
-              onClick={() => void logout().then(() => navigate(paths.login))}
+              onClick={() => void logout().then(() => navigate(paths.home))}
             >
               로그아웃
             </Button>

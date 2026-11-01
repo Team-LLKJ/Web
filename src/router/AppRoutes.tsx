@@ -7,6 +7,7 @@ import { TeacherEvaluationEditPage } from "../pages/TeacherEvaluationEditPage";
 import TeacherGradingPage from "../pages/TeacherGradingPage";
 import { TeacherResultsPage } from "../pages/TeacherResultsPage";
 import { TeacherFoldersPage } from "../pages/TeacherFoldersPage";
+import { TeacherClassLobbyPage } from "../pages/TeacherClassLobbyPage";
 import { TeacherFolderDetailPage } from "../pages/TeacherFolderDetailPage";
 import { PasswordResetPage } from "../pages/PasswordResetPage";
 import { StudentFlow } from "../pages/StudentFlow";
@@ -45,6 +46,7 @@ export function AppRoutes() {
         element={<Navigate to={paths.evaluations} replace />}
       />
       <Route path={paths.folderCreate} element={<RequireAuth role="TEACHER"><TeacherEvaluationPage folderMode /></RequireAuth>} />
+      <Route path={paths.classLobby} element={<RequireAuth role="TEACHER"><TeacherClassLobbyPage /></RequireAuth>} />
       <Route path={paths.folders} element={<RequireAuth role="TEACHER"><TeacherFoldersPage /></RequireAuth>} />
       <Route path={paths.folder} element={<RequireAuth role="TEACHER"><TeacherFolderDetailPage /></RequireAuth>} />
       <Route path={paths.evaluations} element={<Navigate to={paths.folders} replace />} />

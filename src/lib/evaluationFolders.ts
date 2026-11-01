@@ -21,6 +21,8 @@ export type EvaluationFolder = {
   antiCheat?: string[];
   createdAt: string;
   sessions: FolderSession[];
+  /** 다른 선생님이 만들어 나와 공유한 수행평가면 만든 선생님 이름. 내가 만든 것은 비어 있습니다. */
+  owner?: string;
 };
 
 const KEY = "lit.evaluation-folders.v1";
@@ -31,6 +33,7 @@ const SEED: EvaluationFolder[] = [
     title: "2학기 국어 수행평가",
     description: "제시문을 읽고 자신의 생각을 논리적으로 서술하세요.",
     aiPolicy: "HINT_ONLY",
+    antiCheat: ["TAB_LEAVE", "PRINT_BLOCK"],
     questions: [
       "제시문의 중심 생각을 한 문장으로 요약하세요.",
       "글쓴이의 주장에 대한 자신의 의견을 근거와 함께 쓰세요.",
@@ -50,6 +53,28 @@ const SEED: EvaluationFolder[] = [
     aiPolicy: "DISABLED",
     questions: ["실험 목적과 가설을 쓰세요.", "결과를 분석하고 결론을 쓰세요."],
     createdAt: "2026-10-30T09:00:00.000Z",
+    sessions: [],
+  },
+  {
+    id: "folder-shared-1",
+    title: "1학년 문학 감상문 쓰기",
+    description: "작품을 읽고 인상 깊은 장면과 느낀 점을 서술하세요.",
+    aiPolicy: "HINT_ONLY",
+    questions: ["인상 깊은 장면을 고르고 이유를 쓰세요.", "작품이 주는 교훈을 자신의 말로 정리하세요."],
+    createdAt: "2026-10-29T09:00:00.000Z",
+    owner: "박지민 선생님",
+    sessions: [
+      { id: "s-sh-1", className: "1학년 4반", state: "ENDED", participants: 25, submitted: 25 },
+    ],
+  },
+  {
+    id: "folder-shared-2",
+    title: "사회 토론 준비 보고서",
+    description: "토론 주제에 대한 찬반 근거를 정리하세요.",
+    aiPolicy: "DISABLED",
+    questions: ["찬성 근거 두 가지를 쓰세요.", "반대 근거 두 가지를 쓰세요.", "자신의 최종 입장을 밝히세요."],
+    createdAt: "2026-10-27T09:00:00.000Z",
+    owner: "이서연 선생님",
     sessions: [],
   },
 ];
@@ -143,3 +168,4 @@ export function removeSession(folderId: string, sessionId: string) {
     sessions: f.sessions.filter((s) => s.id !== sessionId),
   }));
 }
+

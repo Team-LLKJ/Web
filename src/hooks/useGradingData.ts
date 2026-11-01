@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ApiError, apiErrorMessage } from "../api/client";
 import {
   endEvaluation,
+  extendEvaluation,
   getEvaluation,
   getGradingActivity,
   getGradingAnswers,
@@ -141,12 +142,48 @@ export function useGradingData(evaluationId: string | undefined) {
   const [ended, setEnded] = useState(false);
   const selectedRef = useRef("");
   selectedRef.current = selectedId;
+  // 새로 제출했거나 경고가 생긴 학생을 알려 주는 토스트 대기열입니다.
+  const [events, setEvents] = useState<
+    { key: string; message: string; tone: "info" | "error" }[]
+  >([]);
+  const seenRef = useRef<Map<string, { submitted: boolean; warning: boolean }> | null>(null);
 
   const loadList = useCallback(async () => {
     if (!evaluationId) return;
     try {
       const result = await getGradingStudents(evaluationId, { size: 100 });
-      setList(result.students ?? result.items);
+      const students = result.students ?? result.items;
+      const previous = seenRef.current;
+      const next = new Map<string, { submitted: boolean; warning: boolean }>();
+      const fresh: { key: string; message: string; tone: "info" | "error" }[] = [];
+      for (const student of students) {
+        const state = {
+          submitted:
+            student.status === "SUBMITTED" || student.submissionStatus === "SUBMITTED",
+          warning: student.activityWarning || student.status === "WARNING",
+        };
+        next.set(student.participantId, state);
+        // 첫 불러오기는 이미 있던 상태이므로 알리지 않습니다.
+        if (!previous) continue;
+        const before = previous.get(student.participantId);
+        if (state.warning && !before?.warning) {
+          fresh.push({
+            key: `warn-${student.participantId}-${Date.now()}`,
+            message: `${student.nickname} 학생에게서 부정행위가 감지됐어요.`,
+            tone: "error",
+          });
+        }
+        if (state.submitted && !before?.submitted) {
+          fresh.push({
+            key: `submit-${student.participantId}-${Date.now()}`,
+            message: `${student.nickname} 학생이 답안을 제출했어요.`,
+            tone: "info",
+          });
+        }
+      }
+      seenRef.current = next;
+      if (fresh.length) setEvents((queue) => [...queue, ...fresh]);
+      setList(students);
       setCounts(result.counts);
       setError("");
       if (!selectedRef.current && result.items[0]) {
@@ -265,6 +302,14 @@ export function useGradingData(evaluationId: string | undefined) {
     }
   }, [evaluationId, loadList, loadDetail]);
 
+  const extendTime = useCallback(
+    async (minutes: number) => {
+      if (!evaluationId) return;
+      await extendEvaluation(evaluationId, minutes);
+    },
+    [evaluationId],
+  );
+
   const downloadReport = useCallback(async () => {
     if (!evaluationId || !selectedId) return;
     try {
@@ -295,9 +340,13 @@ export function useGradingData(evaluationId: string | undefined) {
     loading: loadingList || (loadingDetail && !current),
     error,
     clearError: () => setError(""),
+    events,
+    dismissEvent: (key: string) =>
+      setEvents((queue) => queue.filter((event) => event.key !== key)),
     ended,
     setScore,
     finishEvaluation,
+    extendTime,
     downloadReport,
   };
 }

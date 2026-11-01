@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { TeacherHeader } from "../components/teacher/TeacherHeader";
 import { Toast } from "../components/teacher/Toast";
 import { Button } from "../components/ui/Button";
@@ -19,7 +19,12 @@ function FolderIcon() {
 }
 
 export function TeacherFoldersPage() {
+  const [params, setParams] = useSearchParams();
+  const tab: "mine" | "shared" = params.get("tab") === "shared" ? "shared" : "mine";
   const [folders, setFolders] = useState(listFolders);
+  const mine = folders.filter((folder) => !folder.owner);
+  const shared = folders.filter((folder) => folder.owner);
+  const shown = tab === "shared" ? shared : mine;
   const [notice, setNotice] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
 
@@ -31,15 +36,34 @@ export function TeacherFoldersPage() {
         <div className="teacher-list-title-row">
           <div>
             <h1>내 수행평가</h1>
-            <p className="folder-sub">문제와 내용을 한 번 정해 두고, 반마다 시작하기만 누르세요.</p>
           </div>
           <Link className="button button--primary primary" to="/teacher/folders/new">
             수행평가 만들기
           </Link>
         </div>
-        {folders.length ? (
+        <div className="folder-tabs" role="tablist" aria-label="수행평가 구분">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === "mine"}
+            className={tab === "mine" ? "is-active" : ""}
+            onClick={() => setParams({})}
+          >
+            내 수행평가 <b>{mine.length}</b>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === "shared"}
+            className={tab === "shared" ? "is-active" : ""}
+            onClick={() => setParams({ tab: "shared" })}
+          >
+            공유된 수행평가 <b>{shared.length}</b>
+          </button>
+        </div>
+        {shown.length ? (
           <div className="folder-grid">
-            {folders.map((folder) => {
+            {shown.map((folder) => {
               return (
                 <article className="folder-card" key={folder.id}>
                   <Link className="folder-card-link" to={`/teacher/folders/${folder.id}`}>
@@ -48,7 +72,7 @@ export function TeacherFoldersPage() {
                     </span>
                     <strong>{folder.title}</strong>
                     <span className="folder-card-meta">
-                      문항 {folder.questions.length}개 · 반 {folder.sessions.length}개
+                      {folder.owner ? `${folder.owner} · ` : ""}문항 {folder.questions.length}개 · 반 {folder.sessions.length}개
                     </span>
                   </Link>
                   <span className="evaluation-card-actions folder-card-actions">
@@ -63,6 +87,7 @@ export function TeacherFoldersPage() {
                         <path d="M14.5 7.5l3 3" />
                       </svg>
                     </button>
+                    {!folder.owner && (
                     <button
                       type="button"
                       aria-label={`${folder.title} 삭제`}
@@ -76,13 +101,16 @@ export function TeacherFoldersPage() {
                         <path d="M9 7V4h6v3" />
                       </svg>
                     </button>
+                    )}
                   </span>
                 </article>
               );
             })}
           </div>
         ) : (
-          <p className="teacher-list-state">아직 수행평가가 없습니다. 수행평가를 만들어 보세요.</p>
+          <p className="teacher-list-state">
+            {tab === "shared" ? "공유된 수행평가가 없습니다." : "아직 수행평가가 없습니다. 수행평가를 만들어 보세요."}
+          </p>
         )}
       </div>
       {deleteTarget && (

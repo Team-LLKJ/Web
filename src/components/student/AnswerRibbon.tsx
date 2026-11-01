@@ -331,7 +331,6 @@ export function AnswerRibbon({
           </button>
           <input
             aria-label="글자 크기"
-            title="글자 크기 (8~96px)"
             type="text"
             inputMode="decimal"
             value={sizeDraft ?? String(state.size)}

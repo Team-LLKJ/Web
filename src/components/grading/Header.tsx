@@ -4,9 +4,11 @@ import { HeaderUtilities } from "../ui/HeaderDialogs";
 export function Header({
   ended,
   onDialog,
+  onExtend,
 }: {
   ended: boolean;
   onDialog: (message: string) => void;
+  onExtend?: () => void;
 }) {
   return (
     <header className="header">
@@ -25,6 +27,11 @@ export function Header({
         >
           나가기
         </Button>
+        {onExtend && !ended && (
+          <Button variant="white-primary" onClick={onExtend}>
+            시간 연장
+          </Button>
+        )}
         <Button
           variant="white-danger"
           onClick={() => onDialog("평가를 종료하시겠습니까?")}

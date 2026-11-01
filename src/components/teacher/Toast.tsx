@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import "./teacher.css";
 
 // 화면 오른쪽 아래에 잠깐 떴다가 사라지는 안내입니다.
 export function Toast({

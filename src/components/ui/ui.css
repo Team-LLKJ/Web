@@ -621,6 +621,7 @@
 }
 :root .button--white-primary:not(:disabled):hover {
   background: var(--hover-primary-soft);
+  color: var(--color-primary);
 }
 :root .button--white-primary:not(:disabled):active {
   background: #c6e0ff;

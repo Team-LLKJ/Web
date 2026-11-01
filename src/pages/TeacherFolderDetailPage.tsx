@@ -10,16 +10,21 @@ import {
   deleteFolder,
   getFolder,
   removeSession,
-  setSessionState,
   type SessionState,
 } from "../lib/evaluationFolders";
+import { evaluationCriteria } from "../data/landing";
 import "../components/teacher/teacher.css";
 
-const POLICY_LABEL = {
-  DISABLED: "AI 사용 안 함",
-  HINT_ONLY: "힌트만 허용",
-  FULL: "전체 응답 허용",
+const POLICY_INFO = {
+  DISABLED: { label: "사용 안 함", description: "학생이 AI에게 질문할 수 없어요." },
+  HINT_ONLY: { label: "힌트만 허용", description: "답을 알려주지 않고 생각을 이끄는 힌트만 줘요." },
+  FULL: { label: "전체 응답 허용", description: "질문 제한 없이 AI를 활용할 수 있어요." },
 } as const;
+
+const ANTI_CHEAT_LABEL: Record<string, string> = {
+  TAB_LEAVE: "창/탭 이탈 감지",
+  PRINT_BLOCK: "프린트 금지",
+};
 
 const STATE_LABEL: Record<SessionState, string> = {
   READY: "시작 전",
@@ -41,10 +46,7 @@ export function TeacherFolderDetailPage() {
   const [className, setClassName] = useState("");
   const [error, setError] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [starting, setStarting] = useState<{ id: string; className: string } | null>(null);
-  const [hours, setHours] = useState("1");
-  const [minutes, setMinutes] = useState("0");
-  const [startError, setStartError] = useState("");
+  const [filter, setFilter] = useState<"ALL" | SessionState>("ALL");
   const [notice, setNotice] = useState("");
   const refresh = () => setFolder(getFolder(folderId));
 
@@ -90,24 +92,23 @@ export function TeacherFolderDetailPage() {
         <div className="teacher-list-title-row">
           <div>
             <h1>{folder.title}</h1>
-            <p className="folder-sub">
-              문항 {folder.questions.length}개 · {POLICY_LABEL[folder.aiPolicy]}
-            </p>
+            {folder.owner && <p className="folder-shared-by">{folder.owner}이 공유한 수행평가 · 함께 편집할 수 있어요</p>}
           </div>
           <div className="folder-title-actions">
             <Button variant="secondary" onClick={() => setNotice("평가 틀 수정은 서버 API가 준비되면 연결돼요.")}>
-              평가 틀 수정
+              수정
             </Button>
+            {!folder.owner && (
             <Button variant="white-danger" onClick={() => setConfirmDelete(true)}>
-              수행평가 삭제
+              삭제
             </Button>
+            )}
           </div>
         </div>
 
         <section className="teacher-card folder-section">
           <header className="folder-section-head">
-            <h2>평가 틀</h2>
-            <span>모든 반이 같은 문제를 풀어요</span>
+            <h2>평가 정보</h2>
           </header>
           {folder.description && <p className="folder-desc">{folder.description}</p>}
           <ol className="folder-questions">
@@ -124,6 +125,47 @@ export function TeacherFolderDetailPage() {
           </ol>
         </section>
 
+        <section className="teacher-card folder-section">
+          <header className="folder-section-head">
+            <h2>평가 설정</h2>
+          </header>
+          <dl className="folder-settings">
+            <div>
+              <dt>AI 사용 정책</dt>
+              <dd>
+                <span className="folder-policy">
+                  <strong>{POLICY_INFO[folder.aiPolicy].label}</strong>
+                  <small>({POLICY_INFO[folder.aiPolicy].description})</small>
+                </span>
+              </dd>
+            </div>
+            <div>
+              <dt>평가 항목</dt>
+              <dd>
+                <ul className="folder-chips">
+                  {(folder.criteria ?? evaluationCriteria.map((item) => item.title)).map((title) => (
+                    <li key={title}>{title}</li>
+                  ))}
+                </ul>
+              </dd>
+            </div>
+            <div>
+              <dt>부정행위 방지</dt>
+              <dd>
+                {(folder.antiCheat ?? []).length ? (
+                  <ul className="folder-chips">
+                    {(folder.antiCheat ?? []).map((id) => (
+                      <li key={id}>{ANTI_CHEAT_LABEL[id] ?? id}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <span className="folder-muted">설정 안 함</span>
+                )}
+              </dd>
+            </div>
+          </dl>
+        </section>
+
         <section className="folder-section folder-section--plain">
           <header className="folder-section-head">
             <h2>반별 평가</h2>
@@ -131,9 +173,42 @@ export function TeacherFolderDetailPage() {
               반 추가
             </Button>
           </header>
-          {folder.sessions.length ? (
+          {folder.sessions.length > 0 && (
+            <div className="teacher-filter-chips folder-filter" role="group" aria-label="진행 상태 필터">
+              {(
+                [
+                  ["ALL", "전체"],
+                  ["READY", "시작 전"],
+                  ["IN_PROGRESS", "진행 중"],
+                  ["ENDED", "종료됨"],
+                ] as const
+              ).map(([value, label]) => {
+                const count =
+                  value === "ALL"
+                    ? folder.sessions.length
+                    : folder.sessions.filter((session) => session.state === value).length;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    className={`teacher-filter-chip${filter === value ? " is-active" : ""}`}
+                    aria-pressed={filter === value}
+                    onClick={() => setFilter(value)}
+                  >
+                    {label} {count}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+          {folder.sessions.length &&
+          !folder.sessions.some((session) => filter === "ALL" || session.state === filter) ? (
+            <p className="folder-empty">해당 상태의 반이 없습니다.</p>
+          ) : folder.sessions.length ? (
             <div className="teacher-evaluation-list">
-              {folder.sessions.map((session) => {
+              {folder.sessions
+                .filter((session) => filter === "ALL" || session.state === filter)
+                .map((session) => {
                 const done = session.state === "ENDED";
                 return (
                   <article
@@ -199,8 +274,7 @@ export function TeacherFolderDetailPage() {
                       className="evaluation-card-cta"
                       onClick={() => {
                         if (session.state === "READY") {
-                          setStartError("");
-                          setStarting({ id: session.id, className: session.className });
+                          navigate(`/teacher/folders/${folder.id}/classes/${session.id}`);
                         } else {
                           navigate("/teacher/grading");
                         }
@@ -215,7 +289,17 @@ export function TeacherFolderDetailPage() {
               })}
             </div>
           ) : (
-            <p className="folder-empty">반을 추가하면 바로 시작할 수 있어요.</p>
+            <div className="folder-empty-state">
+              <span className="folder-empty-icon" aria-hidden="true">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="9" cy="8" r="3.2" />
+                  <path d="M3 19c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5" />
+                  <path d="M18 8v6M15 11h6" />
+                </svg>
+              </span>
+              <strong>아직 추가된 반이 없어요</strong>
+              <p>반을 추가하면 바로 시작할 수 있어요.</p>
+            </div>
           )}
         </section>
       </div>
@@ -239,45 +323,6 @@ export function TeacherFolderDetailPage() {
               <Button variant="secondary" onClick={() => setAdding(false)}>
                 취소
               </Button>
-            </div>
-          </form>
-        </Modal>
-      )}
-      {starting && (
-        <Modal title={`${starting.className} 시작하기`} onClose={() => setStarting(null)}>
-          <form
-            className="folder-create-form"
-            onSubmit={(event) => {
-              event.preventDefault();
-              const total = Number(hours || 0) * 60 + Number(minutes || 0);
-              if (!Number.isInteger(total) || total < 1 || total > 1440 || Number(minutes) > 59) {
-                setStartError("1분 ~ 24시간 사이로 입력해주세요. (분은 0~59)");
-                return;
-              }
-              setSessionState(folder.id, starting.id, "IN_PROGRESS", total);
-              navigate("/teacher/grading");
-            }}
-          >
-            <p className="folder-start-desc">
-              학생들이 입장할 수 있는 유효 시간을 정하면 평가가 시작돼요.
-            </p>
-            <fieldset className="teacher-expiry-field">
-              <legend>유효 시간</legend>
-              <div className="teacher-expiry-inputs" data-error={!!startError}>
-                <label>
-                  <input type="number" inputMode="numeric" min={0} max={24} value={hours} aria-label="시간" onChange={(e) => { setHours(e.target.value); setStartError(""); }} />
-                  시간
-                </label>
-                <label>
-                  <input type="number" inputMode="numeric" min={0} max={59} value={minutes} aria-label="분" onChange={(e) => { setMinutes(e.target.value); setStartError(""); }} />
-                  분
-                </label>
-              </div>
-            </fieldset>
-            {startError && <p className="input-error">{startError}</p>}
-            <div className="folder-modal-actions">
-              <Button type="submit">시작하기</Button>
-              <Button variant="secondary" onClick={() => setStarting(null)}>취소</Button>
             </div>
           </form>
         </Modal>

@@ -87,6 +87,14 @@ export function endEvaluation(evaluationId: string) {
   );
 }
 
+// 평가 중 유효 시간 연장. 서버 API가 확정되기 전의 제안 경로입니다(백엔드 요청 필요).
+export function extendEvaluation(evaluationId: string, additionalMinutes: number) {
+  return apiRequest<Lobby>(
+    `/api/teacher/evaluations/${idPath(evaluationId)}/extend`,
+    { method: "POST", body: { additionalMinutes } },
+  );
+}
+
 export function configureEvaluation(
   evaluationId: string,
   payload: ConfigureRequest,
