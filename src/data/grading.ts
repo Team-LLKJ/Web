@@ -47,7 +47,7 @@ export const students: Student[] = [
   {
     id: "student-1",
     name: "이하랑",
-    color: "#ffbb76",
+    color: "#FFD4D3",
     status: "제출완료",
     submittedAt: "2026. 10. 15",
     answers: [
@@ -104,7 +104,7 @@ export const students: Student[] = [
   {
     id: "student-2",
     name: "이정연",
-    color: "#ffbb76",
+    color: "#FFD4D3",
     status: "작성중",
     submittedAt: null,
     answers: [
@@ -146,7 +146,7 @@ export const students: Student[] = [
   {
     id: "student-3",
     name: "김도현",
-    color: "#c2e958",
+    color: "#E2F0FF",
     status: "작성중",
     submittedAt: null,
     answers: [
@@ -186,7 +186,7 @@ export const students: Student[] = [
   {
     id: "student-4",
     name: "정서진",
-    color: "#76b1ff",
+    color: "#52A6FF",
     status: "경고",
     submittedAt: null,
     answers: [

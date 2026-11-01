@@ -49,7 +49,7 @@ export function StudentFlow({ route }: { route: string }) {
   const student: Student = {
     id: "participant",
     name: session.nickname || "이하랑",
-    color: "#ffbb76",
+    color: "#FFD4D3",
     status: session.submittedAt ? "제출완료" : "작성중",
     submittedAt: session.submittedAt,
     answers: [],
