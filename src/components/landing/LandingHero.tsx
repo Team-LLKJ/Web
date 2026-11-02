@@ -71,6 +71,37 @@ export function LandingHero() {
           ))}
         </div>
       </div>
+      <button
+        type="button"
+        className="landing-scroll-down"
+        aria-label="다음 내용 보기"
+        onClick={(event) => {
+          const smooth = !window.matchMedia("(prefers-reduced-motion: reduce)")
+            .matches;
+          event.currentTarget
+            .closest("section")
+            ?.nextElementSibling?.scrollIntoView({
+              behavior: smooth ? "smooth" : "auto",
+            });
+        }}
+      >
+        <span className="landing-scroll-down-label" aria-hidden="true">
+          아래로 내려보세요
+        </span>
+        <svg
+          width="28"
+          height="28"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </button>
     </section>
   );
 }
