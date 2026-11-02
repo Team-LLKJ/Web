@@ -1,68 +1,49 @@
 import { Skeleton, SkeletonStatus } from "./Skeleton";
 import { FolderListSkeleton } from "../teacher/FolderListSkeleton";
+import { TeacherScreenSkeleton } from "../teacher/TeacherScreenSkeleton";
+import type { LoadingLayout } from "./loadingLayout";
 
-type Props = {
-  layout?: "folder" | "list" | "detail";
+const labels: Record<LoadingLayout, string> = {
+  list: "내 수행평가 목록을 불러오고 있습니다.",
+  folder: "평가 정보와 반별 평가를 불러오고 있습니다.",
+  lobby: "참여 PIN과 참가자 목록을 불러오고 있습니다.",
+  edit: "평가 수정 화면을 불러오고 있습니다.",
+  form: "평가 작성 화면을 불러오고 있습니다.",
+  results: "평가 학습 기록을 불러오고 있습니다.",
+  grading: "학생 답안과 평가 자료를 불러오고 있습니다.",
+  neutral: "화면을 불러오고 있습니다.",
 };
 
-// Linked from index.html so the same skeleton is visible before React starts.
-function LoadingCard() {
+export function PageLoading({
+  layout = "neutral",
+}: {
+  layout?: LoadingLayout;
+}) {
   return (
-    <div className="page-loading-panel page-loading-card" aria-hidden="true">
-      <Skeleton className="page-loading-subheading" />
-      <Skeleton className="page-loading-line" />
-      <Skeleton className="page-loading-line page-loading-line--short" />
-      <Skeleton className="page-loading-action" />
-    </div>
-  );
-}
-
-export function PageLoading({ layout = "detail" }: Props) {
-  return (
-    <main className="page-loading" aria-busy="true">
+    <div
+      className={`page-loading teacher-page screen-loading--${layout}${layout === "grading" ? " grading-workspace" : ""}`}
+      aria-busy="true"
+    >
       <header className="page-loading-header" aria-hidden="true">
         <img src="/lit-logo.png" width="76" height="38" alt="" />
         <div className="page-loading-header-tools">
+          {layout === "lobby" || layout === "results" ? (
+            <Skeleton style={{ width: 120, height: 38 }} />
+          ) : null}
           <Skeleton className="page-loading-icon" />
           <Skeleton className="page-loading-icon" />
         </div>
       </header>
       <SkeletonStatus
-        className="page-loading-content"
-        label={
-          layout === "list"
-            ? "내 수행평가 목록을 불러오고 있습니다."
-            : "화면을 불러오고 있습니다."
-        }
+        className={`teacher-page-content${layout === "form" ? " teacher-page-content--create" : ""}${layout === "grading" ? " screen-loading-grading-content" : ""}`}
+        label={labels[layout]}
       >
-        {layout !== "list" && (
-          <div className="page-loading-title" aria-hidden="true">
-            <Skeleton className="page-loading-back" />
-            <Skeleton className="page-loading-heading" />
-          </div>
-        )}
         {layout === "list" ? (
           <FolderListSkeleton />
         ) : (
-          <>
-            {Array.from({ length: 2 }, (_, index) => (
-              <div
-                className="page-loading-panel"
-                aria-hidden="true"
-                key={index}
-              >
-                <Skeleton className="page-loading-subheading" />
-                <Skeleton className="page-loading-line" />
-                <Skeleton className="page-loading-line" />
-                <Skeleton className="page-loading-line page-loading-line--short" />
-              </div>
-            ))}
-            <div className="page-loading-cards">
-              <LoadingCard />
-            </div>
-          </>
+          <TeacherScreenSkeleton layout={layout} />
         )}
       </SkeletonStatus>
-    </main>
+    </div>
   );
 }

@@ -3,6 +3,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
 import type { UserRole } from "../api/types";
 import { PageLoading } from "../components/ui/PageLoading";
+import { getLoadingLayout } from "../components/ui/loadingLayout";
 
 export function RequireAuth({
   children,
@@ -15,17 +16,7 @@ export function RequireAuth({
   const location = useLocation();
 
   if (loading) {
-    const folderDetail =
-      /^\/teacher\/folders\/[^/]+\/?$/.test(location.pathname) &&
-      location.pathname !== "/teacher/folders/new";
-    const folderList = ["/teacher/folders", "/teacher/evaluations"].includes(
-      location.pathname,
-    );
-    return (
-      <PageLoading
-        layout={folderDetail ? "folder" : folderList ? "list" : "detail"}
-      />
-    );
+    return <PageLoading layout={getLoadingLayout(location.pathname)} />;
   }
   if (!user) return <Navigate to="/login" replace state={{ from: location }} />;
   if (user.role !== role) {
