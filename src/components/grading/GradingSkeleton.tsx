@@ -36,13 +36,13 @@ export function SubmissionSkeleton() {
       <SkeletonStatus label="제출 답안을 불러오고 있습니다." className="grading-skeleton-stack">
         <section className="student-summary" aria-hidden="true">
           <div className="identity">
-            <Skeleton style={{ width: 50, height: 50, borderRadius: 50 }} />
+            <Skeleton style={{ width: 37.5, height: 37.5, borderRadius: 50 }} />
             <div className="grading-skeleton-lines">
-              <Skeleton style={{ width: 70, height: 24 }} />
-              <Skeleton style={{ width: 120, height: 18 }} />
+              <Skeleton style={{ width: 60, height: 16 }} />
+              <Skeleton style={{ width: 80, height: 11 }} />
             </div>
           </div>
-          <Skeleton style={{ width: 168, height: 45, borderRadius: 10 }} />
+          <Skeleton style={{ width: 125, height: 33, borderRadius: 8 }} />
         </section>
         <section className="answer-card" aria-hidden="true">
           <Skeleton style={{ width: 97, height: 34, marginBottom: 15 }} />

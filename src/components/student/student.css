@@ -2606,3 +2606,32 @@
   width: 30px;
   height: 30px;
 }
+
+/* 좁은 화면: 답안 작성 영역과 대화창(채점 화면은 평가 패널)을 위아래로 쌓는다. */
+@media screen and (max-width: 900px) {
+  .student-solving {
+    min-width: 0;
+  }
+  .student-solving-body,
+  .compact-workspace > .student-solving-body,
+  .student-solving-body.is-sidebar-collapsed {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    min-height: 0;
+  }
+  .student-solving-body > .student-sidebar-divider {
+    display: none;
+  }
+  .student-solving-body > .workspace-sidebar {
+    height: min(560px, 80dvh);
+    border-top: 1px solid var(--border);
+  }
+  .student-writing {
+    padding: 12px;
+  }
+  .student-editor {
+    width: 100%;
+    min-height: 420px;
+  }
+}

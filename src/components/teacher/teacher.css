@@ -115,6 +115,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  white-space: nowrap;
   color: var(--color-grey-40);
   font-size: var(--font-text-sm);
   line-height: var(--line-text-sm);
@@ -1249,7 +1250,7 @@
 }
 .teacher-lobby-people-head h2 {
   margin: 0;
-  font-size: 26px;
+  font-size: var(--font-title-sm);
   font-weight: var(--weight-bold);
   letter-spacing: -0.03em;
   line-height: 1.2;
@@ -1408,6 +1409,8 @@
   gap: 12px;
 }
 .teacher-create-section-head h2 {
+  display: flex;
+  align-items: center;
   margin: 0;
   color: var(--color-grey-90);
   font-size: var(--font-text-md);
@@ -1433,9 +1436,9 @@
   border-radius: 50%;
   background: var(--color-primary-soft);
   color: var(--color-primary);
+  flex-shrink: 0;
   font-size: 15px;
   font-weight: var(--weight-bold);
-  vertical-align: -3px;
 }
 .teacher-section-link {
   padding: 0;
@@ -1618,6 +1621,7 @@
   }
   .teacher-form-actions--bar > div {
     width: 100%;
+    justify-content: flex-end;
   }
 }
 
@@ -1948,6 +1952,27 @@
 /* 단계 표시줄과 아래 내용 사이 간격 (평가 정보·문항 작성 공통) */
 .teacher-create-stepper {
   margin-bottom: 24px;
+}
+/* 휴대폰에서는 단계 이름이 두 줄로 쪼개지지 않도록 연결선과 간격을 줄인다. */
+@media (max-width: 600px) {
+  .teacher-create-stepper {
+    gap: 6px;
+  }
+  .teacher-create-stepper > span {
+    gap: 6px;
+  }
+  .teacher-create-stepper > span + span::before {
+    width: 12px;
+  }
+}
+@media (max-width: 360px) {
+  .teacher-create-stepper > span + span::before {
+    display: none;
+  }
+  .teacher-step-number {
+    width: 22px;
+    height: 22px;
+  }
 }
 
 /* 두 단계의 단계 표시줄 아래 간격을 같게 맞춘다. */

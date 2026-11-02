@@ -740,3 +740,80 @@ h3 {
   font-size: calc(var(--font-text-md) * 0.85);
   line-height: calc(var(--line-text-md) * 0.85);
 }
+
+@media screen and (max-width: 1200px) {
+  .app-shell {
+    min-width: 0;
+  }
+}
+/* 좁은 화면: 채점 화면의 학생 목록·답안·평가를 위에서 아래로 쌓는다. */
+@media screen and (max-width: 900px) {
+  .header {
+    padding: 11px 16px;
+  }
+  .header nav {
+    gap: 8px;
+  }
+  .grading-workspace .teacher-workspace {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    min-height: calc(100dvh - 61px);
+  }
+  .grading-workspace .teacher-content {
+    height: auto;
+    min-height: 0;
+  }
+  .grading-workspace .students {
+    padding: 15px 16px;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .grading-workspace .student-list {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .grading-workspace .student-row {
+    flex: 0 0 auto;
+    width: auto;
+    gap: 10px;
+  }
+  .teacher-content .answer-area {
+    padding: 16px;
+  }
+}
+@media screen and (max-width: 600px) {
+  /* 버튼이 세 개인 채점 헤더는 휴대폰에서 알림·설정 아이콘을 숨겨 자리를 확보한다. */
+  .grading-workspace .header .icon-button {
+    display: none;
+  }
+  .header nav {
+    gap: 6px;
+  }
+  .header .button,
+  .compact-workspace .header .button,
+  .grading-workspace .header .button {
+    padding: 7px 10px;
+  }
+}
+@media screen and (max-width: 360px) {
+  .header {
+    padding: 11px 12px;
+  }
+  .header > img,
+  .header .lit-logo-link img {
+    width: 56px;
+  }
+  .header nav {
+    gap: 4px;
+  }
+  .header .icon-button {
+    width: 26px;
+  }
+  .header .button,
+  .compact-workspace .header .button,
+  .grading-workspace .header .button {
+    padding: 6px 8px;
+  }
+}
