@@ -1,41 +1,4 @@
-.skeleton {
-  display: block;
-  min-width: 0;
-  overflow: hidden;
-  border-radius: 7px;
-  background: linear-gradient(
-    100deg,
-    var(--color-grey-10) 25%,
-    var(--color-primary-background) 43%,
-    var(--color-grey-10) 61%
-  );
-  background-size: 220% 100%;
-  animation: skeleton-shimmer 1.45s ease-in-out infinite;
-}
-
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-@keyframes skeleton-shimmer {
-  to {
-    background-position: -220% 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .skeleton {
-    animation: none;
-  }
-}
+@import "./skeleton.css";
 
 .button {
   padding: 10px 26px;
@@ -685,7 +648,6 @@
 .modal > p + p {
   margin-top: 10px;
 }
-
 
 /* ───── 알림·설정 모달 ───── */
 .notification-list {
