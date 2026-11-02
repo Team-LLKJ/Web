@@ -1,5 +1,3 @@
-@import "./folder-list.css";
-
 .teacher-page {
   min-height: 100vh;
   padding-top: 61px;
@@ -1383,14 +1381,8 @@
 .teacher-create-card .teacher-create-stepper > span.is-complete {
   color: var(--color-primary);
 }
-.teacher-create-card
-  .teacher-create-stepper
-  > span.is-current
-  .teacher-step-number,
-.teacher-create-card
-  .teacher-create-stepper
-  > span.is-complete
-  .teacher-step-number {
+.teacher-create-card .teacher-create-stepper > span.is-current .teacher-step-number,
+.teacher-create-card .teacher-create-stepper > span.is-complete .teacher-step-number {
   border-color: var(--color-primary);
   background: var(--color-primary);
   color: var(--color-white);
@@ -2024,9 +2016,7 @@
 /* 선택 카드(평가 항목·AI 정책) 호버 */
 .teacher-check,
 .teacher-option-card {
-  transition:
-    border-color 0.15s ease,
-    background-color 0.15s ease;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 .teacher-check:hover:not(:has(input:disabled)),
 .teacher-option-card:hover:not(:has(input:disabled)) {
@@ -2129,6 +2119,54 @@
   margin: 6px 0 0;
   color: var(--color-grey-50);
   font-size: var(--font-text-sm);
+}
+.folder-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+.folder-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 22px;
+  border: 1px solid var(--color-grey-20);
+  border-radius: 16px;
+  background: var(--color-white);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+.folder-card:hover {
+  border-color: var(--color-primary-light);
+  background: var(--color-primary-background);
+}
+.folder-card-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 6px;
+  border-radius: 12px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+.folder-card strong {
+  font-size: var(--font-text-md);
+  font-weight: var(--weight-semibold);
+}
+.folder-card-meta {
+  color: var(--color-grey-50);
+  font-size: var(--font-text-sm);
+}
+.folder-card-live {
+  align-self: flex-start;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: var(--weight-semibold);
 }
 .folder-back {
   display: inline-block;
@@ -2258,6 +2296,23 @@
 }
 
 /* 수행평가 카드: 링크 영역 + 오른쪽 위 수정·삭제 아이콘 */
+.folder-card {
+  position: relative;
+  padding: 0;
+}
+.folder-card-link {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 22px;
+  color: inherit;
+  text-decoration: none;
+}
+.folder-card-actions {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+}
 
 /* 안내(파랑) 토스트: 배경은 아주 옅은 프라이머리, 글씨와 테두리는 프라이머리 */
 .teacher-toast--info {
@@ -2400,7 +2455,10 @@
   margin-bottom: 14px;
 }
 
-/* 내 수행평가 / 공유된 수행평가 탭 */
+.folder-card--shared .folder-card-link .button {
+  margin-top: 8px;
+  align-self: flex-start;
+}
 .folder-shared-by {
   margin: 8px 0 0;
   color: var(--color-primary);
@@ -2447,6 +2505,38 @@
   font-size: var(--font-text-lg, 18px);
   font-weight: var(--weight-semibold);
   line-height: 1.4;
+}
+
+/* 반이 없을 때의 안내 */
+.folder-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 44px 20px;
+  border: 1.5px dashed var(--color-grey-20);
+  border-radius: 16px;
+  background: var(--color-white);
+  text-align: center;
+}
+.folder-empty-icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 8px;
+  border-radius: 50%;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+.folder-empty-state strong {
+  font-size: var(--font-text-md);
+  font-weight: var(--weight-semibold);
+}
+.folder-empty-state p {
+  margin: 0;
+  color: var(--color-grey-50);
+  font-size: var(--font-text-sm);
 }
 
 /* 평가 카드의 수정·삭제 */
