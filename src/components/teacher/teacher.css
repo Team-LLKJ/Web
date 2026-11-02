@@ -1,3 +1,5 @@
+@import "./folder-list.css";
+
 .teacher-page {
   min-height: 100vh;
   padding-top: 61px;
@@ -2128,76 +2130,6 @@
   color: var(--color-grey-50);
   font-size: var(--font-text-sm);
 }
-.folder-tabs {
-  display: inline-flex;
-  gap: 4px;
-  margin: 0 0 20px;
-  padding: 4px;
-  border-radius: 12px;
-  background: var(--color-grey-10);
-}
-.folder-tabs a {
-  padding: 8px 18px;
-  border-radius: 9px;
-  color: var(--color-grey-60);
-  font-size: var(--font-text-sm);
-  font-weight: var(--weight-semibold);
-  text-decoration: none;
-}
-.folder-tabs a.is-active {
-  background: var(--color-white);
-  color: var(--color-primary);
-}
-.folder-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 16px;
-}
-.folder-card {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 22px;
-  border: 1px solid var(--color-grey-20);
-  border-radius: 16px;
-  background: var(--color-white);
-  color: inherit;
-  text-decoration: none;
-  transition:
-    border-color 0.15s ease,
-    background-color 0.15s ease;
-}
-.folder-card:hover {
-  border-color: var(--color-primary-light);
-  background: var(--color-primary-background);
-}
-.folder-card-icon {
-  display: grid;
-  place-items: center;
-  width: 48px;
-  height: 48px;
-  margin-bottom: 6px;
-  border-radius: 12px;
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
-}
-.folder-card strong {
-  font-size: var(--font-text-md);
-  font-weight: var(--weight-semibold);
-}
-.folder-card-meta {
-  color: var(--color-grey-50);
-  font-size: var(--font-text-sm);
-}
-.folder-card-live {
-  align-self: flex-start;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
-  font-size: 12px;
-  font-weight: var(--weight-semibold);
-}
 .folder-back {
   display: inline-block;
   margin-bottom: 12px;
@@ -2326,23 +2258,6 @@
 }
 
 /* 수행평가 카드: 링크 영역 + 오른쪽 위 수정·삭제 아이콘 */
-.folder-card {
-  position: relative;
-  padding: 0;
-}
-.folder-card-link {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 22px;
-  color: inherit;
-  text-decoration: none;
-}
-.folder-card-actions {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-}
 
 /* 안내(파랑) 토스트: 배경은 아주 옅은 프라이머리, 글씨와 테두리는 프라이머리 */
 .teacher-toast--info {
@@ -2486,45 +2401,6 @@
 }
 
 /* 내 수행평가 / 공유된 수행평가 탭 */
-.folder-tabs {
-  display: flex;
-  gap: 24px;
-  margin: 0 0 20px;
-  padding: 0;
-  border-bottom: 1px solid var(--color-grey-20);
-  border-radius: 0;
-  background: none;
-}
-.folder-tabs button {
-  position: relative;
-  padding: 10px 2px 12px;
-  color: var(--color-grey-50);
-  font-size: var(--font-text-md);
-  font-weight: var(--weight-semibold);
-}
-.folder-tabs button b {
-  margin-left: 4px;
-  font-weight: var(--weight-semibold);
-}
-.folder-tabs button:hover {
-  color: var(--color-grey-70, #48484a);
-}
-.folder-tabs button.is-active {
-  color: var(--color-primary);
-}
-.folder-tabs button.is-active::after {
-  position: absolute;
-  right: 0;
-  bottom: -1px;
-  left: 0;
-  height: 2px;
-  background: var(--color-primary);
-  content: "";
-}
-.folder-card--shared .folder-card-link .button {
-  margin-top: 8px;
-  align-self: flex-start;
-}
 .folder-shared-by {
   margin: 8px 0 0;
   color: var(--color-primary);

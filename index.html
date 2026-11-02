@@ -5,6 +5,12 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="/src/components/ui/page-loading.css" />
+    <script>
+      document.documentElement.dataset.loadingLayout =
+        /^\/teacher\/(folders|evaluations)\/?$/.test(location.pathname)
+          ? "list"
+          : "detail";
+    </script>
     <title>lit</title>
   </head>
   <body>
@@ -17,7 +23,10 @@
             <span class="skeleton page-loading-icon"></span>
           </div>
         </header>
-        <div class="page-loading-content" role="status">
+        <div
+          class="page-loading-content page-loading-startup-detail"
+          role="status"
+        >
           <span class="sr-only">화면을 불러오고 있습니다.</span>
           <div class="page-loading-title" aria-hidden="true">
             <span class="skeleton page-loading-back"></span>
@@ -47,6 +56,166 @@
                 class="skeleton page-loading-line page-loading-line--short"
               ></span>
               <span class="skeleton page-loading-action"></span>
+            </div>
+          </div>
+        </div>
+        <div
+          class="page-loading-content page-loading-startup-list"
+          role="status"
+        >
+          <span class="sr-only">내 수행평가 목록을 불러오고 있습니다.</span>
+          <div aria-hidden="true">
+            <div class="folder-list-header">
+              <h1 class="folder-list-heading">내 수행평가</h1>
+              <span class="folder-list-create folder-list-create-placeholder"
+                ><span>수행평가 만들기</span
+                ><span class="skeleton folder-list-create-cover"></span
+              ></span>
+            </div>
+            <div class="folder-tabs folder-list-loading-tabs">
+              <span class="folder-tab-placeholder is-active"
+                >내 수행평가
+                <span
+                  class="skeleton folder-list-count-placeholder"
+                ></span></span
+              ><span class="folder-tab-placeholder"
+                >공유된 수행평가
+                <span class="skeleton folder-list-count-placeholder"></span
+              ></span>
+            </div>
+            <div class="folder-grid">
+              <div class="folder-card" aria-hidden="true">
+                <div class="folder-card-link">
+                  <span class="skeleton folder-card-icon"></span
+                  ><strong
+                    ><span
+                      class="skeleton folder-list-name-placeholder"
+                    ></span></strong
+                  ><span class="folder-card-meta folder-list-meta-placeholder"
+                    ><span
+                      class="skeleton"
+                      style="width: 4.2em; height: 1lh"
+                    ></span
+                    ><span>·</span
+                    ><span
+                      class="skeleton"
+                      style="width: 3em; height: 1lh"
+                    ></span
+                  ></span>
+                </div>
+                <span
+                  class="folder-card-actions folder-list-actions-placeholder"
+                  ><span
+                    ><span
+                      class="skeleton"
+                      style="width: 16px; height: 16px; border-radius: 4px"
+                    ></span></span
+                  ><span
+                    ><span
+                      class="skeleton"
+                      style="width: 16px; height: 16px; border-radius: 4px"
+                    ></span></span
+                ></span>
+              </div>
+              <div class="folder-card" aria-hidden="true">
+                <div class="folder-card-link">
+                  <span class="skeleton folder-card-icon"></span
+                  ><strong
+                    ><span
+                      class="skeleton folder-list-name-placeholder"
+                    ></span></strong
+                  ><span class="folder-card-meta folder-list-meta-placeholder"
+                    ><span
+                      class="skeleton"
+                      style="width: 4.2em; height: 1lh"
+                    ></span
+                    ><span>·</span
+                    ><span
+                      class="skeleton"
+                      style="width: 3em; height: 1lh"
+                    ></span
+                  ></span>
+                </div>
+                <span
+                  class="folder-card-actions folder-list-actions-placeholder"
+                  ><span
+                    ><span
+                      class="skeleton"
+                      style="width: 16px; height: 16px; border-radius: 4px"
+                    ></span></span
+                  ><span
+                    ><span
+                      class="skeleton"
+                      style="width: 16px; height: 16px; border-radius: 4px"
+                    ></span></span
+                ></span>
+              </div>
+              <div class="folder-card" aria-hidden="true">
+                <div class="folder-card-link">
+                  <span class="skeleton folder-card-icon"></span
+                  ><strong
+                    ><span
+                      class="skeleton folder-list-name-placeholder"
+                    ></span></strong
+                  ><span class="folder-card-meta folder-list-meta-placeholder"
+                    ><span
+                      class="skeleton"
+                      style="width: 4.2em; height: 1lh"
+                    ></span
+                    ><span>·</span
+                    ><span
+                      class="skeleton"
+                      style="width: 3em; height: 1lh"
+                    ></span
+                  ></span>
+                </div>
+                <span
+                  class="folder-card-actions folder-list-actions-placeholder"
+                  ><span
+                    ><span
+                      class="skeleton"
+                      style="width: 16px; height: 16px; border-radius: 4px"
+                    ></span></span
+                  ><span
+                    ><span
+                      class="skeleton"
+                      style="width: 16px; height: 16px; border-radius: 4px"
+                    ></span></span
+                ></span>
+              </div>
+              <div class="folder-card" aria-hidden="true">
+                <div class="folder-card-link">
+                  <span class="skeleton folder-card-icon"></span
+                  ><strong
+                    ><span
+                      class="skeleton folder-list-name-placeholder"
+                    ></span></strong
+                  ><span class="folder-card-meta folder-list-meta-placeholder"
+                    ><span
+                      class="skeleton"
+                      style="width: 4.2em; height: 1lh"
+                    ></span
+                    ><span>·</span
+                    ><span
+                      class="skeleton"
+                      style="width: 3em; height: 1lh"
+                    ></span
+                  ></span>
+                </div>
+                <span
+                  class="folder-card-actions folder-list-actions-placeholder"
+                  ><span
+                    ><span
+                      class="skeleton"
+                      style="width: 16px; height: 16px; border-radius: 4px"
+                    ></span></span
+                  ><span
+                    ><span
+                      class="skeleton"
+                      style="width: 16px; height: 16px; border-radius: 4px"
+                    ></span></span
+                ></span>
+              </div>
             </div>
           </div>
         </div>

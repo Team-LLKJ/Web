@@ -1,4 +1,5 @@
 @import "./skeleton.css";
+@import "../teacher/folder-list.css";
 
 /* Small first-load stylesheet; it does not wait for the app or web fonts. */
 body {
@@ -144,4 +145,9 @@ body {
   .page-loading-panel {
     padding: 18px;
   }
+}
+
+html:not([data-loading-layout="list"]) .page-loading-startup-list,
+html[data-loading-layout="list"] .page-loading-startup-detail {
+  display: none;
 }

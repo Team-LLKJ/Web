@@ -1,4 +1,5 @@
 import { Skeleton, SkeletonStatus } from "./Skeleton";
+import { FolderListSkeleton } from "../teacher/FolderListSkeleton";
 
 type Props = {
   layout?: "folder" | "list" | "detail";
@@ -28,21 +29,20 @@ export function PageLoading({ layout = "detail" }: Props) {
       </header>
       <SkeletonStatus
         className="page-loading-content"
-        label="화면을 불러오고 있습니다."
+        label={
+          layout === "list"
+            ? "내 수행평가 목록을 불러오고 있습니다."
+            : "화면을 불러오고 있습니다."
+        }
       >
-        <div className="page-loading-title" aria-hidden="true">
-          {layout !== "list" && <Skeleton className="page-loading-back" />}
-          <Skeleton className="page-loading-heading" />
-        </div>
+        {layout !== "list" && (
+          <div className="page-loading-title" aria-hidden="true">
+            <Skeleton className="page-loading-back" />
+            <Skeleton className="page-loading-heading" />
+          </div>
+        )}
         {layout === "list" ? (
-          <>
-            <Skeleton className="page-loading-tabs" />
-            <div className="page-loading-cards">
-              {Array.from({ length: 4 }, (_, index) => (
-                <LoadingCard key={index} />
-              ))}
-            </div>
-          </>
+          <FolderListSkeleton />
         ) : (
           <>
             {Array.from({ length: 2 }, (_, index) => (
