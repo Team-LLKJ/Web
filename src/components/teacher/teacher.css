@@ -1381,8 +1381,14 @@
 .teacher-create-card .teacher-create-stepper > span.is-complete {
   color: var(--color-primary);
 }
-.teacher-create-card .teacher-create-stepper > span.is-current .teacher-step-number,
-.teacher-create-card .teacher-create-stepper > span.is-complete .teacher-step-number {
+.teacher-create-card
+  .teacher-create-stepper
+  > span.is-current
+  .teacher-step-number,
+.teacher-create-card
+  .teacher-create-stepper
+  > span.is-complete
+  .teacher-step-number {
   border-color: var(--color-primary);
   background: var(--color-primary);
   color: var(--color-white);
@@ -2016,7 +2022,9 @@
 /* 선택 카드(평가 항목·AI 정책) 호버 */
 .teacher-check,
 .teacher-option-card {
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
 }
 .teacher-check:hover:not(:has(input:disabled)),
 .teacher-option-card:hover:not(:has(input:disabled)) {
@@ -2155,7 +2163,9 @@
   background: var(--color-white);
   color: inherit;
   text-decoration: none;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
 }
 .folder-card:hover {
   border-color: var(--color-primary-light);
@@ -2562,37 +2572,6 @@
   font-weight: var(--weight-semibold);
   line-height: 1.4;
 }
-
-/* 반이 없을 때의 안내 */
-.folder-empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  padding: 44px 20px;
-  border: 1.5px dashed var(--color-grey-20);
-  border-radius: 16px;
-  background: var(--color-white);
-  text-align: center;
-}
-.folder-empty-icon {
-  display: grid;
-  place-items: center;
-  width: 56px;
-  height: 56px;
-  margin-bottom: 8px;
-  border-radius: 50%;
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
-}
-.folder-empty-state strong {
-  font-size: var(--font-text-md);
-  font-weight: var(--weight-semibold);
-}
-.folder-empty-state p {
-  margin: 0;
-  color: var(--color-grey-50);
-  font-size: var(--font-text-sm);
 
 /* 평가 카드의 수정·삭제 */
 .evaluation-card-actions {
