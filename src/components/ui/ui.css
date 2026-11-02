@@ -1,0 +1,1027 @@
+@import "./skeleton.css";
+
+.button {
+  padding: 10px 26px;
+  border-radius: 10px;
+  white-space: nowrap;
+  line-height: var(--line-text-md);
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.12s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
+}
+.neutral {
+  background: var(--color-grey-10);
+}
+.danger {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+.primary {
+  background: var(--primary);
+  color: var(--color-white);
+}
+.search {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  background: var(--color-grey-10);
+  border-radius: 10px;
+  padding: 10px 20px;
+  color: var(--muted);
+}
+.search input {
+  min-width: 0;
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  padding: 0;
+  color: var(--color-black);
+}
+.search input::placeholder {
+  color: var(--muted);
+}
+.search svg {
+  flex-shrink: 0;
+}
+.avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-weight: var(--weight-regular);
+}
+.badge {
+  padding: 5px 7.5px;
+  border-radius: 10px;
+  background: var(--color-grey-30);
+  color: var(--color-white);
+  font-size: var(--font-caption);
+  line-height: var(--line-caption);
+}
+.badge.submitted {
+  background: var(--primary);
+}
+.badge.warning {
+  background: var(--color-danger);
+}
+.question-tabs {
+  display: flex;
+  gap: 20px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+}
+.question-tabs button {
+  width: 75px;
+  padding: 5px 0;
+  border-bottom: 2.5px solid transparent;
+  font-size: var(--font-text-md);
+  line-height: var(--line-text-md);
+}
+.question-tabs button.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+.detail-tabs {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 35px;
+  border-bottom: 1px solid var(--border);
+  gap: 5px;
+}
+.detail-tabs button {
+  padding: 12.5px 0;
+  border-radius: 10px;
+  width: 100px;
+  flex-shrink: 0;
+  color: var(--color-grey-60);
+  font-size: var(--font-text-sm);
+  line-height: var(--line-text-sm);
+}
+.detail-tabs button.active {
+  background: var(--color-primary-soft);
+  color: var(--primary);
+}
+.avatar.small {
+  width: 25px;
+  height: 25px;
+  font-size: var(--font-caption);
+}
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: var(--font-text-md);
+  line-height: var(--line-text-md);
+}
+.button--small {
+  font-size: var(--font-text-sm);
+  padding: 10px 19px;
+  border-radius: 8px;
+}
+.button--large {
+  font-size: var(--font-test-lg);
+  font-weight: var(--weight-medium);
+  padding: 10px 30px;
+  border-radius: 12px;
+}
+.button--danger {
+  background: var(--color-danger);
+  color: var(--color-white);
+}
+.button--white-primary {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+.button--white-danger {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+.button--ghost {
+  background: transparent;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+}
+.button--text {
+  background: transparent;
+  color: var(--color-primary);
+}
+.button--primary:not(:disabled):hover {
+  background: var(--color-primary-dark);
+}
+.button--danger:not(:disabled):hover {
+  background: var(--color-danger-dark);
+}
+.button--secondary:not(:disabled):hover {
+  background: var(--color-grey-30);
+}
+.button--white-primary:not(:disabled):hover {
+  background: var(--color-primary-light);
+  color: var(--color-white);
+}
+.button--white-danger:not(:disabled):hover {
+  background: var(--color-danger-light);
+  color: var(--color-white);
+}
+.button--ghost:not(:disabled):hover {
+  border-color: var(--color-primary-dark);
+  color: var(--color-primary-dark);
+}
+.button--text:not(:disabled):hover {
+  background: var(--color-grey-10);
+}
+.button:disabled {
+  background: var(--color-grey-20);
+  color: var(--color-grey-10);
+  cursor: not-allowed;
+}
+.button--ghost:disabled,
+.button--text:disabled {
+  background: transparent;
+  color: var(--color-grey-20);
+}
+.button--ghost:disabled {
+  border-color: var(--color-grey-20);
+}
+.student-row:not(.selected):hover {
+  background: var(--color-grey-10);
+  border-color: var(--color-grey-20);
+}
+.avatar-large {
+  width: 50px;
+  height: 50px;
+  font-size: var(--font-text-md);
+  font-weight: var(--weight-medium);
+}
+.text-input-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+}
+.text-input-field > label {
+  color: var(--color-grey-60);
+}
+.text-input {
+  display: flex;
+  gap: 10px;
+  padding: 10px 15px;
+  border: 1px solid var(--color-grey-20);
+  border-radius: 10px;
+  background: var(--color-white);
+}
+.text-input input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+}
+.text-input:focus-within {
+  border-color: var(--color-primary);
+}
+.text-input--under-bar {
+  border-radius: 0;
+  border-width: 0 0 1px;
+}
+.text-input[data-error="true"] {
+  border-color: var(--color-danger);
+}
+.input-error {
+  font-size: var(--font-caption);
+  color: var(--color-danger);
+}
+.modal {
+  border: 0;
+  color: inherit;
+  width: min(400px, calc(100vw - 40px));
+  min-width: 0;
+  padding: 20px;
+  border-radius: 20px;
+  max-width: calc(100vw - 40px);
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.modal::backdrop {
+  background: rgba(0, 0, 0, 0.3);
+}
+.modal-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.modal-heading h2 {
+  font-size: var(--font-title-sm);
+  line-height: var(--line-title-sm);
+  font-weight: var(--weight-semibold);
+  white-space: normal;
+}
+.modal-heading {
+  margin-bottom: 20px;
+}
+/* Figma 모달 크기: Small 320 / Medium 400(기본) / Large 480 */
+.modal--small {
+  width: min(320px, calc(100vw - 40px));
+}
+.modal--large {
+  width: min(480px, calc(100vw - 40px));
+}
+.modal-close {
+  display: flex;
+  padding: 0;
+  flex-shrink: 0;
+}
+/* 버튼 1개(알림)는 가로 전체, 2개(확인)는 반반 */
+.modal-actions {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  margin-top: 20px;
+}
+.modal-actions .button {
+  flex: 1 1 0;
+  width: auto;
+  min-width: 0;
+}
+
+/* Segmented tabs: a grey track with a raised active pill. */
+.segment-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 20px;
+  border-radius: 14px;
+  background: #e5e5ea;
+  overflow-x: auto;
+}
+.segment-tabs button {
+  flex: 1 1 0;
+  min-width: 84px;
+  padding: 9px 14px;
+  border-radius: 10px;
+  color: #48484a;
+  font-size: var(--font-text-md);
+  line-height: var(--line-text-md);
+  white-space: nowrap;
+  transition:
+    background-color 0.18s,
+    color 0.18s;
+}
+.segment-tabs button:hover:not(.active) {
+  background: #f4f4f4;
+}
+.segment-tabs button.active {
+  background: #fff;
+  color: #1c1c1e;
+  font-weight: 600;
+  box-shadow: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .segment-tabs button {
+    transition: none;
+  }
+}
+
+/* Segment tabs hug their labels instead of stretching across the row. */
+.segment-tabs {
+  display: inline-flex;
+  max-width: 100%;
+  align-self: flex-start;
+}
+.segment-tabs button {
+  flex: 0 0 auto;
+  min-width: 0;
+  padding-inline: 20px;
+}
+
+.segment-tabs {
+  gap: 6px;
+  padding: 6px;
+}
+.segment-tabs button {
+  padding: 11px 28px;
+}
+
+.segment-tabs button {
+  padding-inline: 36px;
+}
+
+.segment-tabs button {
+  padding-block: 8px;
+}
+
+/* Sliding thumb behind the active segment tab. */
+.segment-tabs {
+  position: relative;
+}
+.segment-thumb {
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  left: 0;
+  border-radius: 10px;
+  background: #fff;
+  pointer-events: none;
+}
+.segment-thumb.is-ready {
+  transition:
+    transform 0.28s cubic-bezier(0.3, 0.8, 0.3, 1),
+    width 0.28s cubic-bezier(0.3, 0.8, 0.3, 1);
+}
+.segment-tabs button {
+  position: relative;
+  z-index: 1;
+}
+.segment-tabs button.active {
+  background: transparent;
+}
+.segment-tabs button:hover:not(.active) {
+  background: transparent;
+  color: #1c1c1e;
+}
+@media (prefers-reduced-motion: reduce) {
+  .segment-thumb.is-ready {
+    transition: none;
+  }
+}
+
+.segment-tabs button {
+  font-size: var(--font-test-lg);
+  line-height: var(--line-test-lg);
+}
+
+/* Active segment: no weight jump, soft outline on the thumb, accent text colour. */
+.segment-tabs button {
+  font-weight: 500;
+  transition: color 0.28s ease;
+}
+.segment-tabs button.active {
+  font-weight: 500;
+  color: #007bff;
+}
+.segment-thumb {
+  border: 1px solid #e8e8ea;
+  border-radius: 12px;
+}
+
+/* 알약 탭: 선택 표시가 탭 사이를 미끄러지듯 이동 */
+.detail-tabs {
+  position: relative;
+}
+.detail-tabs > button {
+  position: relative;
+  z-index: 1;
+}
+.segment-thumb.pill-thumb {
+  background: #e2f0ff;
+}
+.detail-tabs button.active,
+.detail-tabs button.active:hover {
+  background: transparent;
+}
+.detail-tabs button {
+  transition: color 0.18s;
+}
+
+/* 탭이 넘칠 때 좌우로 이동하는 화살표 */
+.segment-tabs-wrap {
+  display: flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 8px;
+  max-width: 100%;
+  margin-bottom: 20px;
+}
+.segment-tabs-wrap > .segment-tabs {
+  margin-bottom: 0;
+  min-width: 0;
+  scrollbar-width: none;
+}
+.segment-tabs-wrap > .segment-tabs::-webkit-scrollbar {
+  display: none;
+}
+.segment-tabs-arrow {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid #e8e8ea;
+  border-radius: 10px;
+  background: #fff;
+  color: #48484a;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+.segment-tabs-arrow:hover:not(:disabled) {
+  background: #f4f4f4;
+}
+.segment-tabs-arrow:disabled {
+  color: #c6c6c6;
+  cursor: default;
+}
+
+/* ───── 공통 버튼 크기·포커스 ───── */
+.button {
+  min-height: 44px;
+}
+.button--small {
+  min-height: 36px;
+}
+.button--large {
+  min-height: 52px;
+}
+.button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ───── 공통 입력창: 입력칸·선택칸·글상자가 같은 모양과 효과를 가집니다 ───── */
+:root .text-input,
+:root .teacher-select-label select,
+:root .auth-role-select select,
+:root .teacher-textarea-label textarea,
+:root .teacher-question-field textarea,
+:root .answer-tools-modal input:not([type="checkbox"]),
+:root .answer-find-row > input,
+:root .link-popover input {
+  box-sizing: border-box;
+  border: 1px solid var(--color-grey-20);
+  border-radius: 10px;
+  background: var(--color-white);
+  color: var(--color-grey-90);
+  font-size: var(--font-text-sm);
+  line-height: var(--line-text-sm);
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease;
+}
+:root .text-input,
+:root .teacher-select-label select,
+:root .auth-role-select select,
+:root .answer-tools-modal input:not([type="checkbox"]),
+:root .answer-find-row > input,
+:root .link-popover input {
+  min-height: 46px;
+  padding: 10px 15px;
+}
+:root .teacher-textarea-label textarea,
+:root .teacher-question-field textarea {
+  padding: 12px 15px;
+}
+:root .text-input:hover:not([data-error="true"]),
+:root .teacher-select-label select:hover:not(:disabled),
+:root .auth-role-select select:hover:not(:disabled),
+:root .teacher-textarea-label textarea:hover:not(:disabled),
+:root .teacher-question-field textarea:hover:not(:disabled),
+:root .answer-tools-modal input:not([type="checkbox"]):hover:not(:disabled),
+:root .answer-find-row > input:hover:not(:disabled),
+:root .link-popover input:hover:not(:disabled) {
+  border-color: var(--color-grey-30);
+}
+:root .text-input:focus-within,
+:root .teacher-select-label select:focus,
+:root .auth-role-select select:focus,
+:root .teacher-textarea-label textarea:focus,
+:root .teacher-question-field textarea:focus,
+:root .answer-tools-modal input:not([type="checkbox"]):focus,
+:root .answer-find-row > input:focus,
+:root .link-popover input:focus {
+  border-color: var(--color-primary);
+  outline: 0;
+}
+:root .teacher-select-label select:disabled,
+:root .auth-role-select select:disabled,
+:root .teacher-textarea-label textarea:disabled,
+:root .teacher-question-field textarea:disabled,
+:root .answer-tools-modal input:not([type="checkbox"]):disabled {
+  background: var(--color-grey-10);
+  color: var(--color-grey-40);
+  cursor: not-allowed;
+}
+:root .text-input input::placeholder,
+:root .teacher-textarea-label textarea::placeholder,
+:root .teacher-question-field textarea::placeholder,
+:root .link-popover input::placeholder {
+  color: var(--color-grey-40);
+}
+
+/* ───── 버튼 호버·눌림 색상 (모든 버튼 공통) ─────
+   채워진 버튼은 한 단계 진하게, 연한 버튼은 같은 계열을 한 단계 진하게,
+   투명 버튼은 연한 배경이 깔리는 방식으로 통일합니다. */
+:root {
+  --hover-neutral: #e5e5ea;
+  --hover-primary-soft: #d5e9ff;
+  --hover-danger-soft: #ffc8c6;
+}
+:root .button--primary:not(:disabled):hover {
+  background: var(--color-primary-dark);
+}
+:root .button--primary:not(:disabled):active {
+  background: var(--color-primary-deep);
+}
+:root .button--danger:not(:disabled):hover {
+  background: var(--color-danger-dark);
+}
+:root .button--danger:not(:disabled):active {
+  background: var(--color-danger-deep);
+}
+:root .button--secondary:not(:disabled):hover {
+  background: var(--hover-neutral);
+}
+:root .button--secondary:not(:disabled):active {
+  background: var(--color-grey-20);
+}
+:root .button--white-primary:not(:disabled):hover {
+  background: var(--hover-primary-soft);
+  color: var(--color-primary);
+}
+:root .button--white-primary:not(:disabled):active {
+  background: #c6e0ff;
+}
+:root .button--white-danger:not(:disabled):hover {
+  background: var(--hover-danger-soft);
+  color: var(--color-danger);
+}
+:root .button--white-danger:not(:disabled):active {
+  background: #ffbab8;
+}
+:root .button--ghost:not(:disabled):hover,
+:root .landing-outline:hover {
+  background: var(--color-primary-soft);
+  border-color: var(--color-primary-dark);
+  color: var(--color-primary-dark);
+}
+:root .button--ghost:not(:disabled):active {
+  background: var(--hover-primary-soft);
+}
+:root .button--text:not(:disabled):hover {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+}
+:root .button--text:not(:disabled):active {
+  background: var(--hover-primary-soft);
+}
+:root .button:not(:disabled):active {
+  transform: scale(0.98);
+}
+@media (prefers-reduced-motion: reduce) {
+  :root .button:not(:disabled):active {
+    transform: none;
+  }
+}
+/* 링크 모양의 큰 버튼(카드 하단 등)도 같은 색 변화를 씁니다. */
+:root .evaluation-card-cta:hover {
+  background: var(--color-primary-dark);
+}
+:root .evaluation-card-cta:active {
+  background: var(--color-primary-deep);
+}
+/* 구글 로그인 같은 흰 바탕 버튼은 보조(secondary) 버튼과 같은 회색으로 */
+:root .auth-form .auth-google-button:not(:disabled):hover {
+  background: var(--color-grey-10);
+  border-color: var(--color-grey-30);
+}
+
+/* ───── 모달 본문 공통 글자 ───── */
+.modal > p,
+.modal > form > p {
+  color: var(--color-grey-90);
+  font-size: var(--font-text-md);
+  line-height: var(--line-text-md);
+}
+.modal > p + p {
+  margin-top: 10px;
+}
+
+/* ───── 알림·설정 모달 ───── */
+.notification-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.notification-item {
+  display: flex;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--color-grey-20);
+  border-radius: 10px;
+  background: var(--color-white);
+}
+.notification-item strong {
+  font-size: var(--font-text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--color-grey-90);
+}
+.notification-item p {
+  margin: 2px 0 4px;
+  font-size: var(--font-caption);
+  line-height: var(--line-caption);
+  color: var(--color-grey-60);
+}
+.notification-item time {
+  font-size: var(--font-caption);
+  color: var(--color-grey-40);
+}
+.notification-dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: var(--color-grey-20);
+}
+.notification-dot.is-unread {
+  background: var(--color-primary);
+}
+.settings-account {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 10px;
+  padding: 12px;
+  border: 1px solid var(--color-grey-20);
+  border-radius: 10px;
+  background: var(--color-grey-10);
+}
+.settings-account-label,
+.settings-account small,
+.settings-row small {
+  font-size: var(--font-caption);
+  color: var(--color-grey-60);
+}
+.settings-account strong,
+.settings-row strong {
+  font-size: var(--font-text-md);
+  font-weight: var(--weight-semibold);
+  color: var(--color-grey-90);
+}
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-grey-10);
+  cursor: pointer;
+}
+.settings-row:last-of-type {
+  border-bottom: 0;
+}
+.settings-row > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.switch {
+  appearance: none;
+  flex-shrink: 0;
+  position: relative;
+  width: 40px;
+  height: 24px;
+  margin: 0;
+  border-radius: 12px;
+  background: var(--color-grey-20);
+  cursor: pointer;
+  transition: background-color 0.18s ease;
+}
+.switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-white);
+  transition: transform 0.18s ease;
+}
+.switch:checked {
+  background: var(--color-primary);
+}
+.switch:checked::after {
+  transform: translateX(16px);
+}
+.switch:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ───── 채점·학생 풀이 화면: 공통 UI 부품도 같은 비율(0.75)로 ───── */
+.grading-workspace .segment-tabs,
+.compact-workspace .segment-tabs {
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 15px;
+  border-radius: 11px;
+}
+.grading-workspace .segment-tabs button,
+.compact-workspace .segment-tabs button {
+  padding: 7px 24px;
+  border-radius: 8px;
+  font-size: calc(var(--font-test-lg) * 0.75);
+  line-height: calc(var(--line-test-lg) * 0.75);
+}
+.grading-workspace .segment-thumb,
+.compact-workspace .segment-thumb {
+  border-radius: 9px;
+}
+.grading-workspace .segment-tabs-wrap,
+.compact-workspace .segment-tabs-wrap {
+  margin-bottom: 15px;
+}
+.grading-workspace .question-tabs,
+.compact-workspace .question-tabs {
+  gap: 15px;
+  margin-bottom: 15px;
+}
+.grading-workspace .question-tabs button,
+.compact-workspace .question-tabs button {
+  width: 56px;
+  padding: 4px 0;
+  font-size: calc(var(--font-text-md) * 0.75);
+  line-height: calc(var(--line-text-md) * 0.75);
+}
+.grading-workspace .detail-tabs {
+  padding: 8px 26px;
+  gap: 4px;
+}
+.grading-workspace .detail-tabs button {
+  width: 75px;
+  padding: 9px 0;
+  border-radius: 8px;
+  font-size: calc(var(--font-text-sm) * 0.75);
+  line-height: calc(var(--line-text-sm) * 0.75);
+}
+:root .grading-workspace .text-input,
+:root .compact-workspace .text-input {
+  min-height: 36px;
+  border-radius: 8px;
+}
+.grading-workspace .search,
+.compact-workspace .search {
+  gap: 8px;
+  padding: 8px 15px;
+  border-radius: 8px;
+}
+.grading-workspace .text-input input,
+.compact-workspace .text-input input,
+.grading-workspace .search input {
+  font-size: calc(var(--font-text-md) * 0.75);
+}
+.grading-workspace .text-input svg,
+.grading-workspace .search svg {
+  width: 18px;
+  height: 18px;
+}
+.grading-workspace .avatar,
+.compact-workspace .avatar {
+  width: 22px;
+  height: 22px;
+}
+.grading-workspace .avatar.small,
+.compact-workspace .avatar.small {
+  width: 19px;
+  height: 19px;
+}
+.grading-workspace .avatar-large,
+.compact-workspace .avatar-large {
+  width: 38px;
+  height: 38px;
+  font-size: calc(var(--font-text-md) * 0.75);
+}
+.grading-workspace .badge,
+.compact-workspace .badge {
+  padding: 4px 6px;
+  border-radius: 8px;
+  font-size: calc(var(--font-caption) * 0.85);
+  line-height: calc(var(--line-caption) * 0.85);
+}
+
+/* 채점 화면 우측 탭(AI 대화창·활동·루브릭): 세그먼트 탭과 같은 세로 크기 */
+:root .grading-workspace .detail-tabs {
+  padding: 9px 20px;
+  gap: 4px;
+}
+:root .grading-workspace .detail-tabs > button {
+  padding: 9px 0;
+  border-radius: 7.5px;
+  font-size: calc(var(--font-test-lg) * 0.75);
+  line-height: calc(var(--line-test-lg) * 0.75);
+}
+:root .grading-workspace .segment-thumb.pill-thumb {
+  border-radius: 7.5px;
+}
+
+/* 풀이·채점 화면의 세그먼트 탭: 원래 디자인(zoom 0.75 적용 시)과 같은 비율 */
+:root .compact-workspace .segment-tabs,
+:root .grading-workspace .segment-tabs {
+  gap: 4.5px;
+  padding: 4.5px;
+  border-radius: 10.5px;
+  margin-bottom: 15px;
+}
+:root .compact-workspace .segment-tabs button,
+:root .grading-workspace .segment-tabs button {
+  min-width: 0;
+  padding: 9px 27px;
+  border-radius: 7.5px;
+  font-size: calc(var(--font-test-lg) * 0.75);
+  line-height: calc(var(--line-test-lg) * 0.75);
+}
+:root .compact-workspace .segment-thumb,
+:root .grading-workspace .segment-thumb {
+  top: 4.5px;
+  bottom: 4.5px;
+  border-radius: 7.5px;
+}
+
+/* 모달 글자 크기: 제목 22px / 본문 16px / 버튼 16px */
+:root .modal .modal-heading h2 {
+  font-size: 22px;
+  line-height: 30px;
+}
+:root .modal > p,
+:root .modal > form > p,
+:root .modal .student-policy-copy p,
+:root .modal .submission-preview-message p {
+  font-size: 16px;
+  line-height: 24px;
+}
+:root .modal .modal-actions .button {
+  font-size: 16px;
+  line-height: 24px;
+}
+
+/* ───── 헤더 알림·설정 팝업 (모달 아님) ───── */
+.header-popover-anchor {
+  position: relative;
+  display: flex;
+}
+.header-popover {
+  position: absolute;
+  top: calc(100% + 20px);
+  right: -8px;
+  transform-origin: top right;
+  animation: header-popover-in 0.16s ease-out;
+  z-index: 1100;
+  width: 340px;
+  max-height: calc(100dvh - 90px);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-grey-20);
+  border-radius: 14px;
+  background: var(--color-white);
+  color: var(--color-grey-90);
+}
+.header-popover-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 10px;
+}
+.header-popover-head h2 {
+  font-size: 18px;
+  line-height: 26px;
+  font-weight: var(--weight-semibold);
+}
+.header-popover-body {
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 16px 14px;
+}
+.header-popover-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--color-grey-10);
+}
+.header-popover-link {
+  color: var(--color-primary);
+  font-size: 14px;
+  line-height: 20px;
+  background: transparent;
+  cursor: pointer;
+}
+.header-popover-link:hover:not(:disabled) {
+  text-decoration: underline;
+}
+.header-popover-link:disabled {
+  color: var(--color-grey-30);
+  cursor: default;
+}
+.header-popover .settings-row:last-of-type {
+  border-bottom: 0;
+}
+.header-popover::before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  right: 17px;
+  width: 12px;
+  height: 12px;
+  border-top: 1px solid var(--color-grey-20);
+  border-left: 1px solid var(--color-grey-20);
+  background: var(--color-white);
+  transform: rotate(45deg);
+}
+.header-popover > * {
+  position: relative;
+}
+@keyframes header-popover-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .header-popover {
+    animation: none;
+  }
+}
+
+/* 버튼 로딩 표시: 글자 색을 따라가는 작은 회전 링 */
+.button-spinner {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  box-sizing: border-box;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: button-spinner-spin 700ms linear infinite;
+}
+@keyframes button-spinner-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .button-spinner {
+    animation-duration: 1.6s;
+  }
+}

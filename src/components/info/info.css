@@ -1,0 +1,85 @@
+.info-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-primary-background);
+}
+.info-main {
+  flex: 1;
+  width: min(720px, calc(100vw - 40px));
+  margin: 0 auto;
+  padding: 100px 0 60px;
+}
+.info-main h1 {
+  font-size: var(--font-title-md);
+  line-height: var(--line-title-md);
+  font-weight: var(--weight-semibold);
+  color: var(--color-grey-90);
+}
+.info-description {
+  margin: 8px 0 24px;
+  color: var(--color-grey-60);
+  font-size: var(--font-text-md);
+  line-height: var(--line-text-md);
+}
+.info-sections,
+.info-main {
+  --info-gap: 16px;
+}
+.info-sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--info-gap);
+}
+.info-card {
+  margin-bottom: var(--info-gap);
+  padding: 20px;
+  border: 1px solid var(--color-grey-20);
+  border-radius: 14px;
+  background: var(--color-white);
+}
+.info-sections .info-card {
+  margin-bottom: 0;
+}
+.info-card h2 {
+  margin-bottom: 10px;
+  font-size: var(--font-text-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--color-grey-90);
+}
+.info-card p {
+  font-size: var(--font-text-md);
+  line-height: var(--line-text-md);
+  color: var(--color-grey-60);
+}
+.info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+}
+.info-list > div {
+  display: flex;
+  gap: 16px;
+}
+.info-list dt {
+  width: 56px;
+  color: var(--color-grey-50);
+}
+.info-list dd {
+  margin: 0;
+  color: var(--color-grey-90);
+}
+.info-actions {
+  display: flex;
+  margin-top: 16px;
+}
+.info-notifications {
+  max-width: 100%;
+}
+.landing-footer-legal a {
+  color: inherit;
+}
+.landing-footer-legal a:hover {
+  text-decoration: underline;
+}

@@ -1,0 +1,819 @@
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.app-shell {
+  min-width: 1200px;
+  min-height: 100vh;
+}
+.header {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 1000;
+  height: 81px;
+  padding: 15px 50px;
+  background: var(--color-white);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.header > img {
+  object-fit: cover;
+  display: block;
+}
+.header nav {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+.icon-button {
+  color: var(--color-grey-60);
+  padding: 0;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 40px;
+}
+.workspace {
+  display: grid;
+  grid-template-columns: 226px 562.5px minmax(262.5px, 1fr);
+  min-height: calc(100vh - 61px);
+}
+.students {
+  padding: 22.5px 11px;
+  background: var(--color-white);
+  border-right: 1px solid var(--border);
+}
+.student-filter {
+  padding-bottom: 11px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+.counts {
+  display: flex;
+  gap: 11px;
+  font-size: calc(var(--font-text-sm) * 0.75);
+  line-height: calc(var(--line-text-sm) * 0.75);
+  padding: 0 15px;
+  color: var(--muted);
+}
+.counts span:first-child {
+  color: var(--primary);
+}
+.counts span:nth-child(2) {
+  color: var(--color-danger);
+}
+.student-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7.5px;
+  margin-top: 15px;
+}
+.student-row {
+  width: 202.5px;
+  padding: 9.5px 15px;
+  border: 1px solid transparent;
+  border-radius: 7.5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 41px;
+  font-size: calc(var(--font-text-md) * 0.75);
+  line-height: calc(var(--line-text-md) * 0.75);
+}
+.student-row.selected {
+  background: var(--color-primary-soft);
+  border-color: var(--primary);
+}
+.student-name {
+  display: flex;
+  gap: 7.5px;
+  align-items: center;
+}
+.answer-area {
+  padding: 37.5px;
+  display: flex;
+  flex-direction: column;
+  gap: 22.5px;
+  align-items: stretch;
+  background: var(--surface);
+}
+.student-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 22.5px;
+  border-radius: 15px;
+  background: var(--color-white);
+  min-height: 67.5px;
+  gap: 7.5px;
+}
+.identity {
+  display: flex;
+  gap: 7.5px;
+  align-items: center;
+}
+.identity > .avatar {
+  width: 37.5px;
+  height: 37.5px;
+  font-size: calc(var(--font-text-md) * 0.75);
+  font-weight: var(--weight-medium);
+}
+.identity h1 {
+  font-size: calc(var(--font-test-lg) * 0.75);
+  font-weight: var(--weight-medium);
+  line-height: calc(var(--line-test-lg) * 0.75);
+}
+.identity p {
+  font-size: calc(var(--font-caption) * 0.75);
+  line-height: calc(var(--line-caption) * 0.75);
+  color: var(--muted);
+  margin-top: 4px;
+}
+.answer-card {
+  background: var(--color-white);
+  border-radius: 15px;
+  padding: 22.5px;
+}
+.answer-card h2 {
+  font-size: calc(var(--font-title-sm) * 0.75);
+  font-weight: var(--weight-semibold);
+  line-height: calc(var(--line-title-sm) * 0.75);
+  margin-bottom: 11px;
+}
+.question-box,
+.response-box {
+  padding: 11px 15px;
+  border: 1px solid var(--border);
+  border-radius: 7.5px;
+}
+.question-box {
+  background: var(--surface);
+  border-color: var(--primary);
+  margin-bottom: 15px;
+}
+h3 {
+  font-size: calc(var(--font-test-lg) * 0.75);
+  font-weight: var(--weight-medium);
+  line-height: calc(var(--line-test-lg) * 0.75);
+}
+.question-box h3,
+.response-box h3 {
+  margin-bottom: 7.5px;
+}
+.question-box p,
+.response-box p {
+  font-size: calc(var(--font-text-md) * 0.75);
+  line-height: calc(var(--line-text-md) * 0.75);
+}
+.response-box p + p {
+  margin-top: 17px;
+}
+.details {
+  background: var(--color-white);
+  border-left: 1px solid var(--border);
+}
+.messages {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 15px 22.5px 22.5px;
+}
+.message {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+.message.user {
+  align-items: flex-end;
+}
+.message-author {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  font-size: calc(var(--font-caption) * 0.75);
+  line-height: calc(var(--line-caption) * 0.75);
+}
+.ai-avatar {
+  background: var(--primary);
+  color: var(--color-white);
+}
+.message > p,
+.message > .message-content {
+  padding: 7.5px 11px;
+  background: var(--color-grey-10);
+  border-radius: 7.5px;
+  font-size: calc(var(--font-text-md) * 0.75);
+  line-height: calc(var(--line-text-md) * 0.75);
+}
+.message-content--markdown {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.message-content--markdown > :first-child {
+  margin-top: 0;
+}
+.message-content--markdown > :last-child {
+  margin-bottom: 0;
+}
+.message-content--markdown p {
+  margin: 0 0 0.75em;
+}
+.message-content--markdown ul,
+.message-content--markdown ol {
+  margin: 0 0 0.75em;
+  padding-left: 1.5em;
+}
+.message-content--markdown li + li {
+  margin-top: 0.2em;
+}
+.message-content--markdown h1,
+.message-content--markdown h2,
+.message-content--markdown h3,
+.message-content--markdown h4 {
+  margin: 0.8em 0 0.4em;
+  font-size: 1em;
+  line-height: inherit;
+}
+.message-content--markdown blockquote {
+  margin: 0.6em 0;
+  padding-left: 0.8em;
+  border-left: 3px solid var(--color-grey-20);
+  color: var(--color-grey-60);
+}
+.message-content--markdown code {
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+  background: var(--color-grey-20);
+  font-family: var(--font-family-code);
+  font-size: 0.9em;
+}
+.message-content--markdown pre {
+  overflow-x: auto;
+  margin: 0.6em 0;
+  padding: 7.5px 9px;
+  border-radius: 5px;
+  background: var(--color-grey-20);
+}
+.message-content--markdown pre code {
+  padding: 0;
+  background: transparent;
+  font-size: 0.9em;
+}
+.message-content--markdown table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+.message-content--markdown th,
+.message-content--markdown td {
+  border: 1px solid var(--color-grey-20);
+  padding: 4px 6px;
+  text-align: left;
+}
+.message-content--markdown a {
+  color: var(--primary);
+  text-decoration: underline;
+}
+.message > p.message-pending {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  max-width: min(270px, 100%);
+}
+.message-pending-indicator {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  height: 1em;
+}
+.message-pending-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 100%;
+}
+.message-pending-dots > span {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--color-grey-60);
+  animation: pending-dot-wave 1s ease-in-out infinite;
+}
+.message-pending-dots > span:nth-child(2) {
+  animation-delay: 0.14s;
+}
+.message-pending-dots > span:nth-child(3) {
+  animation-delay: 0.28s;
+}
+.message-pending-text {
+  min-width: 0;
+  color: transparent;
+  background: linear-gradient(
+    100deg,
+    var(--color-grey-40) 25%,
+    var(--color-grey-20) 45%,
+    var(--color-grey-40) 65%
+  );
+  background-size: 220% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: message-text-shimmer 1.45s ease-in-out infinite;
+}
+@keyframes pending-dot-wave {
+  0%,
+  60%,
+  100% {
+    opacity: 0.5;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+@keyframes message-text-shimmer {
+  to {
+    background-position: -220% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .message-pending-dots > span,
+  .message-pending-text {
+    animation: none;
+  }
+}
+.message.user > p {
+  background: var(--color-primary-soft);
+}
+.empty {
+  color: var(--muted);
+  padding: 7.5px 0;
+}
+.detail-empty {
+  padding: 22.5px;
+}
+.detail-empty p {
+  color: var(--muted);
+  margin-top: 11px;
+  font-size: calc(var(--font-text-md) * 0.75);
+  line-height: calc(var(--line-text-md) * 0.75);
+}
+@media (min-width: 1600px) {
+  .workspace {
+    grid-template-columns: 226px minmax(562.5px, 1fr) 345px;
+  }
+  .answer-area {
+    align-items: center;
+  }
+  .student-summary,
+  .answer-card {
+    width: 487.5px;
+  }
+}
+@media (max-width: 1400px) {
+  .workspace {
+    grid-template-columns: 195px 487.5px minmax(217.5px, 1fr);
+  }
+  .students {
+    padding-left: 11px;
+    padding-right: 11px;
+  }
+  .student-row {
+    width: 172.5px;
+  }
+  .counts {
+    gap: 9px;
+    padding: 0 7.5px;
+  }
+  .search {
+    padding: 7.5px;
+  }
+  .answer-area {
+    padding: 26px 22.5px;
+  }
+  .detail-tabs {
+    padding: 7.5px 11px;
+  }
+  .detail-tabs button {
+    width: 64px;
+  }
+  .messages {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+}
+@media print {
+  .app-shell {
+    min-width: 0;
+  }
+  .header,
+  .students,
+  .details,
+  .student-summary > .button {
+    display: none;
+  }
+  .workspace {
+    display: block;
+  }
+  .answer-area {
+    padding: 0;
+    display: block;
+  }
+  .student-summary,
+  .answer-card {
+    width: 100%;
+    padding: 20px;
+  }
+  .answer-card {
+    break-inside: avoid;
+  }
+  .question-tabs {
+    display: none;
+  }
+  body {
+    background: var(--color-white);
+  }
+}
+
+.activity-list {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+}
+.activity-list li {
+  padding: 15px 0;
+  border-bottom: 1px solid var(--border);
+}
+.activity-list time {
+  font-size: var(--font-caption);
+  line-height: var(--line-caption);
+  color: var(--muted);
+}
+.activity-list li p {
+  margin-top: 5px;
+  color: var(--color-black);
+  font-size: var(--font-text-md);
+  line-height: var(--line-text-md);
+}
+.rubric-list section {
+  padding: 20px 0;
+  border-bottom: 1px solid var(--border);
+}
+.rubric-list h3 {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+}
+.rubric-list h3 span {
+  color: var(--primary);
+  font-size: var(--font-caption);
+  line-height: var(--line-caption);
+}
+.rubric-list section p {
+  font-size: var(--font-text-md);
+  line-height: var(--line-text-md);
+}
+.message > p,
+.message > .message-content {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.message > p {
+  white-space: pre-wrap;
+}
+
+@media screen {
+  .teacher-workspace {
+    grid-template-columns: 226px minmax(0, 1fr);
+  }
+  .teacher-content {
+    height: auto;
+    min-height: calc(100vh - 61px);
+    align-items: stretch;
+  }
+  .teacher-content .answer-area {
+    min-width: 0;
+    padding: 21px;
+    gap: 18px;
+    align-items: stretch;
+  }
+  .teacher-content .student-summary,
+  .teacher-content .answer-card {
+    width: 100%;
+    max-width: 720px;
+    margin-inline: auto;
+    min-width: 0;
+  }
+  .teacher-content .student-summary {
+    flex-wrap: wrap;
+  }
+  .teacher-content .details {
+    min-width: 0;
+    border-left: none;
+  }
+  .teacher-content .detail-tabs {
+    padding-inline: 11px;
+    gap: 0;
+  }
+  .teacher-content .detail-tabs button {
+    width: auto;
+    flex: 1;
+    min-width: 0;
+  }
+  .teacher-content .contribution-card {
+    padding: 15px 11px;
+    gap: 11px;
+  }
+  .teacher-content .contribution-legend h3 {
+    white-space: normal;
+  }
+  .teacher-content .rating-options {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+  .teacher-content .rating-options button {
+    padding: 5.5px 6px;
+  }
+}
+@media screen and (max-width: 1400px) {
+  .teacher-workspace {
+    grid-template-columns: 260px minmax(0, 1fr);
+  }
+  .teacher-content .answer-area {
+    padding: 22px;
+  }
+}
+@media print {
+  .teacher-content {
+    display: block;
+    height: auto;
+    min-height: 0;
+  }
+  .student-resize-handle {
+    display: none;
+  }
+}
+
+
+/* Scale the two assessment workspaces while keeping them viewport-height. */
+/* 채점 화면은 zoom 없이 직접 줄인 크기를 사용합니다. */
+@media screen {
+  .grading-workspace {
+    padding-top: 61px;
+    min-height: 100dvh;
+  }
+  .grading-workspace .teacher-workspace,
+  .grading-workspace .teacher-content {
+    min-height: calc(100dvh - 61px);
+  }
+}
+@media screen {
+  .compact-workspace {
+    --workspace-viewport-height: 100dvh;
+    padding-top: 61px;
+    min-height: var(--workspace-viewport-height);
+  }
+  .compact-workspace > .student-solving-body {
+    height: calc(var(--workspace-viewport-height) - 61px);
+  }
+  .grading-workspace .teacher-workspace,
+  .grading-workspace .teacher-content {
+    min-height: calc(100dvh - 61px);
+  }
+}
+
+.lit-logo-link {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  text-decoration: none;
+}
+.lit-logo-link img {
+  display: block;
+  object-fit: cover;
+}
+.lit-logo-link:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 4px;
+  border-radius: 6px;
+}
+
+/* Keep evaluation tabs visible while long reviews scroll within the viewport. */
+@media screen {
+  .grading-workspace .teacher-workspace,
+  .grading-workspace .teacher-content {
+    height: calc(100dvh - 61px);
+    min-height: 0;
+  }
+  .teacher-content .details {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .teacher-content .detail-tabs {
+    flex-shrink: 0;
+  }
+  .review-panel-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    padding-bottom: 24px;
+  }
+  .teacher-content .answer-area {
+    min-height: 0;
+    overflow-y: auto;
+  }
+  .teacher-content .student-summary,
+  .teacher-content .answer-card {
+    flex-shrink: 0;
+  }
+}
+
+/* Frosted glass once page content scrolls underneath the fixed header. */
+.header {
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease;
+}
+.header.is-scrolled {
+  background: rgba(255, 255, 255, 0.92);
+  -webkit-backdrop-filter: blur(8px) saturate(110%);
+  backdrop-filter: blur(8px) saturate(110%);
+  border-bottom-color: rgba(223, 232, 245, 0.8);
+}
+
+/* 헤더: zoom 없이 직접 줄인 크기 */
+.header {
+  height: 61px;
+  padding: 11px 38px;
+}
+.header nav {
+  gap: 15px;
+}
+.header .icon-button {
+  width: 22px;
+  height: 30px;
+}
+.header > img,
+.header .lit-logo-link img {
+  width: 75px;
+  height: auto;
+}
+.header .button,
+.compact-workspace .header .button,
+.grading-workspace .header .button {
+  min-height: 40px;
+  padding: 8px 22px;
+  border-radius: 9px;
+  font-size: calc(var(--font-text-md) * 0.85);
+  line-height: calc(var(--line-text-md) * 0.85);
+}
+.landing-header {
+  height: 60px;
+  padding: 11px 38px;
+}
+.landing-header nav {
+  gap: 15px;
+}
+.landing-header .icon-button {
+  width: 22px;
+  height: 30px;
+}
+.landing-header .lit-logo-link img {
+  width: 75px;
+  height: auto;
+}
+.landing-header .button {
+  min-height: 40px;
+  padding: 8px 22px;
+  border-radius: 9px;
+  font-size: calc(var(--font-text-md) * 0.85);
+  line-height: calc(var(--line-text-md) * 0.85);
+}
+/* 학생 풀이·채점 화면의 버튼 (모달 안 버튼은 제외) */
+.compact-workspace .button,
+.grading-workspace .button {
+  min-height: 33px;
+  padding: 7px 19px;
+  border-radius: 8px;
+  font-size: calc(var(--font-text-md) * 0.75);
+  line-height: calc(var(--line-text-md) * 0.75);
+}
+.compact-workspace .modal .button,
+.grading-workspace .modal .button {
+  min-height: 44px;
+  padding: 10px 26px;
+  border-radius: 10px;
+  font-size: var(--font-text-md);
+  line-height: var(--line-text-md);
+}
+/* 헤더 아이콘도 같은 비율로 */
+.header .icon-button svg,
+.header .icon-button img,
+.landing-header .icon-button svg,
+.landing-header .icon-button img {
+  width: 18px;
+  height: 18px;
+}
+.header .icon-button {
+  width: 30px;
+  height: 30px;
+}
+
+.landing-header .button,
+.landing-header .landing-outline {
+  min-height: 40px;
+  padding: 8px 22px;
+  border-radius: 9px;
+  font-size: calc(var(--font-text-md) * 0.85);
+  line-height: calc(var(--line-text-md) * 0.85);
+}
+
+@media screen and (max-width: 1200px) {
+  .app-shell {
+    min-width: 0;
+  }
+}
+/* 좁은 화면: 채점 화면의 학생 목록·답안·평가를 위에서 아래로 쌓는다. */
+@media screen and (max-width: 900px) {
+  .header {
+    padding: 11px 16px;
+  }
+  .header nav {
+    gap: 8px;
+  }
+  .grading-workspace .teacher-workspace {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    min-height: calc(100dvh - 61px);
+  }
+  .grading-workspace .teacher-content {
+    height: auto;
+    min-height: 0;
+  }
+  .grading-workspace .students {
+    padding: 15px 16px;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .grading-workspace .student-list {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .grading-workspace .student-row {
+    flex: 0 0 auto;
+    width: auto;
+    gap: 10px;
+  }
+  .teacher-content .answer-area {
+    padding: 16px;
+  }
+}
+@media screen and (max-width: 600px) {
+  /* 버튼이 세 개인 채점 헤더는 휴대폰에서 알림·설정 아이콘을 숨겨 자리를 확보한다. */
+  .grading-workspace .header .icon-button {
+    display: none;
+  }
+  .header nav {
+    gap: 6px;
+  }
+  .header .button,
+  .compact-workspace .header .button,
+  .grading-workspace .header .button {
+    padding: 7px 10px;
+  }
+}
+@media screen and (max-width: 360px) {
+  .header {
+    padding: 11px 12px;
+  }
+  .header > img,
+  .header .lit-logo-link img {
+    width: 56px;
+  }
+  .header nav {
+    gap: 4px;
+  }
+  .header .icon-button {
+    width: 26px;
+  }
+  .header .button,
+  .compact-workspace .header .button,
+  .grading-workspace .header .button {
+    padding: 6px 8px;
+  }
+}

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/src/components/ui/page-loading.css" />
+    <title>lit</title>
+  </head>
+  <body>
+    <div id="root">
+      <main class="page-loading" aria-busy="true">
+        <header class="page-loading-header" aria-hidden="true">
+          <img src="/lit-logo.png" width="76" height="38" alt="" />
+          <div class="page-loading-header-tools">
+            <span class="skeleton page-loading-icon"></span>
+            <span class="skeleton page-loading-icon"></span>
+          </div>
+        </header>
+        <div class="page-loading-content" role="status">
+          <span class="sr-only">화면을 불러오고 있습니다.</span>
+          <div class="page-loading-title" aria-hidden="true">
+            <span class="skeleton page-loading-back"></span>
+            <span class="skeleton page-loading-heading"></span>
+          </div>
+          <div class="page-loading-panel" aria-hidden="true">
+            <span class="skeleton page-loading-subheading"></span>
+            <span class="skeleton page-loading-line"></span>
+            <span class="skeleton page-loading-line"></span>
+            <span
+              class="skeleton page-loading-line page-loading-line--short"
+            ></span>
+          </div>
+          <div class="page-loading-panel" aria-hidden="true">
+            <span class="skeleton page-loading-subheading"></span>
+            <span class="skeleton page-loading-line"></span>
+            <span class="skeleton page-loading-line"></span>
+            <span
+              class="skeleton page-loading-line page-loading-line--short"
+            ></span>
+          </div>
+          <div class="page-loading-cards" aria-hidden="true">
+            <div class="page-loading-panel page-loading-card">
+              <span class="skeleton page-loading-subheading"></span>
+              <span class="skeleton page-loading-line"></span>
+              <span
+                class="skeleton page-loading-line page-loading-line--short"
+              ></span>
+              <span class="skeleton page-loading-action"></span>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
