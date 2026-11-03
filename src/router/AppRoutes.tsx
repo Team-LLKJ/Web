@@ -46,6 +46,7 @@ export function AppRoutes() {
         element={<Navigate to={paths.evaluations} replace />}
       />
       <Route path={paths.folderCreate} element={<RequireAuth role="TEACHER"><TeacherEvaluationPage folderMode /></RequireAuth>} />
+      <Route path={paths.folderEdit} element={<RequireAuth role="TEACHER"><TeacherEvaluationPage folderMode /></RequireAuth>} />
       <Route path={paths.classLobby} element={<RequireAuth role="TEACHER"><TeacherClassLobbyPage /></RequireAuth>} />
       <Route path={paths.folders} element={<RequireAuth role="TEACHER"><TeacherFoldersPage /></RequireAuth>} />
       <Route path={paths.folder} element={<RequireAuth role="TEACHER"><TeacherFolderDetailPage /></RequireAuth>} />

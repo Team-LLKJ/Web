@@ -1,0 +1,33 @@
+/* 회원가입: 이메일·인증번호 입력칸 안의 오른쪽 글자 버튼 */
+.auth-form .auth-inline-action {
+  flex: none;
+  align-self: center;
+  margin-left: 8px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  background: none;
+  color: var(--color-primary);
+  font-size: var(--font-caption);
+  line-height: var(--line-caption);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+  transition: background-color 0.15s ease;
+}
+.auth-form .auth-inline-action:hover:not(:disabled) {
+  background: var(--color-primary-soft);
+}
+.auth-form .auth-inline-action:disabled {
+  color: var(--color-grey-40);
+  cursor: default;
+}
+.auth-form--signup .text-input-field--floating .text-input {
+  min-height: 56px;
+}
+.auth-form--signup .text-input input {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.auth-form--signup .text-input input:disabled {
+  color: var(--color-grey-60);
+  -webkit-text-fill-color: var(--color-grey-60);
+}

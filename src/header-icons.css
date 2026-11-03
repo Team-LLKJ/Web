@@ -1,0 +1,19 @@
+/* 헤더 아이콘(알림·설정) 확대 */
+:root:root .header .icon-button,
+:root:root .landing-header .icon-button {
+  width: 38px;
+  height: 38px;
+}
+:root:root .header .icon-button svg,
+:root:root .header .icon-button img,
+:root:root .landing-header .icon-button svg,
+:root:root .landing-header .icon-button img {
+  width: 26px;
+  height: 26px;
+}
+
+/* 카드의 수정·공유 아이콘은 호버 시 파란색, 삭제만 빨간색 */
+:root .evaluation-card-actions > button[title="수정"]:hover,
+:root .evaluation-card-actions > button[title="공유"]:hover {
+  color: var(--color-primary);
+}

@@ -30,15 +30,18 @@
   --font-family-base:
     "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-family-code: ui-monospace, SFMono-Regular, Menlo, monospace;
-  --font-title-lg: 50px;
-  --font-title-md: 38px;
-  --font-title-sm: 26px;
-  --font-text-lg: 20px;
+  /* px로 직접 적은 글자를 한꺼번에 키우는 값 */
+  --font-bump: 2px;
+  --font-title-lg: 52px;
+  --font-title-md: 40px;
+  --font-title-sm: 28px;
+  --font-text-lg: 22px;
   /* Keep the original Figma name for existing consumers. */
   --font-test-lg: var(--font-text-lg);
-  --font-text-md: 18px;
-  --font-text-sm: 16px;
-  --font-caption: 14px;
+  --font-text-md: 20px;
+  --font-text-sm: 18px;
+  --font-caption: 16px;
+  --font-text-xs: 15px;
   --line-title-lg: 1.2;
   --line-title-md: 1.2;
   --line-title-sm: 1.3;
@@ -57,27 +60,27 @@
    iOS 입력창 확대가 생기지 않도록 16px을 유지한다. */
 @media (max-width: 900px) {
   :root {
-    --font-title-lg: 42px;
-    --font-title-md: 32px;
-    --font-title-sm: 24px;
+    --font-title-lg: 44px;
+    --font-title-md: 34px;
+    --font-title-sm: 26px;
   }
 }
 @media (max-width: 600px) {
   :root {
-    --font-title-lg: 34px;
-    --font-title-md: 28px;
-    --font-title-sm: 22px;
-    --font-text-lg: 18px;
-    --font-text-md: 17px;
-    --font-caption: 13px;
+    --font-title-lg: 36px;
+    --font-title-md: 30px;
+    --font-title-sm: 24px;
+    --font-text-lg: 20px;
+    --font-text-md: 19px;
+    --font-caption: 15px;
   }
 }
 @media (max-width: 360px) {
   :root {
-    --font-title-lg: 30px;
-    --font-title-md: 24px;
-    --font-title-sm: 20px;
-    --font-text-lg: 17px;
-    --font-text-md: 16px;
+    --font-title-lg: 32px;
+    --font-title-md: 26px;
+    --font-title-sm: 22px;
+    --font-text-lg: 19px;
+    --font-text-md: 18px;
   }
 }

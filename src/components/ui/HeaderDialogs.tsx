@@ -7,13 +7,12 @@ import { Button } from "./Button";
 import { Icon } from "./Icon";
 import { IconButton } from "./IconButton";
 import {
-  SAMPLE_NOTIFICATIONS,
-  readFlag,
-  saveFlag,
-  useNotificationReads,
+  toNotificationRow,
   type AppNotification,
   type NotificationKind,
 } from "./headerSettings";
+import { playAlertSound, useNotifications } from "../../hooks/useNotifications";
+import { useUserSettings } from "../../hooks/useUserSettings";
 
 /** 알림 한 줄의 내용. 헤더 팝업과 알림 화면이 같은 모양을 씁니다. */
 export function NotificationRowContent({
@@ -180,7 +179,17 @@ function HeaderPopover({
 }
 
 function NotificationsPopover() {
-  const { isRead, unreadCount, markRead, markAllRead } = useNotificationReads();
+  const { user } = useAuth();
+  const settings = useUserSettings();
+  const enabled = user?.role === "TEACHER";
+  const { items, unread, loading, error, markRead, markAllRead } = useNotifications(
+    enabled,
+    () => {
+      if (settings.notify && settings.sound) playAlertSound();
+    },
+  );
+  const rows = items.map(toNotificationRow);
+  const unreadCount = enabled ? unread : 0;
   return (
     <HeaderPopover
       label={unreadCount > 0 ? `알림, 읽지 않은 알림 ${unreadCount}개` : "알림"}
@@ -192,7 +201,7 @@ function NotificationsPopover() {
           type="button"
           className="header-popover-link"
           disabled={unreadCount === 0}
-          onClick={markAllRead}
+          onClick={() => void markAllRead()}
         >
           모두 읽음
         </button>
@@ -203,19 +212,31 @@ function NotificationsPopover() {
         </Link>
       }
     >
-      <ul className="notification-list notification-list--popover">
-        {SAMPLE_NOTIFICATIONS.map((item) => (
-          <li key={item.id}>
-            <Link
-              className={`notification-item${isRead(item.id) ? "" : " is-unread"}`}
-              to={`${paths.notifications}?id=${item.id}`}
-              onClick={() => markRead(item.id)}
-            >
-              <NotificationRowContent item={item} unread={!isRead(item.id)} />
-            </Link>
-          </li>
-        ))}
-      </ul>
+      {!enabled ? (
+        <p className="notification-empty">선생님으로 로그인하면 평가 소식을 알림으로 받을 수 있어요.</p>
+      ) : loading ? (
+        <p className="notification-empty">알림을 불러오고 있어요.</p>
+      ) : error ? (
+        <p className="notification-empty">{error}</p>
+      ) : rows.length === 0 ? (
+        <p className="notification-empty">새 알림이 없습니다.</p>
+      ) : (
+        <ul className="notification-list notification-list--popover">
+          {rows.map((item) => (
+            <li key={item.id}>
+              <Link
+                className={`notification-item${item.read ? "" : " is-unread"}`}
+                to={`${paths.notifications}?id=${item.id}`}
+                onClick={() => {
+                  if (!item.read) void markRead(Number(item.id));
+                }}
+              >
+                <NotificationRowContent item={item} unread={!item.read} />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
     </HeaderPopover>
   );
 }
@@ -223,12 +244,7 @@ function NotificationsPopover() {
 function SettingsPopover() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [notify, setNotify] = useState(() =>
-    readFlag("lit:setting:notify", true),
-  );
-  const [sound, setSound] = useState(() =>
-    readFlag("lit:setting:sound", false),
-  );
+  const { notify, sound, error, setNotify, setSound } = useUserSettings();
   return (
     <HeaderPopover
       label="설정"
@@ -286,21 +302,16 @@ function SettingsPopover() {
         label="알림 받기"
         description="평가 진행 소식을 알림으로 받습니다."
         checked={notify}
-        onChange={(value) => {
-          setNotify(value);
-          saveFlag("lit:setting:notify", value);
-        }}
+        onChange={(value) => void setNotify(value)}
       />
       <SwitchRow
         id="setting-sound"
         label="알림 소리"
         description="새 알림이 오면 소리로 알려줍니다."
         checked={sound}
-        onChange={(value) => {
-          setSound(value);
-          saveFlag("lit:setting:sound", value);
-        }}
+        onChange={(value) => void setSound(value)}
       />
+      {error && <p className="notification-empty" role="alert">{error}</p>}
     </HeaderPopover>
   );
 }

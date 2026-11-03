@@ -111,7 +111,7 @@ export function TeacherEvaluationEditPage() {
 
   return (
     <main className="teacher-page">
-      <TeacherHeader onLeave={() => navigate(paths.evaluations)} />
+      <TeacherHeader />
       <div className="teacher-page-content">
         <div className="teacher-list-title-row">
           <div>

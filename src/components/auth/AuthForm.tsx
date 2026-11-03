@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ApiError, apiErrorMessage } from "../../api/client";
-import type { LoginRequest, StudentSignup, TeacherSignup, UserRole } from "../../api/types";
+import { checkUsernameAvailable, confirmEmailVerification, sendEmailVerification } from "../../api/auth";
+import type { LoginRequest, TeacherSignup } from "../../api/types";
 import { Button } from "../ui/Button";
-import { Modal } from "../ui/Modal";
 import { TextInput } from "../ui/TextInput";
+import "./auth-email.css";
 import { SignupConsent } from "./SignupConsent";
 import {
   EMPTY_CONSENT,
@@ -11,7 +12,7 @@ import {
   type ConsentState,
 } from "./signupConsentItems";
 
-export type AuthFormPayload = LoginRequest | StudentSignup | TeacherSignup;
+export type AuthFormPayload = LoginRequest | TeacherSignup;
 
 type Props = {
   mode: "login" | "signup";
@@ -38,23 +39,70 @@ function loginErrorMessage(error: unknown) {
 export function AuthForm({ mode, onSubmit }: Props) {
   const formRef = useRef<HTMLFormElement>(null);
   const usernameInputRef = useRef<HTMLInputElement>(null);
-  const [signupStep, setSignupStep] = useState<1 | 2>(1);
-  const [role, setRole] = useState<UserRole>("STUDENT");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
-  const [school, setSchool] = useState("");
-  const [grade, setGrade] = useState("1");
-  const [classNumber, setClassNumber] = useState("1");
-  const [studentNumber, setStudentNumber] = useState("1");
-  const [inviteCode, setInviteCode] = useState("");
+  const [codeSent, setCodeSent] = useState(false);
+  const [code, setCode] = useState("");
+  const [emailToken, setEmailToken] = useState("");
+  const [verifiedEmail, setVerifiedEmail] = useState("");
+  const [resendIn, setResendIn] = useState(0);
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const [consent, setConsent] = useState<ConsentState>(EMPTY_CONSENT);
   const isLogin = mode === "login";
   const consentMissing = !isLogin && !isConsentComplete(consent);
+
+  useEffect(() => {
+    if (resendIn <= 0) return;
+    const timer = window.setTimeout(() => setResendIn((value) => value - 1), 1000);
+    return () => window.clearTimeout(timer);
+  }, [resendIn]);
+
+  const emailVerified = Boolean(emailToken) && verifiedEmail === email.trim().toLowerCase();
+
+  async function sendCode() {
+    setNotice("");
+    const value = email.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) || value.length > 254) {
+      setNotice("올바른 이메일 주소를 입력해주세요.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const result = await sendEmailVerification(value);
+      setCodeSent(true);
+      setCode("");
+      setEmailToken("");
+      setResendIn(result.resendAfterSeconds);
+      setNotice("인증번호를 이메일로 보냈어요. 10분 안에 입력해주세요.");
+    } catch (error) {
+      setNotice(apiErrorMessage(error, "인증번호를 보내지 못했습니다."));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function confirmCode() {
+    setNotice("");
+    if (!/^[0-9]{6}$/.test(code)) {
+      setNotice("인증번호 6자리를 입력해주세요.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const result = await confirmEmailVerification(email.trim(), code);
+      setEmailToken(result.emailVerificationToken);
+      setVerifiedEmail(email.trim().toLowerCase());
+      setNotice("이메일 인증이 완료됐어요.");
+    } catch (error) {
+      setNotice(apiErrorMessage(error, "인증번호를 확인하지 못했습니다."));
+    } finally {
+      setBusy(false);
+    }
+  }
 
   useEffect(() => {
     if (!isLogin) return;
@@ -86,32 +134,21 @@ export function AuthForm({ mode, onSubmit }: Props) {
 
   async function completeSignup() {
     setNotice("");
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      setNotice("올바른 이메일 주소를 입력해주세요.");
+    if (!emailVerified) {
+      setNotice("이메일 인증을 먼저 완료해주세요.");
       return;
     }
-    if (!name.trim() || name.trim().length > 50 || !school.trim() || school.trim().length > 100) {
-      setNotice("이름과 학교를 확인해주세요. 이름은 50자, 학교는 100자 이내입니다.");
+    if (!name.trim() || name.trim().length > 50) {
+      setNotice("이름을 50자 이내로 입력해주세요.");
       return;
     }
-    if (role === "TEACHER" && (inviteCode.trim().length < 32 || inviteCode.trim().length > 128)) {
-      setNotice("유효한 교사 초대 코드를 입력해주세요.");
-      return;
-    }
-    if (role === "STUDENT") {
-      const numbers = [Number(grade), Number(classNumber), Number(studentNumber)];
-      if (!Number.isInteger(numbers[0]) || numbers[0] < 1 || numbers[0] > 12
-        || !Number.isInteger(numbers[1]) || numbers[1] < 1 || numbers[1] > 99
-        || !Number.isInteger(numbers[2]) || numbers[2] < 1 || numbers[2] > 999) {
-        setNotice("학년, 반, 번호를 확인해주세요.");
-        return;
-      }
-    }
-
-    const common = { username: username.trim(), password, email: email.trim(), name: name.trim(), school: school.trim() };
-    const payload: StudentSignup | TeacherSignup = role === "STUDENT"
-      ? { ...common, grade: Number(grade), classNumber: Number(classNumber), studentNumber: Number(studentNumber) }
-      : { ...common, inviteCode: inviteCode.trim() };
+    const payload: TeacherSignup = {
+      username: username.trim(),
+      password,
+      email: email.trim(),
+      name: name.trim(),
+      emailVerificationToken: emailToken,
+    };
     setBusy(true);
     try {
       await onSubmit(payload);
@@ -156,10 +193,6 @@ export function AuthForm({ mode, onSubmit }: Props) {
       return;
     }
 
-    if (signupStep === 2) {
-      await completeSignup();
-      return;
-    }
     if (consentMissing) {
       setNotice("필수 약관에 모두 동의해주세요.");
       return;
@@ -172,7 +205,20 @@ export function AuthForm({ mode, onSubmit }: Props) {
       setNotice("비밀번호는 공백 없이 10~128자로 입력해주세요.");
       return;
     }
-    setSignupStep(2);
+    setBusy(true);
+    try {
+      const result = await checkUsernameAvailable(username.trim());
+      if (!result.available) {
+        setNotice("이미 사용 중인 아이디입니다.");
+        return;
+      }
+    } catch (error) {
+      setNotice(apiErrorMessage(error, "아이디를 확인하지 못했습니다."));
+      return;
+    } finally {
+      setBusy(false);
+    }
+    await completeSignup();
   }
 
   return (
@@ -256,6 +302,60 @@ export function AuthForm({ mode, onSubmit }: Props) {
             ) : undefined}
           />
         </div>
+        {!isLogin && (
+          <>
+          <TextInput
+            id="signup-email"
+            label="이메일"
+            floatingLabel
+            variant="under-bar"
+            type="email"
+            autoComplete="email"
+            placeholder="이메일을 입력해주세요"
+            value={email}
+            disabled={busy || emailVerified}
+            onChange={(event) => { setEmail(event.target.value); setCodeSent(false); setNotice(""); }}
+            trailingAction={
+              <button
+                type="button"
+                className="auth-inline-action"
+                disabled={busy || emailVerified || resendIn > 0 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())}
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => void sendCode()}
+              >
+                {emailVerified ? "인증 완료" : resendIn > 0 ? `재발송 ${resendIn}초` : codeSent ? "다시 보내기" : "인증하기"}
+              </button>
+            }
+          />
+          {codeSent && !emailVerified && (
+            <TextInput
+              id="signup-email-code"
+              label="인증번호"
+              floatingLabel
+              variant="under-bar"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              maxLength={6}
+              placeholder="6자리 숫자"
+              value={code}
+              disabled={busy}
+              onChange={(event) => { setCode(event.target.value.replace(/\D/g, "").slice(0, 6)); setNotice(""); }}
+              trailingAction={
+                <button
+                  type="button"
+                  className="auth-inline-action"
+                  disabled={busy || code.length !== 6}
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => void confirmCode()}
+                >
+                  확인
+                </button>
+              }
+            />
+          )}
+          <TextInput id="signup-name" label="이름" floatingLabel variant="under-bar" autoComplete="name" placeholder="이름을 입력해주세요" value={name} disabled={busy} onChange={(event) => { setName(event.target.value); setNotice(""); }} />
+          </>
+        )}
       </div>
       {!isLogin && (
         <SignupConsent
@@ -292,46 +392,8 @@ export function AuthForm({ mode, onSubmit }: Props) {
             </Button>
           )}
         </div>
-        {notice && (isLogin || signupStep === 1) && <p className="auth-notice" role="alert">{notice}</p>}
+        {notice && <p className="auth-notice" role="alert">{notice}</p>}
       </div>
-      {!isLogin && signupStep === 2 && (
-        <Modal
-          title="회원 정보 입력"
-          className="signup-profile-modal"
-          onClose={() => { if (!busy) { setNotice(""); setSignupStep(1); } }}
-          actions={
-            <>
-              <Button loading={busy} onClick={() => void completeSignup()}>{busy ? "처리 중…" : "가입 완료"}</Button>
-              <Button variant="secondary" disabled={busy} onClick={() => { setNotice(""); setSignupStep(1); }}>이전</Button>
-            </>
-          }
-        >
-          <div className="signup-profile-step">
-            <p className="signup-account-summary"><span>{username} 계정으로 가입합니다</span></p>
-            <p className="signup-profile-description">계정 생성에 필요한 정보를 입력해주세요.</p>
-            <label className="auth-role-select">
-              <span>계정 유형</span>
-              <select value={role} disabled={busy} onChange={(event) => setRole(event.target.value as UserRole)}>
-                <option value="STUDENT">학생</option>
-                <option value="TEACHER">교사</option>
-              </select>
-            </label>
-            <TextInput id="signup-email" label="이메일" floatingLabel variant="under-bar" type="email" autoComplete="email" placeholder="이메일을 입력해주세요" value={email} disabled={busy} onChange={(event) => { setEmail(event.target.value); setNotice(""); }} />
-            <TextInput id="signup-name" label="이름" floatingLabel variant="under-bar" autoComplete="name" placeholder="이름을 입력해주세요" value={name} disabled={busy} onChange={(event) => { setName(event.target.value); setNotice(""); }} />
-            <TextInput id="signup-school" label="학교" floatingLabel variant="under-bar" autoComplete="organization" placeholder="학교명을 입력해주세요" value={school} disabled={busy} onChange={(event) => { setSchool(event.target.value); setNotice(""); }} />
-            {role === "STUDENT" ? (
-              <div className="auth-number-fields">
-                <TextInput id="signup-grade" label="학년" floatingLabel variant="under-bar" type="number" min={1} max={12} value={grade} disabled={busy} onChange={(event) => setGrade(event.target.value)} />
-                <TextInput id="signup-class" label="반" floatingLabel variant="under-bar" type="number" min={1} max={99} value={classNumber} disabled={busy} onChange={(event) => setClassNumber(event.target.value)} />
-                <TextInput id="signup-student-number" label="번호" floatingLabel variant="under-bar" type="number" min={1} max={999} value={studentNumber} disabled={busy} onChange={(event) => setStudentNumber(event.target.value)} />
-              </div>
-            ) : (
-              <TextInput id="signup-invite-code" label="교사 초대 코드" floatingLabel variant="under-bar" autoComplete="off" placeholder="발급받은 초대 코드를 입력해주세요" value={inviteCode} disabled={busy} onChange={(event) => { setInviteCode(event.target.value); setNotice(""); }} />
-            )}
-            {notice && <p className="signup-profile-notice" role="alert">{notice}</p>}
-          </div>
-        </Modal>
-      )}
     </form>
   );
 }
