@@ -15,6 +15,7 @@ export const paths = {
   grading: "/teacher/grading",
   folders: "/teacher/folders",
   folderCreate: "/teacher/folders/new",
+  folderEdit: "/teacher/folders/:folderId/edit",
   classLobby: "/teacher/folders/:folderId/classes/:sessionId",
   folder: "/teacher/folders/:folderId",
   evaluations: "/teacher/evaluations",

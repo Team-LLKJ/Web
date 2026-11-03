@@ -1,5 +1,7 @@
-import { useState, type FormEvent } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState, type FormEvent } from "react";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { apiErrorMessage } from "../api/client";
+import { PageLoading } from "../components/ui/PageLoading";
 import { AddClassCard } from "../components/teacher/AddClassCard";
 import { TeacherHeader } from "../components/teacher/TeacherHeader";
 import { Toast } from "../components/teacher/Toast";
@@ -11,6 +13,7 @@ import {
   deleteFolder,
   getFolder,
   removeSession,
+  type EvaluationFolder,
   type SessionState,
 } from "../lib/evaluationFolders";
 import { evaluationCriteria } from "../data/landing";
@@ -51,14 +54,47 @@ const STATE_CLASS: Record<SessionState, string> = {
 export function TeacherFolderDetailPage() {
   const { folderId = "" } = useParams();
   const navigate = useNavigate();
-  const [folder, setFolder] = useState(() => getFolder(folderId));
+  const location = useLocation();
+  const [folder, setFolder] = useState<EvaluationFolder | null>(null);
+  const [loadState, setLoadState] = useState<"loading" | "ready" | "missing">("loading");
+  const [busy, setBusy] = useState(false);
   const [adding, setAdding] = useState(false);
   const [className, setClassName] = useState("");
   const [error, setError] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [filter, setFilter] = useState<"ALL" | SessionState>("ALL");
-  const [notice, setNotice] = useState("");
-  const refresh = () => setFolder(getFolder(folderId));
+  const [notice, setNotice] = useState(
+    (location.state as { notice?: string } | null)?.notice ?? "",
+  );
+  const refresh = async () => {
+    try {
+      setFolder(await getFolder(folderId));
+      setLoadState("ready");
+    } catch (error) {
+      setNotice(apiErrorMessage(error, "수행평가를 불러오지 못했습니다."));
+      setLoadState((current) => (current === "loading" ? "missing" : current));
+    }
+  };
+
+  useEffect(() => {
+    let active = true;
+    getFolder(folderId)
+      .then((next) => {
+        if (!active) return;
+        setFolder(next);
+        setLoadState("ready");
+      })
+      .catch((error) => {
+        if (!active) return;
+        setNotice(apiErrorMessage(error, "수행평가를 불러오지 못했습니다."));
+        setLoadState("missing");
+      });
+    return () => {
+      active = false;
+    };
+  }, [folderId]);
+
+  if (loadState === "loading") return <PageLoading layout="folder" />;
 
   if (!folder) {
     return (
@@ -81,7 +117,7 @@ export function TeacherFolderDetailPage() {
     (session) => filter === "ALL" || session.state === filter,
   );
 
-  function submitClass(event: FormEvent) {
+  async function submitClass(event: FormEvent) {
     event.preventDefault();
     const value = className.trim();
     if (!value || value.length > 30) {
@@ -92,11 +128,18 @@ export function TeacherFolderDetailPage() {
       setError("이미 있는 반 이름입니다.");
       return;
     }
-    addSession(folder!.id, value);
-    setClassName("");
-    setAdding(false);
-    setFilter("ALL");
-    refresh();
+    setBusy(true);
+    try {
+      await addSession(folder!.id, value);
+      setClassName("");
+      setAdding(false);
+      setFilter("ALL");
+      await refresh();
+    } catch (caught) {
+      setError(apiErrorMessage(caught, "반을 추가하지 못했습니다."));
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -120,7 +163,7 @@ export function TeacherFolderDetailPage() {
             <Button
               variant="secondary"
               onClick={() =>
-                setNotice("평가 틀 수정은 서버 API가 준비되면 연결돼요.")
+                navigate(`/teacher/folders/${encodeURIComponent(folder.id)}/edit`)
               }
             >
               수정
@@ -259,9 +302,13 @@ export function TeacherFolderDetailPage() {
                           type="button"
                           aria-label={`${session.className} 삭제`}
                           title="삭제"
-                          onClick={() => {
-                            removeSession(folder.id, session.id);
-                            refresh();
+                          onClick={async () => {
+                            try {
+                              await removeSession(folder.id, session.id);
+                              await refresh();
+                            } catch (caught) {
+                              setNotice(apiErrorMessage(caught, "반을 삭제하지 못했습니다."));
+                            }
                           }}
                         >
                           <svg
@@ -307,18 +354,22 @@ export function TeacherFolderDetailPage() {
                     type="button"
                     className="evaluation-card-cta"
                     onClick={() => {
-                      if (session.state === "READY") {
+                      if (session.state === "ENDED") {
                         navigate(
-                          `/teacher/folders/${folder.id}/classes/${session.id}`,
+                          `/teacher/grading/${encodeURIComponent(session.id)}`,
                         );
                       } else {
-                        navigate("/teacher/grading");
+                        navigate(
+                          `/teacher/folders/${encodeURIComponent(folder.id)}/classes/${encodeURIComponent(session.id)}`,
+                        );
                       }
                     }}
                   >
                     {session.state === "READY"
                       ? "평가 시작하러 가기"
-                      : "수행평가 현황보기"}
+                      : session.state === "IN_PROGRESS"
+                        ? "수행평가 현황보기"
+                        : "채점 결과 보기"}
                   </button>
                 </article>
               );
@@ -343,7 +394,7 @@ export function TeacherFolderDetailPage() {
               }}
             />
             <div className="folder-modal-actions">
-              <Button type="submit">추가</Button>
+              <Button type="submit" loading={busy}>추가</Button>
               <Button variant="secondary" onClick={() => setAdding(false)}>
                 취소
               </Button>
@@ -359,9 +410,17 @@ export function TeacherFolderDetailPage() {
             <>
               <Button
                 variant="white-danger"
-                onClick={() => {
-                  deleteFolder(folder.id);
-                  navigate("/teacher/folders");
+                loading={busy}
+                onClick={async () => {
+                  setBusy(true);
+                  try {
+                    await deleteFolder(folder.id);
+                    navigate("/teacher/folders", { replace: true });
+                  } catch (caught) {
+                    setConfirmDelete(false);
+                    setNotice(apiErrorMessage(caught, "수행평가를 삭제하지 못했습니다."));
+                    setBusy(false);
+                  }
                 }}
               >
                 삭제

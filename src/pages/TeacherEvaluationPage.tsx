@@ -46,6 +46,7 @@ import { evaluationCriteria } from "../data/landing";
 import "../components/teacher/teacher.css";
 import { avatarColor } from "../lib/avatarColor";
 import { createFolder } from "../lib/evaluationFolders";
+import { getAssessment, updateAssessment } from "../api/assessments";
 import { Toast } from "../components/teacher/Toast";
 
 const MAX_EXPIRES_MINUTES = 1440;
@@ -107,7 +108,8 @@ export function EmptyParticipantsIcon() {
 }
 
 export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boolean }) {
-  const { evaluationId } = useParams();
+  const { evaluationId, folderId } = useParams();
+  const editFolderId = folderMode ? folderId : undefined;
   const navigate = useNavigate();
   const location = useLocation();
   const [title, setTitle] = useState("");
@@ -138,13 +140,48 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const [qrOpen, setQrOpen] = useState(false);
-  const [loading, setLoading] = useState(Boolean(evaluationId));
+  const [loading, setLoading] = useState(Boolean(evaluationId || editFolderId));
 
   const refreshLobby = useCallback(async () => {
     if (!evaluationId) return;
     const next = await getParticipants(evaluationId);
     setLobby(next);
   }, [evaluationId]);
+
+  useEffect(() => {
+    if (!editFolderId) return;
+    let active = true;
+    void (async () => {
+      setLoading(true);
+      try {
+        const assessment = await getAssessment(editFolderId);
+        if (!active) return;
+        setTitle(assessment.title);
+        setEvaluationGuidelines(
+          /<[a-z][\s\S]*>/i.test(assessment.guidelines ?? "")
+            ? assessment.guidelines
+            : plainTextToHtml(assessment.guidelines ?? ""),
+        );
+        setAiPolicy(assessment.aiPolicy);
+        setCriteria(assessment.criteria);
+        setAntiCheat(assessment.antiCheat as AntiCheatOption[]);
+        setQuestions(
+          assessment.questions.length
+            ? assessment.questions.map(toDraftQuestion)
+            : [freshQuestion(1)],
+        );
+      } catch (error) {
+        if (active) {
+          setNotice(apiErrorMessage(error, "수행평가를 불러오지 못했습니다."));
+        }
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [editFolderId]);
 
   useEffect(() => {
     if (!evaluationId) return;
@@ -331,16 +368,43 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
       return;
     }
     if (folderMode) {
-      // 폴더는 서버 API가 생기기 전까지 이 기기에만 저장합니다.
-      const folder = createFolder({
-        title: title.trim(),
-        description: htmlToPlainText(evaluationGuidelines).trim(),
-        aiPolicy: aiPolicy as AiPolicy,
-        questions: questions.map((question) => question.content.trim()),
-        criteria,
-        antiCheat,
-      });
-      navigate(`/teacher/folders/${folder.id}`, { replace: true });
+      if (htmlToPlainText(evaluationGuidelines).length > GUIDELINES_MAX_LENGTH) {
+        setNotice(
+          `평가 안내는 ${GUIDELINES_MAX_LENGTH.toLocaleString()}자까지 입력할 수 있어요.`,
+        );
+        setCreateStep("details");
+        return;
+      }
+      setBusy(true);
+      try {
+        const payload = {
+          title: title.trim(),
+          guidelines: evaluationGuidelines,
+          aiPolicy: aiPolicy as AiPolicy,
+          questions: questions.map(toQuestionInput),
+          criteria,
+          antiCheat,
+        };
+        if (editFolderId) {
+          await updateAssessment(editFolderId, payload);
+          navigate(`/teacher/folders/${encodeURIComponent(editFolderId)}`, {
+            replace: true,
+            state: { notice: "수행평가를 수정했어요. 아직 시작하지 않은 반부터 적용돼요." },
+          });
+        } else {
+          const folder = await createFolder(payload);
+          navigate(`/teacher/folders/${folder.id}`, { replace: true });
+        }
+      } catch (error) {
+        setNotice(
+          apiErrorMessage(
+            error,
+            editFolderId ? "수행평가를 수정하지 못했습니다." : "수행평가를 만들지 못했습니다.",
+          ),
+        );
+      } finally {
+        setBusy(false);
+      }
       return;
     }
     setBusy(true);
@@ -495,7 +559,7 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
       <div
         className={`teacher-page-content${evaluationId ? "" : " teacher-page-content--create"}`}
       >
-        <h1>{evaluation ? evaluation.title : "수행평가 만들기"}</h1>
+        <h1>{evaluation ? evaluation.title : editFolderId ? "수행평가 수정" : "수행평가 만들기"}</h1>
         <Toast message={notice} onClose={() => setNotice("")} />
 
         {!evaluationId ? (
@@ -806,7 +870,9 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
                     이전
                   </Button>
                   <Button type="submit" loading={busy}>
-                    {busy ? "생성 중…" : folderMode ? "수행평가 만들기" : "평가 생성"}
+                    {editFolderId
+                      ? busy ? "저장 중…" : "저장"
+                      : busy ? "생성 중…" : folderMode ? "수행평가 만들기" : "평가 생성"}
                   </Button>
                 </div>
               </div>
