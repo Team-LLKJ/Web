@@ -55,3 +55,32 @@
   --weight-semibold: 600;
   --weight-bold: 700;
 }
+
+/* 화면이 좁을수록 제목·큰 글씨를 줄인다. 본문(--font-text-sm)은 읽기 좋고
+   iOS 입력창 확대가 생기지 않도록 16px을 유지한다. */
+@media (max-width: 900px) {
+  :root {
+    --font-title-lg: 44px;
+    --font-title-md: 34px;
+    --font-title-sm: 26px;
+  }
+}
+@media (max-width: 600px) {
+  :root {
+    --font-title-lg: 36px;
+    --font-title-md: 30px;
+    --font-title-sm: 24px;
+    --font-text-lg: 20px;
+    --font-text-md: 19px;
+    --font-caption: 15px;
+  }
+}
+@media (max-width: 360px) {
+  :root {
+    --font-title-lg: 32px;
+    --font-title-md: 26px;
+    --font-title-sm: 22px;
+    --font-text-lg: 19px;
+    --font-text-md: 18px;
+  }
+}

@@ -465,3 +465,170 @@
     padding: 70px 20px;
   }
 }
+
+/* ───── 회원가입 약관 동의 ───── */
+.auth-form--signup {
+  gap: 24px;
+}
+.auth-form--signup h1 {
+  margin-bottom: 26px;
+}
+.signup-consent {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.signup-consent input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+.signup-consent-check {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-grey-20);
+  background: var(--color-white);
+  color: transparent;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+.signup-consent-check svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.signup-consent input:checked + .signup-consent-check {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-white);
+}
+.signup-consent input:focus-visible + .signup-consent-check {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+.signup-consent-all {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--color-grey-10);
+  cursor: pointer;
+}
+.signup-consent-all strong {
+  color: var(--color-grey-90);
+  font-size: var(--font-caption);
+  font-weight: var(--weight-semibold);
+  line-height: var(--line-caption);
+}
+.signup-consent-items {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.signup-consent-items li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.signup-consent-items label {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  color: var(--color-grey-60);
+  font-size: var(--font-caption);
+  line-height: var(--line-caption);
+  cursor: pointer;
+}
+.signup-consent-required {
+  color: var(--color-grey-40);
+}
+.signup-consent-view {
+  flex-shrink: 0;
+  padding: 4px 0 4px 4px;
+  background: transparent;
+  color: var(--color-grey-40);
+  font-size: calc(13px + var(--font-bump));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.signup-consent-view:hover {
+  color: var(--color-grey-90);
+}
+.signup-consent:disabled label,
+.signup-consent:disabled .signup-consent-all {
+  cursor: default;
+  opacity: 0.6;
+}
+
+/* 약관 전문 보기 팝업 */
+.modal.legal-modal {
+  width: min(560px, calc(100vw - 32px));
+  max-width: calc(100vw - 32px);
+  max-height: min(720px, calc(100dvh - 48px));
+  display: flex;
+  flex-direction: column;
+}
+.legal-modal:not([open]) {
+  display: none;
+}
+.legal-modal-body {
+  min-height: 0;
+  margin: 12px -20px 0;
+  padding: 0 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-top: 1px solid var(--color-grey-10);
+  border-bottom: 1px solid var(--color-grey-10);
+}
+.legal-modal-summary {
+  margin-top: 16px;
+  color: var(--color-grey-60);
+  font-size: var(--font-caption);
+  line-height: 1.6;
+}
+.legal-modal .legal-articles {
+  gap: 8px;
+  margin-top: 8px;
+}
+.legal-modal .legal-section-title {
+  margin: 12px 0 0;
+  font-size: var(--font-text-lg);
+}
+.legal-modal .legal-section-title span {
+  font-size: var(--font-caption);
+}
+.legal-modal .legal-section-card {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+}
+.legal-modal .legal-article {
+  padding: 18px 0;
+}
+.legal-modal .legal-article h3 {
+  font-size: var(--font-text-sm);
+}
+.legal-modal .modal-actions .button {
+  width: 100%;
+}

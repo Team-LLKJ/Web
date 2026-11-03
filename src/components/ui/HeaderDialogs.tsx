@@ -2,16 +2,77 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/useAuth";
 import { paths } from "../../router/paths";
+import { Avatar } from "./Avatar";
 import { Button } from "./Button";
 import { Icon } from "./Icon";
 import { IconButton } from "./IconButton";
 import {
-  formatNotificationTime,
-  playAlertSound,
-  useNotifications,
-} from "../../hooks/useNotifications";
+  toNotificationRow,
+  type AppNotification,
+  type NotificationKind,
+} from "./headerSettings";
+import { playAlertSound, useNotifications } from "../../hooks/useNotifications";
 import { useUserSettings } from "../../hooks/useUserSettings";
-import type { AppNotification } from "../../api/notifications";
+
+/** 알림 한 줄의 내용. 헤더 팝업과 알림 화면이 같은 모양을 씁니다. */
+export function NotificationRowContent({
+  item,
+  unread,
+  trailing,
+}: {
+  item: AppNotification;
+  unread: boolean;
+  trailing?: ReactNode;
+}) {
+  return (
+    <>
+      <span className="notification-item-icon">
+        <NotificationKindIcon kind={item.kind} />
+        {unread && (
+          <span className="notification-dot">
+            <span className="sr-only">읽지 않음</span>
+          </span>
+        )}
+      </span>
+      <span className="notification-item-text">
+        <span className="notification-item-top">
+          <strong>{item.title}</strong>
+          <span className="notification-item-side">
+            <time>{item.time}</time>
+            {trailing}
+          </span>
+        </span>
+        <span className="notification-item-body">{item.body}</span>
+      </span>
+    </>
+  );
+}
+
+/** 알림 종류별 작은 아이콘. 헤더 팝업과 알림 화면에서 같이 씁니다. */
+export function NotificationKindIcon({ kind }: { kind: NotificationKind }) {
+  return (
+    <span
+      className={`notification-kind notification-kind--${kind}`}
+      aria-hidden="true"
+    >
+      <svg viewBox="0 0 24 24" width="18" height="18">
+        {kind === "submission" ? (
+          <path d="m5 12.5 4.5 4.5L19 7.5" />
+        ) : kind === "evaluation" ? (
+          <>
+            <circle cx="12" cy="12" r="8" />
+            <path d="M12 8v4.5l3 2" />
+          </>
+        ) : (
+          <>
+            <circle cx="12" cy="12" r="8" />
+            <path d="M12 11v5M12 8h.01" />
+          </>
+        )}
+      </svg>
+    </span>
+  );
+}
 
 export function SwitchRow({
   id,
@@ -48,17 +109,16 @@ export function SwitchRow({
 function HeaderPopover({
   label,
   icon,
+  badge = 0,
   title,
-  badge = false,
   action,
   footer,
   children,
 }: {
   label: string;
   icon: "bell" | "settings";
+  badge?: number;
   title: string;
-  /** 아이콘 위에 안 읽은 알림 표시(점)를 보여 줍니다. */
-  badge?: boolean;
   action?: ReactNode;
   footer?: ReactNode;
   children: ReactNode;
@@ -91,10 +151,21 @@ function HeaderPopover({
         onClick={() => setOpen((value) => !value)}
       >
         <Icon name={icon} />
-        {badge && <span className="header-icon-badge" aria-hidden="true" />}
+        {badge > 0 && (
+          <span className="header-popover-badge" aria-hidden="true">
+            {badge}
+          </span>
+        )}
       </IconButton>
       {open && (
-        <section className="header-popover" role="dialog" aria-label={title}>
+        <section
+          className="header-popover"
+          role="dialog"
+          aria-label={title}
+          onClick={(event) => {
+            if ((event.target as Element).closest("a")) setOpen(false);
+          }}
+        >
           <div className="header-popover-head">
             <h2>{title}</h2>
             {action}
@@ -107,32 +178,8 @@ function HeaderPopover({
   );
 }
 
-/** 알림 한 줄. 평가에 연결된 알림은 누르면 해당 채점 화면으로 이동합니다. */
-export function NotificationItem({
-  item,
-  onOpen,
-}: {
-  item: AppNotification;
-  onOpen: (item: AppNotification) => void;
-}) {
-  return (
-    <li className="notification-item">
-      <span
-        className={`notification-dot${item.read ? "" : " is-unread"}`}
-        aria-hidden="true"
-      />
-      <button type="button" className="notification-open" onClick={() => onOpen(item)}>
-        <strong>{item.title}</strong>
-        <p>{item.body}</p>
-        <time dateTime={item.createdAt}>{formatNotificationTime(item.createdAt)}</time>
-      </button>
-    </li>
-  );
-}
-
 function NotificationsPopover() {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const settings = useUserSettings();
   const enabled = user?.role === "TEACHER";
   const { items, unread, loading, error, markRead, markAllRead } = useNotifications(
@@ -141,25 +188,19 @@ function NotificationsPopover() {
       if (settings.notify && settings.sound) playAlertSound();
     },
   );
-  const open = (item: AppNotification) => {
-    if (!item.read) void markRead(item.id);
-    if (item.evaluationId) {
-      navigate(`${paths.grading}/${encodeURIComponent(item.evaluationId)}`);
-    } else if (item.assessmentId) {
-      navigate(`${paths.folders}/${encodeURIComponent(item.assessmentId)}`);
-    }
-  };
+  const rows = items.map(toNotificationRow);
+  const unreadCount = enabled ? unread : 0;
   return (
     <HeaderPopover
-      label={unread > 0 ? `알림 (안 읽은 알림 ${unread}개)` : "알림"}
+      label={unreadCount > 0 ? `알림, 읽지 않은 알림 ${unreadCount}개` : "알림"}
       icon="bell"
+      badge={unreadCount}
       title="알림"
-      badge={enabled && unread > 0}
       action={
         <button
           type="button"
           className="header-popover-link"
-          disabled={unread === 0}
+          disabled={unreadCount === 0}
           onClick={() => void markAllRead()}
         >
           모두 읽음
@@ -177,12 +218,22 @@ function NotificationsPopover() {
         <p className="notification-empty">알림을 불러오고 있어요.</p>
       ) : error ? (
         <p className="notification-empty">{error}</p>
-      ) : items.length === 0 ? (
+      ) : rows.length === 0 ? (
         <p className="notification-empty">새 알림이 없습니다.</p>
       ) : (
-        <ul className="notification-list">
-          {items.map((item) => (
-            <NotificationItem key={item.id} item={item} onOpen={open} />
+        <ul className="notification-list notification-list--popover">
+          {rows.map((item) => (
+            <li key={item.id}>
+              <Link
+                className={`notification-item${item.read ? "" : " is-unread"}`}
+                to={`${paths.notifications}?id=${item.id}`}
+                onClick={() => {
+                  if (!item.read) void markRead(Number(item.id));
+                }}
+              >
+                <NotificationRowContent item={item} unread={!item.read} />
+              </Link>
+            </li>
           ))}
         </ul>
       )}
@@ -216,11 +267,36 @@ function SettingsPopover() {
         </>
       }
     >
-      <div className="settings-account">
-        <span className="settings-account-label">계정</span>
-        <strong>{user ? user.name : "로그인하지 않았습니다"}</strong>
-        {user && <small>{user.role === "TEACHER" ? "선생님" : "학생"}</small>}
-      </div>
+      {user ? (
+        <div className="settings-account">
+          <Avatar name={user.name} size="large" />
+          <div className="settings-account-text">
+            <p className="settings-account-name">
+              <strong>{user.name}</strong>
+            </p>
+            <small>
+              {[user.school, user.email].filter(Boolean).join(" · ")}
+            </small>
+          </div>
+        </div>
+      ) : (
+        <div className="settings-account">
+          <span className="settings-account-guest" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="24" height="24">
+              <circle cx="12" cy="9" r="3.5" />
+              <path d="M5.5 19c1.2-3 3.7-4.5 6.5-4.5s5.3 1.5 6.5 4.5" />
+            </svg>
+          </span>
+          <div className="settings-account-text">
+            <p className="settings-account-name">
+              <strong>로그인하지 않았습니다</strong>
+            </p>
+            <Link className="header-popover-link" to={paths.login}>
+              로그인하기
+            </Link>
+          </div>
+        </div>
+      )}
       <SwitchRow
         id="setting-notify"
         label="알림 받기"

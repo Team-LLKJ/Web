@@ -398,7 +398,7 @@ html:has(.landing-page) {
   max-width: 100%;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 1fr 260px 260px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 260px) minmax(0, 260px);
   gap: 48px;
 }
 .landing-footer-brand img {
