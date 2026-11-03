@@ -1,0 +1,17 @@
+.consent-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.consent-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  line-height: var(--line-text-sm);
+}
+.consent-row input {
+  margin-top: 4px;
+}
+.consent-row a {
+  color: var(--color-primary);
+}

@@ -831,7 +831,7 @@
   line-clamp: 2;
   overflow-wrap: anywhere;
   text-overflow: ellipsis;
-  font-size: 20px;
+  font-size: calc(20px + var(--font-bump));
   font-weight: var(--weight-bold);
   line-height: 1.25;
   letter-spacing: -0.02em;
@@ -957,7 +957,7 @@
   border-radius: 50%;
   background: transparent;
   color: var(--color-grey-70);
-  font-size: 16px;
+  font-size: calc(16px + var(--font-bump));
   line-height: 1;
 }
 .teacher-pagination .button:hover:not(:disabled) {
@@ -1003,7 +1003,7 @@
     font-size: var(--font-text-sm);
   }
   .teacher-evaluation-top .teacher-pin {
-    font-size: 22px;
+    font-size: calc(22px + var(--font-bump));
   }
   .teacher-results-summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1073,7 +1073,7 @@
   border-radius: 8px;
   background: var(--color-danger-soft);
   color: var(--color-danger-dark);
-  font-size: 14px;
+  font-size: calc(14px + var(--font-bump));
   line-height: 1.6;
 }
 @media (max-width: 760px) {
@@ -1249,7 +1249,7 @@
 }
 .teacher-lobby-people-head h2 {
   margin: 0;
-  font-size: 26px;
+  font-size: calc(26px + var(--font-bump));
   font-weight: var(--weight-bold);
   letter-spacing: -0.03em;
   line-height: 1.2;
@@ -1271,7 +1271,7 @@
   padding: 0 18px 0 7px;
   border-radius: 999px;
   background: #f4f4f4;
-  font-size: 17px;
+  font-size: calc(17px + var(--font-bump));
   font-weight: 500;
   letter-spacing: -0.01em;
 }
@@ -1304,7 +1304,7 @@
 }
 .teacher-lobby-empty p {
   margin: 0;
-  font-size: 17px;
+  font-size: calc(17px + var(--font-bump));
   font-weight: var(--weight-semibold);
 }
 .teacher-lobby-empty small {
@@ -1323,7 +1323,7 @@
   }
   .teacher-lobby-pill {
     height: 42px;
-    font-size: 16px;
+    font-size: calc(16px + var(--font-bump));
   }
 }
 
@@ -1427,7 +1427,7 @@
   border-radius: 50%;
   background: var(--color-primary-soft);
   color: var(--color-primary);
-  font-size: 15px;
+  font-size: calc(15px + var(--font-bump));
   font-weight: var(--weight-bold);
   vertical-align: -3px;
 }
@@ -1455,6 +1455,9 @@
   grid-template-columns: minmax(0, 1fr) 260px;
   gap: 18px;
   align-items: start;
+}
+.teacher-create-card .teacher-form-grid--single {
+  grid-template-columns: minmax(0, 1fr);
 }
 .teacher-create-card .teacher-expiry-field {
   gap: 0;
@@ -1698,7 +1701,7 @@
 }
 .teacher-limit-input b {
   color: var(--color-grey-50);
-  font-size: 13px;
+  font-size: calc(13px + var(--font-bump));
   font-weight: 500;
 }
 .teacher-limit-input input {
@@ -1746,7 +1749,7 @@
   border-radius: 999px;
   background: var(--color-primary-soft, #eaf3ff);
   color: var(--color-primary);
-  font-size: 13px;
+  font-size: calc(13px + var(--font-bump));
   font-weight: 600;
 }
 .tq-list {
@@ -1785,7 +1788,7 @@
   border-radius: 50%;
   background: var(--color-primary);
   color: #fff;
-  font-size: 15px;
+  font-size: calc(15px + var(--font-bump));
   font-weight: 600;
 }
 .tq-title {
@@ -1976,7 +1979,7 @@
   border-radius: 999px;
   background: var(--color-grey-10);
   color: var(--color-grey-60, #636366);
-  font-size: 12px;
+  font-size: calc(12px + var(--font-bump));
   font-weight: 500;
   line-height: 1.4;
 }
@@ -2068,7 +2071,7 @@
   height: 24px;
   border-radius: 999px;
   color: inherit;
-  font-size: 18px;
+  font-size: calc(18px + var(--font-bump));
   line-height: 1;
 }
 .teacher-toast button:hover {
@@ -2165,7 +2168,7 @@
   border-radius: 999px;
   background: var(--color-primary-soft);
   color: var(--color-primary);
-  font-size: 12px;
+  font-size: calc(12px + var(--font-bump));
   font-weight: var(--weight-semibold);
 }
 .folder-back {
@@ -2383,7 +2386,7 @@
   border-radius: 999px;
   background: var(--color-primary-soft);
   color: var(--color-primary);
-  font-size: 13px;
+  font-size: calc(13px + var(--font-bump));
   font-weight: var(--weight-semibold);
 }
 @media (max-width: 720px) {
@@ -2418,7 +2421,7 @@
 }
 .folder-policy small {
   color: var(--color-grey-50);
-  font-size: 13px;
+  font-size: calc(13px + var(--font-bump));
   line-height: 1.5;
 }
 .folder-settings dd .folder-muted {
@@ -2474,19 +2477,19 @@
   gap: 12px;
   height: 54px;
   padding: 0 24px 0 8px;
-  font-size: 19px;
+  font-size: calc(19px + var(--font-bump));
 }
 .teacher-lobby-avatar {
   width: 38px;
   height: 38px;
   color: #fff;
-  font-size: 17px;
+  font-size: calc(17px + var(--font-bump));
   font-weight: 600;
 }
 @media (max-width: 640px) {
   .teacher-lobby-pill {
     height: 48px;
-    font-size: 17px;
+    font-size: calc(17px + var(--font-bump));
   }
   .teacher-lobby-avatar {
     width: 34px;
@@ -2577,7 +2580,7 @@
   border-radius: 12px;
 }
 .teacher-page .segment-tabs button {
-  padding: 7px 18px;
+  padding: 6px 16px;
   font-size: var(--font-text-sm);
   line-height: var(--line-text-sm);
 }
@@ -2585,4 +2588,126 @@
   top: 4px;
   bottom: 4px;
   border-radius: 9px;
+}
+
+/* 수행평가 수정 화면 상단 탭 */
+.teacher-edit-tabs {
+  margin-bottom: 20px;
+}
+.teacher-page .teacher-edit-tabs .segment-tabs {
+  padding: 5px;
+  border-radius: 14px;
+}
+.teacher-page .teacher-edit-tabs .segment-tabs button {
+  padding: 10px 28px;
+  font-size: var(--font-text-md);
+  line-height: var(--line-text-md);
+}
+.teacher-page .teacher-edit-tabs .segment-thumb {
+  top: 5px;
+  bottom: 5px;
+  border-radius: 10px;
+}
+
+/* 평가 안내(서식 있는 글): 표·목록·제목을 에디터에서 쓴 모습 그대로 보여 줍니다. */
+.folder-guidelines {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.folder-guidelines > :first-child {
+  margin-top: 0;
+}
+.folder-guidelines > :last-child {
+  margin-bottom: 0;
+}
+.folder-guidelines p {
+  margin: 0 0 8px;
+}
+.folder-guidelines h1,
+.folder-guidelines h2,
+.folder-guidelines h3,
+.folder-guidelines h4 {
+  margin: 16px 0 8px;
+  color: var(--color-grey-90);
+  line-height: 1.4;
+}
+.folder-guidelines ul,
+.folder-guidelines ol {
+  margin: 0 0 8px;
+  padding-left: 22px;
+}
+.folder-guidelines blockquote {
+  margin: 0 0 8px;
+  padding: 2px 0 2px 12px;
+  border-left: 3px solid var(--color-grey-20);
+  color: var(--color-grey-60);
+}
+.folder-guidelines pre,
+.folder-guidelines code {
+  background: var(--color-grey-10);
+  border-radius: 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.92em;
+}
+.folder-guidelines pre {
+  margin: 0 0 8px;
+  padding: 10px 12px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+}
+.folder-guidelines table {
+  width: 100%;
+  margin: 8px 0 12px;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+.folder-guidelines th,
+.folder-guidelines td {
+  padding: 8px 10px;
+  border: 1px solid var(--color-grey-20);
+  vertical-align: top;
+  text-align: left;
+}
+.folder-guidelines th {
+  background: var(--color-grey-10);
+  font-weight: var(--weight-semibold);
+}
+.folder-guidelines td > p,
+.folder-guidelines th > p {
+  margin: 0;
+}
+.folder-guidelines a {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+.folder-guidelines hr {
+  margin: 12px 0;
+  border: 0;
+  border-top: 1px solid var(--color-grey-20);
+}
+
+
+/* 비어 있는 문항 오류 */
+.tq-card textarea[aria-invalid="true"] {
+  border-color: var(--color-danger);
+}
+.tq-card .tq-error {
+  margin: 6px 2px 0;
+}
+
+/* 내 수행평가: 탭바 옆에 수행평가 만들기 버튼 */
+.folder-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.folder-toolbar .segment-tabs {
+  margin-bottom: 0;
+}
+
+/* 반 카드의 수정 버튼은 호버 시 파란색(삭제만 빨간색) */
+.evaluation-card-actions > button:first-child:hover {
+  color: var(--color-primary);
 }

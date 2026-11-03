@@ -1,15 +1,15 @@
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
 import { LandingFooter } from "../components/landing/LandingFooter";
 import { LandingHeader } from "../components/landing/LandingHeader";
 import { Button } from "../components/ui/Button";
-import { SwitchRow } from "../components/ui/HeaderDialogs";
-import {
-  SAMPLE_NOTIFICATIONS,
-  readFlag,
-  saveFlag,
-} from "../components/ui/headerSettings";
+import { NotificationItem, SwitchRow } from "../components/ui/HeaderDialogs";
+import type { AppNotification } from "../api/notifications";
+import { useNotifications } from "../hooks/useNotifications";
+import { useUserSettings } from "../hooks/useUserSettings";
+import { AccountSettings } from "../components/info/AccountSettings";
+import "../components/info/account-settings.css";
 import { paths } from "../router/paths";
 import "../components/landing/landing.css";
 import "../components/info/info.css";
@@ -82,8 +82,7 @@ export function PrivacyPage() {
 export function SettingsPage() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [notify, setNotify] = useState(() => readFlag("lit:setting:notify", true));
-  const [sound, setSound] = useState(() => readFlag("lit:setting:sound", false));
+  const { notify, sound, error, setNotify, setSound } = useUserSettings();
   return (
     <InfoLayout title="설정" description="계정과 알림 설정을 관리합니다.">
       <section className="info-card">
@@ -106,6 +105,7 @@ export function SettingsPage() {
           )}
         </div>
       </section>
+      {user?.role === "TEACHER" && <AccountSettings />}
       <section className="info-card">
         <h2>알림</h2>
         <SwitchRow
@@ -113,44 +113,58 @@ export function SettingsPage() {
           label="알림 받기"
           description="평가 진행 소식을 알림으로 받습니다."
           checked={notify}
-          onChange={(value) => {
-            setNotify(value);
-            saveFlag("lit:setting:notify", value);
-          }}
+          onChange={(value) => void setNotify(value)}
         />
         <SwitchRow
           id="page-sound"
           label="알림 소리"
           description="새 알림이 오면 소리로 알려줍니다."
           checked={sound}
-          onChange={(value) => {
-            setSound(value);
-            saveFlag("lit:setting:sound", value);
-          }}
+          onChange={(value) => void setSound(value)}
         />
+        {error && <p className="info-error" role="alert">{error}</p>}
       </section>
     </InfoLayout>
   );
 }
 
 export function NotificationsPage() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const enabled = user?.role === "TEACHER";
+  const { items, unread, loading, error, markRead, markAllRead } = useNotifications(enabled);
+  const open = (item: AppNotification) => {
+    if (!item.read) void markRead(item.id);
+    if (item.evaluationId) {
+      navigate(`${paths.grading}/${encodeURIComponent(item.evaluationId)}`);
+    } else if (item.assessmentId) {
+      navigate(`${paths.folders}/${encodeURIComponent(item.assessmentId)}`);
+    }
+  };
   return (
     <InfoLayout title="알림" description="최근 평가 소식을 모아 볼 수 있습니다.">
-      <ul className="notification-list info-notifications">
-        {SAMPLE_NOTIFICATIONS.map((item, index) => (
-          <li key={item.id} className="notification-item">
-            <span
-              className={`notification-dot${index < 2 ? " is-unread" : ""}`}
-              aria-hidden="true"
-            />
-            <div>
-              <strong>{item.title}</strong>
-              <p>{item.body}</p>
-              <time>{item.time}</time>
-            </div>
-          </li>
-        ))}
-      </ul>
+      {!enabled ? (
+        <p>선생님으로 로그인하면 평가 소식을 알림으로 받을 수 있어요.</p>
+      ) : loading ? (
+        <p>알림을 불러오고 있어요.</p>
+      ) : error ? (
+        <p>{error}</p>
+      ) : items.length === 0 ? (
+        <p>새 알림이 없습니다.</p>
+      ) : (
+        <>
+          <div className="info-actions">
+            <Button variant="secondary" disabled={unread === 0} onClick={() => void markAllRead()}>
+              모두 읽음
+            </Button>
+          </div>
+          <ul className="notification-list info-notifications">
+            {items.map((item) => (
+              <NotificationItem key={item.id} item={item} onOpen={open} />
+            ))}
+          </ul>
+        </>
+      )}
     </InfoLayout>
   );
 }

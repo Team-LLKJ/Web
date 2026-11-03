@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
 import type { UserRole } from "../api/types";
+import { ConsentGate } from "../components/auth/ConsentGate";
 import { homePathFor } from "./paths";
 
 export function RequireAuth({ children, role }: { children: ReactNode; role: UserRole }) {
@@ -16,6 +17,11 @@ export function RequireAuth({ children, role }: { children: ReactNode; role: Use
   if (user.role !== role) {
     return <Navigate to={homePathFor(user.role)} replace />;
   }
-  return children;
+  return (
+    <>
+      {children}
+      {role === "TEACHER" && <ConsentGate />}
+    </>
+  );
 }
 

@@ -15,7 +15,7 @@ import {
   getParticipants,
   startEvaluation,
 } from "../api/evaluations";
-import { apiErrorMessage } from "../api/client";
+import { ApiError, apiErrorMessage } from "../api/client";
 import type {
   AiPolicy,
   Evaluation,
@@ -40,6 +40,7 @@ import {
   plainTextToHtml,
 } from "../lib/guidelinesText";
 import { Button } from "../components/ui/Button";
+import { Tabs } from "../components/ui/Tabs";
 import { Skeleton, SkeletonStatus } from "../components/ui/Skeleton";
 import { TextInput } from "../components/ui/TextInput";
 import { evaluationCriteria } from "../data/landing";
@@ -119,6 +120,8 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
   const [expiresMinutes, setExpiresMinutes] = useState("0");
   const [expiresError, setExpiresError] = useState("");
   const [guidelinesError, setGuidelinesError] = useState("");
+  const [revision, setRevision] = useState<number | undefined>(undefined);
+  const [questionErrorKey, setQuestionErrorKey] = useState<string | null>(null);
   const [antiCheat, setAntiCheat] = useState<AntiCheatOption[]>(
     antiCheatOptions.map((option) => option.id),
   );
@@ -156,6 +159,7 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
       try {
         const assessment = await getAssessment(editFolderId);
         if (!active) return;
+        setRevision(assessment.revision);
         setTitle(assessment.title);
         setEvaluationGuidelines(
           /<[a-z][\s\S]*>/i.test(assessment.guidelines ?? "")
@@ -254,12 +258,14 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
   }, [evaluationId, evaluation?.state, refreshLobby]);
 
   const questionHandlers = {
-    onChange: (key: string, content: string) =>
+    onChange: (key: string, content: string) => {
+      if (key === questionErrorKey) setQuestionErrorKey(null);
       setQuestions((current) =>
         current.map((question) =>
           question.key === key ? { ...question, content } : question,
         ),
-      ),
+      );
+    },
     onLimitChange: (
       key: string,
       field: "minChars" | "maxChars",
@@ -344,6 +350,11 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
       setCreateStep("settings");
       return;
     }
+    if (!criteria.length) {
+      setNotice("평가 항목을 1개 이상 선택해주세요.");
+      setCreateStep("settings");
+      return;
+    }
     if (!folderMode && !validateExpiry()) {
       setCreateStep("details");
       return;
@@ -359,9 +370,23 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
       questions.length > 100 ||
       questions.some((question) => !question.content.trim())
     ) {
+      const empty = questions.find((question) => !question.content.trim());
+      if (empty && questions.length <= 100) {
+        setQuestionErrorKey(empty.key);
+        setCreateStep("questions");
+        window.setTimeout(() => {
+          const area = document.querySelector<HTMLTextAreaElement>(
+            `[data-question-key="${empty.key}"] textarea`,
+          );
+          area?.focus();
+          area?.scrollIntoView({ block: "center", behavior: "smooth" });
+        }, 0);
+        return;
+      }
       setNotice("문항은 1~100개이며, 모든 문항의 내용을 입력해야 합니다.");
       return;
     }
+    setQuestionErrorKey(null);
     const limitError = questionLimitError(questions);
     if (limitError) {
       setNotice(limitError);
@@ -386,7 +411,7 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
           antiCheat,
         };
         if (editFolderId) {
-          await updateAssessment(editFolderId, payload);
+          await updateAssessment(editFolderId, { ...payload, revision });
           navigate(`/teacher/folders/${encodeURIComponent(editFolderId)}`, {
             replace: true,
             state: { notice: "수행평가를 수정했어요. 아직 시작하지 않은 반부터 적용돼요." },
@@ -396,6 +421,28 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
           navigate(`/teacher/folders/${folder.id}`, { replace: true });
         }
       } catch (error) {
+        if (editFolderId && error instanceof ApiError && error.code === "ASSESSMENT_REVISION_CONFLICT") {
+          setNotice("다른 선생님이 먼저 수정했어요. 최신 내용을 불러왔으니 확인하고 다시 저장해주세요.");
+          try {
+            const latest = await getAssessment(editFolderId);
+            setRevision(latest.revision);
+            setTitle(latest.title);
+            setEvaluationGuidelines(
+              /<[a-z][\s\S]*>/i.test(latest.guidelines ?? "")
+                ? latest.guidelines
+                : plainTextToHtml(latest.guidelines ?? ""),
+            );
+            setAiPolicy(latest.aiPolicy);
+            setCriteria(latest.criteria);
+            setAntiCheat(latest.antiCheat as AntiCheatOption[]);
+            setQuestions(
+              latest.questions.length ? latest.questions.map(toDraftQuestion) : [freshQuestion(1)],
+            );
+          } catch {
+            /* 최신 내용을 못 불러와도 안내만 유지합니다. */
+          }
+          return;
+        }
         setNotice(
           apiErrorMessage(
             error,
@@ -527,7 +574,7 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
 
   return (
     <main className="teacher-page">
-      <TeacherHeader onLeave={() => navigate("/teacher/evaluations")}>
+      <TeacherHeader>
         {evaluationId &&
           (evaluation?.state === "STARTED" ? (
           <Button
@@ -559,6 +606,14 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
       <div
         className={`teacher-page-content${evaluationId ? "" : " teacher-page-content--create"}`}
       >
+        {folderMode && (
+          <Link
+            className="folder-back"
+            to={editFolderId ? `/teacher/folders/${encodeURIComponent(editFolderId)}` : "/teacher/folders"}
+          >
+            ← {editFolderId ? "수행평가로" : "내 수행평가"}
+          </Link>
+        )}
         <h1>{evaluation ? evaluation.title : editFolderId ? "수행평가 수정" : "수행평가 만들기"}</h1>
         <Toast message={notice} onClose={() => setNotice("")} />
 
@@ -566,6 +621,10 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
           <form
             className="teacher-create-card"
             onSubmit={(event) => {
+              if (editFolderId) {
+                void submitCreate(event);
+                return;
+              }
               if (createStep === "details") {
                 event.preventDefault();
                 continueToSettings();
@@ -579,6 +638,25 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
               void submitCreate(event);
             }}
           >
+            {editFolderId ? (
+              <div className="teacher-edit-tabs">
+                <Tabs
+                  label="수행평가 수정 단계"
+                  variant="segment"
+                  value={createStep}
+                  items={[
+                    { value: "details", label: "평가 정보" },
+                    { value: "settings", label: "평가 설정" },
+                    { value: "questions", label: "문항 작성" },
+                  ]}
+                  onChange={(next) => {
+                    setNotice("");
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                    setCreateStep(next);
+                  }}
+                />
+              </div>
+            ) : (
             <div className="teacher-create-stepper" aria-label="평가 생성 단계">
               {(
                 [
@@ -608,6 +686,7 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
                 );
               })}
             </div>
+            )}
             {createStep === "details" ? (
               <>
                 <section className="teacher-card teacher-create-section">
@@ -701,6 +780,7 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
                     학생 화면에는 텍스트로 공유돼요. 서식은 줄바꿈 위주로 저장되며 최대 10,000자까지 입력할 수 있어요.
                   </p>
                 </section>
+                {!editFolderId && (
                 <div className="teacher-form-actions teacher-form-actions--bar">
                   <div>
                     <Button
@@ -712,6 +792,7 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
                     </Button>
                   </div>
                 </div>
+                )}
               </>
             ) : createStep === "settings" ? (
               <>
@@ -829,6 +910,7 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
                     ))}
                   </fieldset>
                 </section>
+                {!editFolderId && (
                 <div className="teacher-form-actions teacher-form-actions--bar teacher-form-actions--split">
                   <Button
                     variant="secondary"
@@ -849,14 +931,18 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
                     다음
                   </Button>
                 </div>
+                )}
               </>
             ) : (
               <div className="teacher-create-questions-step">
                 <QuestionFields
                   questions={questions}
                   disabled={busy}
+                  errorKey={questionErrorKey}
+                  errorMessage="문항 내용을 입력해주세요."
                   {...questionHandlers}
                 />
+                {!editFolderId && (
                 <div className="teacher-form-actions teacher-form-actions--bar teacher-form-actions--split">
                   <Button
                     variant="secondary"
@@ -873,6 +959,26 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
                     {editFolderId
                       ? busy ? "저장 중…" : "저장"
                       : busy ? "생성 중…" : folderMode ? "수행평가 만들기" : "평가 생성"}
+                  </Button>
+                </div>
+                )}
+              </div>
+            )}
+            {editFolderId && (
+              <div className="teacher-form-actions teacher-form-actions--bar teacher-edit-save">
+                <div>
+                  <Button
+                    variant="secondary"
+                    type="button"
+                    disabled={busy}
+                    onClick={() =>
+                      navigate(`/teacher/folders/${encodeURIComponent(editFolderId)}`)
+                    }
+                  >
+                    취소
+                  </Button>
+                  <Button type="submit" loading={busy}>
+                    {busy ? "저장 중…" : "저장"}
                   </Button>
                 </div>
               </div>

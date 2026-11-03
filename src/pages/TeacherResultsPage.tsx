@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { apiErrorMessage } from "../api/client";
 import { getEvaluation, getParticipants, getTeacherLearningEvents } from "../api/evaluations";
 import type { Evaluation, LearningEvent, Lobby, Participant } from "../api/types";
@@ -31,7 +31,6 @@ function visibleDetails(details: Record<string, unknown>) {
 
 export function TeacherResultsPage() {
   const { evaluationId = "" } = useParams();
-  const navigate = useNavigate();
   const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
   const [lobby, setLobby] = useState<Lobby | null>(null);
   const [selectedId, setSelectedId] = useState("");
@@ -149,7 +148,7 @@ export function TeacherResultsPage() {
 
   return (
     <main className="teacher-page teacher-results-page">
-      <TeacherHeader className="no-print" onLeave={() => navigate("/teacher/evaluations")}>
+      <TeacherHeader className="no-print">
         <Button onClick={() => window.print()}>기록 인쇄 / PDF</Button>
       </TeacherHeader>
 

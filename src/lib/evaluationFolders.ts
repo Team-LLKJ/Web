@@ -6,10 +6,15 @@ import {
   deleteAssessmentClass,
   endAssessmentClass,
   getAssessment,
+  addCollaborator,
   getAssessments,
+  getCollaborators,
+  removeCollaborator,
+  renameAssessmentClass,
   startAssessmentClass,
   type Assessment,
   type AssessmentClass,
+  type AssessmentCollaborator,
   type AssessmentSummary,
 } from "../api/assessments";
 import type { AiPolicy, QuestionInput } from "../api/types";
@@ -31,6 +36,8 @@ export type EvaluationFolder = {
   id: string;
   title: string;
   description: string;
+  /** 서식이 들어간 평가 안내(HTML 또는 예전 일반 텍스트). */
+  guidelines: string;
   aiPolicy: AiPolicy;
   questions: string[];
   questionCount: number;
@@ -40,6 +47,12 @@ export type EvaluationFolder = {
   sessions: FolderSession[];
   /** 다른 선생님이 만들어 나와 공유한 수행평가면 만든 선생님 이름. 내가 만든 것은 비어 있습니다. */
   owner?: string;
+  /** 내 권한. OWNER면 공유 관리·삭제까지 가능하고, EDITOR는 공동 편집만 합니다. */
+  role?: "OWNER" | "EDITOR";
+  /** 공유받은 선생님 수(소유자가 본인 수행평가를 몇 명에게 공유했는지). */
+  collaboratorCount?: number;
+  /** 수정 충돌 검사에 쓰는 버전. 저장할 때 그대로 돌려보냅니다. */
+  revision?: number;
 };
 
 const toState = (state: AssessmentClass["state"]): SessionState =>
@@ -61,6 +74,7 @@ function toFolder(item: AssessmentSummary | Assessment): EvaluationFolder {
     id: item.id,
     title: item.title,
     description: detail ? htmlToPlainText(detail.guidelines ?? "") : "",
+    guidelines: detail?.guidelines ?? "",
     aiPolicy: detail?.aiPolicy ?? "HINT_ONLY",
     questions: detail ? detail.questions.map((question) => question.content) : [],
     questionCount: item.questionCount,
@@ -68,6 +82,10 @@ function toFolder(item: AssessmentSummary | Assessment): EvaluationFolder {
     antiCheat: detail?.antiCheat,
     createdAt: detail?.createdAt ?? item.updatedAt,
     sessions: item.classes.map(toSession),
+    owner: (item.myRole ?? item.role) === "EDITOR" ? item.owner?.name : undefined,
+    role: item.myRole ?? item.role,
+    collaboratorCount: item.collaboratorCount,
+    revision: item.revision,
   };
 }
 
@@ -100,6 +118,10 @@ export async function addSession(folderId: string, className: string) {
   return toSession(await createAssessmentClass(folderId, className));
 }
 
+export async function renameSession(folderId: string, sessionId: string, className: string) {
+  return toSession(await renameAssessmentClass(folderId, sessionId, className));
+}
+
 export const removeSession = (folderId: string, sessionId: string) =>
   deleteAssessmentClass(folderId, sessionId);
 
@@ -110,3 +132,10 @@ export async function startSession(folderId: string, sessionId: string, expiresI
 export async function endSession(folderId: string, sessionId: string) {
   return toSession(await endAssessmentClass(folderId, sessionId));
 }
+
+export type FolderCollaborator = AssessmentCollaborator;
+
+export const listCollaborators = (folderId: string) => getCollaborators(folderId);
+export const shareFolder = (folderId: string, email: string) => addCollaborator(folderId, email.trim());
+export const unshareFolder = (folderId: string, teacherId: string) =>
+  removeCollaborator(folderId, teacherId);

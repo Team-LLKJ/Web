@@ -9,6 +9,7 @@ import { apiErrorMessage } from "../api/client";
 import { FolderListSkeleton } from "../components/teacher/FolderListSkeleton";
 import { deleteFolder, listFolders, type EvaluationFolder } from "../lib/evaluationFolders";
 import "../components/teacher/teacher.css";
+import "../components/teacher/folder-card.css";
 
 function FolderIcon() {
   return (
@@ -72,17 +73,19 @@ export function TeacherFoldersPage() {
           <div>
             <h1>내 수행평가</h1>
           </div>
+        </div>
+        <div className="folder-toolbar">
+          <Tabs
+            variant="segment"
+            label="수행평가 구분"
+            value={tab}
+            items={tabItems}
+            onChange={(next) => setParams(next === "shared" ? { tab: "shared" } : {})}
+          />
           <Link className="button button--primary primary" to="/teacher/folders/new">
             수행평가 만들기
           </Link>
         </div>
-        <Tabs
-          variant="segment"
-          label="수행평가 구분"
-          value={tab}
-          items={tabItems}
-          onChange={(next) => setParams(next === "shared" ? { tab: "shared" } : {})}
-        />
         {shown.length ? (
           <div className="folder-grid">
             {shown.map((folder) => {
@@ -98,6 +101,19 @@ export function TeacherFoldersPage() {
                     </span>
                   </Link>
                   <span className="evaluation-card-actions folder-card-actions">
+                    <button
+                      type="button"
+                      className="folder-share-action"
+                      aria-label={`${folder.title} 공유`}
+                      title="공유"
+                      onClick={() => navigate(`/teacher/folders/${encodeURIComponent(folder.id)}?share=1`)}
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <circle cx="9.5" cy="8" r="3.5" />
+                        <path d="M3 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6" />
+                        <path d="M19 8v6M16 11h6" />
+                      </svg>
+                    </button>
                     <button
                       type="button"
                       aria-label={`${folder.title} 수정`}

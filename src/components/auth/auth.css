@@ -198,7 +198,7 @@
   border-radius: 50%;
   color: var(--color-white);
   background: var(--color-grey-40);
-  font-size: 18px;
+  font-size: calc(18px + var(--font-bump));
   line-height: 1;
 }
 .auth-form .text-input-field--filled .auth-clear-action,
@@ -438,7 +438,7 @@
     width: 390px;
   }
   .auth-brand h2 {
-    font-size: 30px;
+    font-size: calc(30px + var(--font-bump));
   }
   .auth-brand img {
     left: auto;

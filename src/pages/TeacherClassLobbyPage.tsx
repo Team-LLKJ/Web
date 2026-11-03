@@ -149,7 +149,7 @@ export function TeacherClassLobbyPage() {
 
   return (
     <main className="teacher-page">
-      <TeacherHeader onLeave={() => navigate(`/teacher/folders/${encodeURIComponent(folder.id)}`)}>
+      <TeacherHeader>
         {running ? (
           <>
             <Button

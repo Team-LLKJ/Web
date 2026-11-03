@@ -1,0 +1,112 @@
+/* 수행평가 공유 모달 */
+.folder-share {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+.folder-share-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.folder-share-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--color-grey-10);
+}
+.folder-share-list li > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.folder-share-list strong {
+  font-weight: var(--weight-semibold);
+}
+.folder-share-list small {
+  color: var(--color-grey-50);
+  font-size: var(--font-text-xs);
+  overflow-wrap: anywhere;
+}
+.folder-share-list button {
+  flex: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  color: var(--color-grey-60);
+  font-size: var(--font-caption);
+}
+.folder-share-list button:hover:not(:disabled) {
+  background: var(--color-grey-10);
+  color: var(--color-danger);
+}
+.folder-share-empty {
+  justify-content: flex-start !important;
+  color: var(--color-grey-40);
+}
+
+/* 상세 화면 제목 옆 공유·수정·삭제: 가벼운 아이콘+글자 버튼 */
+.folder-title-actions {
+  align-items: center;
+  gap: 6px;
+}
+.folder-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid #e3e3e8;
+  border-radius: 10px;
+  background: var(--color-white);
+  color: var(--color-grey-70);
+  font-size: var(--font-caption);
+  line-height: 1;
+  font-weight: var(--weight-regular);
+  white-space: nowrap;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.folder-action svg {
+  color: var(--color-grey-50);
+  transition: color 0.15s ease;
+}
+.folder-action:hover {
+  border-color: var(--color-primary-light);
+  background: var(--color-primary-background);
+  color: var(--color-primary);
+}
+.folder-action:hover svg {
+  color: var(--color-primary);
+}
+.folder-action--danger {
+  border-color: #e3e3e8;
+  color: var(--color-danger);
+}
+.folder-action--danger svg {
+  color: var(--color-danger);
+}
+.folder-action--danger:hover {
+  border-color: var(--color-danger-light);
+  background: #fff5f5;
+  color: var(--color-danger);
+}
+.folder-action--danger:hover svg {
+  color: var(--color-danger);
+}
+.folder-action-count {
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-size: var(--font-caption);
+  line-height: var(--line-caption);
+  text-align: center;
+}
