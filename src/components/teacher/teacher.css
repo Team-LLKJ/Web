@@ -2569,3 +2569,20 @@
 .evaluation-card-actions > button:hover {
   color: var(--color-danger);
 }
+
+/* 수행평가 목록의 탭: 학생 풀이 화면 탭을 목록 크기에 맞게 줄입니다. */
+.teacher-page .segment-tabs {
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+}
+.teacher-page .segment-tabs button {
+  padding: 7px 18px;
+  font-size: var(--font-text-sm);
+  line-height: var(--line-text-sm);
+}
+.teacher-page .segment-thumb {
+  top: 4px;
+  bottom: 4px;
+  border-radius: 9px;
+}
