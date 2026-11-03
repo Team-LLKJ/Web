@@ -1,14 +1,26 @@
-import { useState, type ReactNode } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState, type ReactNode } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
+import { LegalDocument } from "../components/info/LegalDocument";
+import {
+  PRIVACY_DOCUMENT,
+  TERMS_DOCUMENT,
+} from "../components/info/legalContent";
 import { LandingFooter } from "../components/landing/LandingFooter";
 import { LandingHeader } from "../components/landing/LandingHeader";
+import { Avatar } from "../components/ui/Avatar";
 import { Button } from "../components/ui/Button";
-import { SwitchRow } from "../components/ui/HeaderDialogs";
+import {
+  NotificationRowContent,
+  SwitchRow,
+} from "../components/ui/HeaderDialogs";
+import { Skeleton, SkeletonStatus } from "../components/ui/Skeleton";
+import { Tabs } from "../components/ui/Tabs";
 import {
   SAMPLE_NOTIFICATIONS,
   readFlag,
   saveFlag,
+  useNotificationReads,
 } from "../components/ui/headerSettings";
 import { paths } from "../router/paths";
 import "../components/landing/landing.css";
@@ -17,140 +29,343 @@ import "../components/info/info.css";
 function InfoLayout({
   title,
   description,
+  wide = false,
+  footer = true,
   children,
 }: {
-  title: string;
+  title?: string;
   description?: string;
+  wide?: boolean;
+  footer?: boolean;
   children: ReactNode;
 }) {
   return (
     <div className="info-page">
       <LandingHeader onNotice={() => undefined} />
-      <main className="info-main">
-        <h1>{title}</h1>
-        {description && <p className="info-description">{description}</p>}
+      <main className={`info-main${wide ? " info-main--wide" : ""}`}>
+        {title && (
+          <header className="info-heading">
+            <h1>{title}</h1>
+            {description && <p className="info-description">{description}</p>}
+          </header>
+        )}
         {children}
       </main>
-      <LandingFooter />
-    </div>
-  );
-}
-
-// 정식 문구가 정해지기 전까지 쓰는 임시 내용입니다.
-const TERMS = [
-  ["제1조 (목적)", "이 약관은 LIT가 제공하는 수행평가 AI 활용 분석 서비스의 이용 조건과 절차를 정합니다."],
-  ["제2조 (서비스 내용)", "LIT는 학생이 AI와 나눈 대화와 작성한 답안을 함께 기록하고, 선생님이 AI 활용 과정을 평가할 수 있도록 돕습니다."],
-  ["제3조 (이용자의 의무)", "이용자는 평가 운영 기준을 지키고, 다른 사람의 계정이나 평가 참여 정보를 도용하지 않아야 합니다."],
-  ["제4조 (서비스 변경)", "서비스 내용은 운영상 필요에 따라 변경될 수 있으며, 중요한 변경은 사전에 안내합니다."],
-];
-const PRIVACY = [
-  ["수집하는 정보", "이름, 이메일, 평가 참여 시 입력한 닉네임, 답안, AI 질문과 응답, 답안 수정 및 제출 기록을 수집합니다."],
-  ["이용 목적", "수행평가 운영과 채점, AI 활용 과정 분석, 서비스 안정성 확인을 위해 사용합니다."],
-  ["보관 기간", "평가 기록은 선생님이 삭제하거나 서비스 운영 기준에 따라 보관 기간이 끝날 때까지 보관합니다."],
-  ["문의", "개인정보와 관련한 문의는 서비스 제작팀 Team-LLKJ로 연락해 주세요."],
-];
-
-function Sections({ items }: { items: string[][] }) {
-  return (
-    <div className="info-sections">
-      {items.map(([heading, body]) => (
-        <section key={heading} className="info-card">
-          <h2>{heading}</h2>
-          <p>{body}</p>
-        </section>
-      ))}
+      {footer && <LandingFooter />}
     </div>
   );
 }
 
 export function TermsPage() {
   return (
-    <InfoLayout title="이용약관" description="LIT 서비스를 이용하기 전에 확인해 주세요.">
-      <Sections items={TERMS} />
+    <InfoLayout wide>
+      <LegalDocument doc={TERMS_DOCUMENT} idPrefix="terms" />
     </InfoLayout>
   );
 }
 
 export function PrivacyPage() {
   return (
-    <InfoLayout title="개인정보 처리방침" description="LIT가 어떤 정보를 어떻게 다루는지 안내합니다.">
-      <Sections items={PRIVACY} />
+    <InfoLayout wide>
+      <LegalDocument doc={PRIVACY_DOCUMENT} idPrefix="privacy" />
     </InfoLayout>
   );
 }
 
-export function SettingsPage() {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
-  const [notify, setNotify] = useState(() => readFlag("lit:setting:notify", true));
-  const [sound, setSound] = useState(() => readFlag("lit:setting:sound", false));
+function Chevron() {
   return (
-    <InfoLayout title="설정" description="계정과 알림 설정을 관리합니다.">
-      <section className="info-card">
-        <h2>계정</h2>
-        {user ? (
-          <dl className="info-list">
-            <div><dt>이름</dt><dd>{user.name}</dd></div>
-            <div><dt>구분</dt><dd>{user.role === "TEACHER" ? "선생님" : "학생"}</dd></div>
-          </dl>
+    <svg
+      className="info-chevron"
+      viewBox="0 0 24 24"
+      width="20"
+      height="20"
+      aria-hidden="true"
+    >
+      <path d="m9 6 6 6-6 6" />
+    </svg>
+  );
+}
+
+function SettingsGroup({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="settings-group" aria-label={title}>
+      <h2>{title}</h2>
+      <div className="settings-group-card">{children}</div>
+    </section>
+  );
+}
+
+function ProfileSkeleton() {
+  return (
+    <SkeletonStatus
+      label="계정 정보를 불러오는 중"
+      className="settings-profile"
+    >
+      <Skeleton className="settings-profile-avatar-skeleton" />
+      <div className="settings-profile-text">
+        <Skeleton style={{ width: 120, height: 24 }} />
+        <Skeleton style={{ width: 180, height: 18 }} />
+      </div>
+    </SkeletonStatus>
+  );
+}
+
+export function SettingsPage() {
+  const { user, loading, logout } = useAuth();
+  const navigate = useNavigate();
+  const [notify, setNotify] = useState(() =>
+    readFlag("lit:setting:notify", true),
+  );
+  const [sound, setSound] = useState(() =>
+    readFlag("lit:setting:sound", false),
+  );
+  const [loggingOut, setLoggingOut] = useState(false);
+  const roleLabel = user?.role === "TEACHER" ? "선생님" : "학생";
+
+  return (
+    <InfoLayout
+      title="설정"
+      description="계정과 알림, 서비스 정보를 관리합니다."
+      footer={false}
+    >
+      <div className="settings-page">
+        {loading ? (
+          <ProfileSkeleton />
+        ) : user ? (
+          <section className="settings-profile" aria-label="내 계정">
+            <Avatar name={user.name} size="large" />
+            <div className="settings-profile-text">
+              <p className="settings-profile-name">
+                <strong>{user.name}</strong>
+              </p>
+              <p className="settings-profile-sub">
+                {[user.school, user.email].filter(Boolean).join(" · ")}
+              </p>
+            </div>
+          </section>
         ) : (
-          <p>로그인하지 않았습니다.</p>
+          <section
+            className="settings-profile settings-profile--guest"
+            aria-label="내 계정"
+          >
+            <div className="settings-profile-text">
+              <p className="settings-profile-name">
+                <strong>로그인하지 않았습니다</strong>
+              </p>
+              <p className="settings-profile-sub">
+                로그인하면 계정 정보를 확인할 수 있습니다.
+              </p>
+            </div>
+            <Link className="button primary" to={paths.login}>
+              로그인
+            </Link>
+          </section>
         )}
-        <div className="info-actions">
-          {user ? (
-            <Button variant="secondary" onClick={() => void logout().then(() => navigate(paths.home))}>
+
+        {user && (
+          <SettingsGroup title="계정 정보">
+            <dl className="settings-info-list">
+              <div>
+                <dt>아이디</dt>
+                <dd>{user.username}</dd>
+              </div>
+              <div>
+                <dt>구분</dt>
+                <dd>{roleLabel}</dd>
+              </div>
+              {user.role === "STUDENT" && user.grade !== null && (
+                <div>
+                  <dt>학년·반·번호</dt>
+                  <dd>
+                    {user.grade}학년 {user.classNumber}반 {user.studentNumber}번
+                  </dd>
+                </div>
+              )}
+            </dl>
+          </SettingsGroup>
+        )}
+
+        <SettingsGroup title="알림">
+          <SwitchRow
+            id="page-notify"
+            label="알림 받기"
+            description="평가 진행 소식을 알림으로 받습니다."
+            checked={notify}
+            onChange={(value) => {
+              setNotify(value);
+              saveFlag("lit:setting:notify", value);
+            }}
+          />
+          <SwitchRow
+            id="page-sound"
+            label="알림 소리"
+            description="새 알림이 오면 소리로 알려줍니다."
+            checked={sound}
+            onChange={(value) => {
+              setSound(value);
+              saveFlag("lit:setting:sound", value);
+            }}
+          />
+        </SettingsGroup>
+
+        <SettingsGroup title="서비스 정보">
+          <Link className="settings-link-row" to={paths.notifications}>
+            <span>알림 전체 보기</span>
+            <Chevron />
+          </Link>
+          <Link className="settings-link-row" to={paths.terms}>
+            <span>이용약관</span>
+            <Chevron />
+          </Link>
+          <Link className="settings-link-row" to={paths.privacy}>
+            <span>개인정보 처리방침</span>
+            <Chevron />
+          </Link>
+        </SettingsGroup>
+
+        {user && (
+          <div className="settings-logout">
+            <Button
+              variant="secondary"
+              loading={loggingOut}
+              onClick={() => {
+                setLoggingOut(true);
+                void logout()
+                  .then(() => navigate(paths.home))
+                  .finally(() => setLoggingOut(false));
+              }}
+            >
               로그아웃
             </Button>
-          ) : (
-            <Link className="button primary" to={paths.login}>로그인</Link>
-          )}
-        </div>
-      </section>
-      <section className="info-card">
-        <h2>알림</h2>
-        <SwitchRow
-          id="page-notify"
-          label="알림 받기"
-          description="평가 진행 소식을 알림으로 받습니다."
-          checked={notify}
-          onChange={(value) => {
-            setNotify(value);
-            saveFlag("lit:setting:notify", value);
-          }}
-        />
-        <SwitchRow
-          id="page-sound"
-          label="알림 소리"
-          description="새 알림이 오면 소리로 알려줍니다."
-          checked={sound}
-          onChange={(value) => {
-            setSound(value);
-            saveFlag("lit:setting:sound", value);
-          }}
-        />
-      </section>
+          </div>
+        )}
+      </div>
     </InfoLayout>
   );
 }
 
 export function NotificationsPage() {
+  const [params, setParams] = useSearchParams();
+  const [filter, setFilter] = useState<"all" | "unread">("all");
+  const { isRead, unreadCount, markRead, markAllRead } = useNotificationReads();
+  const selectedId = params.get("id");
+  const selected = SAMPLE_NOTIFICATIONS.find((item) => item.id === selectedId);
+  const visible = SAMPLE_NOTIFICATIONS.filter(
+    (item) => filter === "all" || !isRead(item.id) || item.id === selectedId,
+  );
+
+  // 주소로 바로 들어온 알림도 읽음으로 표시합니다.
+  useEffect(() => {
+    if (selected) markRead(selected.id);
+  }, [selected, markRead]);
+
   return (
-    <InfoLayout title="알림" description="최근 평가 소식을 모아 볼 수 있습니다.">
-      <ul className="notification-list info-notifications">
-        {SAMPLE_NOTIFICATIONS.map((item, index) => (
-          <li key={item.id} className="notification-item">
-            <span
-              className={`notification-dot${index < 2 ? " is-unread" : ""}`}
-              aria-hidden="true"
-            />
-            <div>
-              <strong>{item.title}</strong>
-              <p>{item.body}</p>
-              <time>{item.time}</time>
-            </div>
-          </li>
-        ))}
-      </ul>
+    <InfoLayout footer={false}>
+      <header className="notifications-head">
+        <div>
+          <h1>알림</h1>
+          <p className="info-description">
+            {unreadCount > 0
+              ? `읽지 않은 알림이 ${unreadCount}개 있습니다.`
+              : "새 알림을 모두 확인했습니다."}
+          </p>
+        </div>
+        <button
+          type="button"
+          className="notifications-read-all"
+          disabled={unreadCount === 0}
+          onClick={markAllRead}
+        >
+          모두 읽음
+        </button>
+      </header>
+      <Tabs
+        label="알림 거르기"
+        variant="segment"
+        value={filter}
+        items={[
+          { value: "all", label: "전체" },
+          {
+            value: "unread",
+            label: unreadCount > 0 ? `안 읽음 ${unreadCount}` : "안 읽음",
+          },
+        ]}
+        onChange={setFilter}
+      />
+      <section className="notifications-card" aria-label="알림 목록">
+        {visible.length === 0 ? (
+          <div className="notifications-empty">
+            <strong>읽지 않은 알림이 없습니다</strong>
+            <p>새 소식이 오면 이곳에 표시됩니다.</p>
+          </div>
+        ) : (
+          <ul className="notification-list">
+            {visible.map((item) => {
+              const expanded = item.id === selectedId;
+              return (
+                <li
+                  key={item.id}
+                  className={expanded ? "is-expanded" : undefined}
+                >
+                  <button
+                    type="button"
+                    className="notification-item"
+                    aria-expanded={expanded}
+                    aria-controls={`notification-${item.id}`}
+                    onClick={() => setParams(expanded ? {} : { id: item.id })}
+                  >
+                    <NotificationRowContent
+                      item={item}
+                      unread={!isRead(item.id)}
+                      trailing={
+                        <svg
+                          className="notification-toggle"
+                          viewBox="0 0 24 24"
+                          width="20"
+                          height="20"
+                          aria-hidden="true"
+                        >
+                          <path d="m6 9 6 6 6-6" />
+                        </svg>
+                      }
+                    />
+                  </button>
+                  {expanded && (
+                    <div
+                      id={`notification-${item.id}`}
+                      className="notification-detail"
+                    >
+                      <p>{item.detail}</p>
+                      {item.action && (
+                        <Link
+                          className="notification-detail-action"
+                          to={item.action.to}
+                        >
+                          {item.action.label}
+                          <svg
+                            viewBox="0 0 24 24"
+                            width="16"
+                            height="16"
+                            aria-hidden="true"
+                          >
+                            <path d="m9 6 6 6-6 6" />
+                          </svg>
+                        </Link>
+                      )}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
     </InfoLayout>
   );
 }

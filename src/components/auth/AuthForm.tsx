@@ -4,6 +4,12 @@ import type { LoginRequest, StudentSignup, TeacherSignup, UserRole } from "../..
 import { Button } from "../ui/Button";
 import { Modal } from "../ui/Modal";
 import { TextInput } from "../ui/TextInput";
+import { SignupConsent } from "./SignupConsent";
+import {
+  EMPTY_CONSENT,
+  isConsentComplete,
+  type ConsentState,
+} from "./signupConsentItems";
 
 export type AuthFormPayload = LoginRequest | StudentSignup | TeacherSignup;
 
@@ -46,7 +52,9 @@ export function AuthForm({ mode, onSubmit }: Props) {
   const [inviteCode, setInviteCode] = useState("");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
+  const [consent, setConsent] = useState<ConsentState>(EMPTY_CONSENT);
   const isLogin = mode === "login";
+  const consentMissing = !isLogin && !isConsentComplete(consent);
 
   useEffect(() => {
     if (!isLogin) return;
@@ -152,6 +160,10 @@ export function AuthForm({ mode, onSubmit }: Props) {
       await completeSignup();
       return;
     }
+    if (consentMissing) {
+      setNotice("필수 약관에 모두 동의해주세요.");
+      return;
+    }
     if (!/^[A-Za-z0-9_]{4,30}$/.test(username.trim())) {
       setNotice("아이디는 영문, 숫자, 밑줄을 사용해 4~30자로 입력해주세요.");
       return;
@@ -245,13 +257,23 @@ export function AuthForm({ mode, onSubmit }: Props) {
           />
         </div>
       </div>
+      {!isLogin && (
+        <SignupConsent
+          value={consent}
+          disabled={busy}
+          onChange={(next) => {
+            setConsent(next);
+            setNotice("");
+          }}
+        />
+      )}
       <div className="auth-submit">
         <div className="auth-submit-actions">
           <Button
             type="submit"
             size="large"
             className={isLogin ? "auth-login-button" : ""}
-            disabled={busy}
+            disabled={busy || consentMissing}
             aria-busy={isLogin ? busy : undefined}
           >
             {isLogin && busy && <span className="auth-loading-spinner" aria-hidden="true" />}
