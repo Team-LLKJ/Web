@@ -51,6 +51,11 @@ export async function logout() {
   }
 }
 
+// 내 정보. 이름 수정.
+export function updateMyName(name: string) {
+  return apiRequest<User>("/api/users/me", { method: "PATCH", body: { name } });
+}
+
 export function createTeacherInvitation(expiresInHours: number) {
   return apiRequest<TeacherInvitation>("/api/auth/teacher-invitations", {
     method: "POST",

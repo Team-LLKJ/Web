@@ -492,7 +492,6 @@
 }
 
 /* ───── 공통 입력창: 입력칸·선택칸·글상자가 같은 모양과 효과를 가집니다 ───── */
-:root .text-input,
 :root .teacher-select-label select,
 :root .auth-role-select select,
 :root .teacher-textarea-label textarea,
@@ -511,7 +510,6 @@
     border-color 0.18s ease,
     background-color 0.18s ease;
 }
-:root .text-input,
 :root .teacher-select-label select,
 :root .auth-role-select select,
 :root .answer-tools-modal input:not([type="checkbox"]),
@@ -524,7 +522,6 @@
 :root .teacher-question-field textarea {
   padding: 12px 15px;
 }
-:root .text-input:hover:not([data-error="true"]),
 :root .teacher-select-label select:hover:not(:disabled),
 :root .auth-role-select select:hover:not(:disabled),
 :root .teacher-textarea-label textarea:hover:not(:disabled),
@@ -534,7 +531,6 @@
 :root .link-popover input:hover:not(:disabled) {
   border-color: var(--color-grey-30);
 }
-:root .text-input:focus-within,
 :root .teacher-select-label select:focus,
 :root .auth-role-select select:focus,
 :root .teacher-textarea-label textarea:focus,
@@ -1098,6 +1094,40 @@
 }
 .header-popover .settings-row:last-of-type {
   border-bottom: 0;
+}
+/* 설정 팝업: 제목(설정)보다 안쪽 글씨를 작게 두어 위계를 맞춥니다. */
+.header-popover .settings-account {
+  gap: 10px;
+  margin-bottom: 8px;
+  padding: 2px 0 16px;
+}
+.header-popover .settings-account .avatar,
+.header-popover .settings-account-guest {
+  width: 40px;
+  height: 40px;
+  font-size: 16px;
+}
+.header-popover .settings-account strong,
+.header-popover .settings-row strong {
+  font-size: var(--font-caption);
+  line-height: 20px;
+}
+.header-popover .settings-account small,
+.header-popover .settings-row small {
+  font-size: 12px;
+  line-height: 18px;
+}
+.header-popover .settings-row {
+  padding: 8px 0 4px;
+}
+.header-popover-foot .header-popover-cta {
+  width: 100%;
+  color: var(--color-grey-90);
+  font-size: var(--font-caption);
+  font-weight: var(--weight-medium);
+}
+.header-popover-foot .header-popover-cta:hover {
+  background: var(--color-grey-20);
 }
 .header-popover::before {
   content: "";

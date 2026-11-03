@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuth } from "../../auth/useAuth";
 import { paths } from "../../router/paths";
 import { Avatar } from "./Avatar";
-import { Button } from "./Button";
 import { Icon } from "./Icon";
 import { IconButton } from "./IconButton";
 import {
@@ -221,13 +220,9 @@ function NotificationsPopover() {
 }
 
 function SettingsPopover() {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const [notify, setNotify] = useState(() =>
     readFlag("lit:setting:notify", true),
-  );
-  const [sound, setSound] = useState(() =>
-    readFlag("lit:setting:sound", false),
   );
   return (
     <HeaderPopover
@@ -235,20 +230,12 @@ function SettingsPopover() {
       icon="settings"
       title="설정"
       footer={
-        <>
-          <Link className="header-popover-link" to={paths.settings}>
-            전체 설정 보기
-          </Link>
-          {user && (
-            <Button
-              size="small"
-              variant="secondary"
-              onClick={() => void logout().then(() => navigate(paths.home))}
-            >
-              로그아웃
-            </Button>
-          )}
-        </>
+        <Link
+          className="button button--secondary button--small neutral header-popover-cta"
+          to={paths.settings}
+        >
+          전체 설정 보기
+        </Link>
       }
     >
       {user ? (
@@ -289,16 +276,6 @@ function SettingsPopover() {
         onChange={(value) => {
           setNotify(value);
           saveFlag("lit:setting:notify", value);
-        }}
-      />
-      <SwitchRow
-        id="setting-sound"
-        label="알림 소리"
-        description="새 알림이 오면 소리로 알려줍니다."
-        checked={sound}
-        onChange={(value) => {
-          setSound(value);
-          saveFlag("lit:setting:sound", value);
         }}
       />
     </HeaderPopover>

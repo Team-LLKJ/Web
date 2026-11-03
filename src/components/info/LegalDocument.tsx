@@ -145,7 +145,9 @@ export function LegalArticles({
         >
           {group.title && (
             <h2 className="legal-section-title">
-              <span>{String(index + 1).padStart(2, "0")}</span>
+              <span aria-hidden="true">
+                {String(index + 1).padStart(2, "0")}
+              </span>
               {group.title}
             </h2>
           )}
@@ -261,9 +263,7 @@ export function LegalDocument({
   return (
     <div className="legal-doc">
       <header className="legal-hero">
-        <p className="legal-eyebrow">LIT 정책</p>
         <h1>{doc.title}</h1>
-        <p className="legal-summary">{doc.summary}</p>
         <dl className="legal-meta">
           <div>
             <dt>시행일</dt>
@@ -271,22 +271,8 @@ export function LegalDocument({
               <LegalText text={doc.effectiveDate} />
             </dd>
           </div>
-          <div>
-            <dt>버전</dt>
-            <dd>{doc.version}</dd>
-          </div>
         </dl>
       </header>
-      {doc.highlights && (
-        <ul className="legal-highlights" aria-label="한눈에 보기">
-          {doc.highlights.map((item) => (
-            <li key={item.label}>
-              <strong>{item.label}</strong>
-              <span>{item.text}</span>
-            </li>
-          ))}
-        </ul>
-      )}
       <LegalArticles doc={doc} idPrefix={idPrefix} />
       <FloatingToc doc={doc} idPrefix={idPrefix} />
     </div>
