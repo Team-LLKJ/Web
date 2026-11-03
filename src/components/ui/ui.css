@@ -1095,6 +1095,40 @@
 .header-popover .settings-row:last-of-type {
   border-bottom: 0;
 }
+/* 설정 팝업: 제목(설정)보다 안쪽 글씨를 작게 두어 위계를 맞춥니다. */
+.header-popover .settings-account {
+  gap: 10px;
+  margin-bottom: 8px;
+  padding: 2px 0 16px;
+}
+.header-popover .settings-account .avatar,
+.header-popover .settings-account-guest {
+  width: 40px;
+  height: 40px;
+  font-size: 16px;
+}
+.header-popover .settings-account strong,
+.header-popover .settings-row strong {
+  font-size: var(--font-caption);
+  line-height: 20px;
+}
+.header-popover .settings-account small,
+.header-popover .settings-row small {
+  font-size: 12px;
+  line-height: 18px;
+}
+.header-popover .settings-row {
+  padding: 8px 0 4px;
+}
+.header-popover-foot .header-popover-cta {
+  width: 100%;
+  color: var(--color-grey-90);
+  font-size: var(--font-caption);
+  font-weight: var(--weight-medium);
+}
+.header-popover-foot .header-popover-cta:hover {
+  background: var(--color-grey-20);
+}
 .header-popover::before {
   content: "";
   position: absolute;

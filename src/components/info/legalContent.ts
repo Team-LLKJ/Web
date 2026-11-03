@@ -11,21 +11,18 @@ export type LegalDocumentData = {
   title: string;
   summary: string;
   effectiveDate: string;
-  version: string;
-  highlights?: { label: string; text: string }[];
   sections?: LegalSection[];
   articles: LegalArticle[];
   addendum: string[];
 };
 
 const OPERATOR = "Team-LLKJ";
-const EFFECTIVE_DATE = "[[시행일 입력 — 예: 2026년 ○월 ○일]]";
+const EFFECTIVE_DATE = "2026년 11월 3일";
 
 export const TERMS_DOCUMENT: LegalDocumentData = {
   title: "이용약관",
   summary: `${OPERATOR}가 운영하는 LIT 서비스를 이용할 때 지켜야 할 약속과 권리·의무를 안내합니다.`,
   effectiveDate: EFFECTIVE_DATE,
-  version: "1.0",
   sections: [
     { title: "총칙", from: "purpose" },
     { title: "회원가입과 계정", from: "signup" },
@@ -297,22 +294,6 @@ export const PRIVACY_DOCUMENT: LegalDocumentData = {
   title: "개인정보 처리방침",
   summary: `${OPERATOR}는 「개인정보 보호법」 제30조에 따라 정보주체의 개인정보를 보호하고 관련 고충을 빠르게 처리하기 위해 다음과 같이 개인정보 처리방침을 정하여 공개합니다.`,
   effectiveDate: EFFECTIVE_DATE,
-  version: "1.0",
-  highlights: [
-    {
-      label: "처리하는 정보",
-      text: "계정 정보, 학생 닉네임·답안·AI 대화 기록, 활동 기록",
-    },
-    {
-      label: "쓰는 곳",
-      text: "수행평가 운영과 채점, AI 응답 생성, 서비스 안정성 확인",
-    },
-    { label: "맡기는 곳", text: "AI 응답 생성, 서버 운영 업체" },
-    {
-      label: "보관 기간",
-      text: "탈퇴하거나 평가 기록을 삭제하면 지체 없이 파기",
-    },
-  ],
   sections: [
     { title: "수집과 이용", from: "purpose" },
     { title: "제공과 위탁", from: "third-party" },
@@ -600,7 +581,6 @@ export const SIGNUP_PRIVACY_CONSENT: LegalDocumentData = {
   title: "개인정보 수집·이용 동의",
   summary: "LIT 회원가입을 위해 아래와 같이 개인정보를 수집·이용합니다.",
   effectiveDate: EFFECTIVE_DATE,
-  version: "1.0",
   articles: [
     {
       id: "consent-purpose",

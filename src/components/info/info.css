@@ -47,48 +47,29 @@
 
 /* ───── 이용약관·개인정보 처리방침 ───── */
 .legal-hero {
-  padding: 36px 40px;
-  border-radius: 20px;
-  background: var(--color-primary-soft);
-}
-.legal-eyebrow {
-  margin-bottom: 8px;
-  color: var(--color-primary-dark);
-  font-size: var(--font-caption);
-  font-weight: var(--weight-semibold);
-  line-height: var(--line-caption);
-}
-.legal-summary {
-  max-width: 680px;
-  margin-top: 12px;
-  color: var(--color-grey-60);
-  font-size: var(--font-text-sm);
-  line-height: 1.7;
+  padding: 0 4px;
 }
 .legal-meta {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin: 20px 0 0;
+  margin: 16px 0 0;
 }
 .legal-meta > div {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   align-items: baseline;
-  padding: 6px 12px;
-  border-radius: 10px;
-  background: var(--color-white);
+  color: var(--color-grey-40);
   font-size: var(--font-caption);
   line-height: var(--line-caption);
 }
 .legal-meta dt {
   flex-shrink: 0;
-  color: var(--color-grey-50);
 }
 .legal-meta dd {
   margin: 0;
-  color: var(--color-grey-90);
-  font-weight: var(--weight-semibold);
+  color: var(--color-grey-50);
+  font-weight: var(--weight-medium);
 }
 .legal-placeholder {
   padding: 1px 6px;
@@ -98,37 +79,10 @@
   color: #7a4b00;
   font-weight: var(--weight-semibold);
 }
-.legal-highlights {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
-  margin: 16px 0 0;
-  padding: 0;
-  list-style: none;
-}
-.legal-highlights li {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 16px 18px;
-  border-radius: 14px;
-  background: var(--color-white);
-  border: 1px solid var(--color-grey-10);
-}
-.legal-highlights strong {
-  color: var(--color-primary-dark);
-  font-size: var(--font-caption);
-  font-weight: var(--weight-semibold);
-}
-.legal-highlights span {
-  color: var(--color-grey-90);
-  font-size: var(--font-text-sm);
-  line-height: 1.5;
-}
 .legal-articles {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 56px;
   margin-top: 40px;
 }
 .legal-section {
@@ -136,18 +90,27 @@
 }
 .legal-section-title {
   display: flex;
-  align-items: baseline;
-  gap: 10px;
-  margin: 0 0 12px 4px;
+  align-items: center;
+  gap: 14px;
+  margin: 0 0 16px 4px;
   color: var(--color-grey-90);
   font-size: var(--font-title-sm);
   font-weight: var(--weight-bold);
   line-height: var(--line-title-sm);
 }
 .legal-section-title span {
-  color: var(--color-primary);
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
   font-size: var(--font-text-md);
-  font-weight: var(--weight-semibold);
+  font-weight: var(--weight-bold);
+  line-height: 1;
   font-variant-numeric: tabular-nums;
 }
 .legal-section-card {
@@ -234,26 +197,14 @@
   padding-bottom: 32px;
 }
 
-@media (max-width: 900px) {
-  .legal-highlights {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
 @media (max-width: 600px) {
   .info-main,
   .info-main--wide {
     width: calc(100% - 32px);
     padding: 84px 0 48px;
   }
-  .legal-hero {
-    padding: 24px 20px;
-    border-radius: 16px;
-  }
-  .legal-highlights {
-    grid-template-columns: minmax(0, 1fr);
-  }
   .legal-articles {
-    gap: 24px;
+    gap: 40px;
     margin-top: 28px;
   }
   .legal-section-card {
@@ -326,7 +277,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 10px;
+  gap: 14px;
   padding: 10px 6px;
   border-radius: 10px;
   background: transparent;
@@ -339,20 +290,20 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 5px;
+  gap: 7px;
 }
 .legal-float-group > span {
   display: block;
-  width: 12px;
-  height: 2px;
-  border-radius: 2px;
-  background: var(--color-grey-20);
+  width: 16px;
+  height: 3px;
+  border-radius: 3px;
+  background: #e1e1e5;
   transition:
     width 0.2s ease,
     background-color 0.2s ease;
 }
 .legal-float-group > span.is-active {
-  width: 20px;
+  width: 26px;
   background: var(--color-primary);
 }
 .legal-float-panel {
@@ -544,12 +495,47 @@
 .settings-link-row:hover .info-chevron {
   stroke: var(--color-primary);
 }
-.settings-logout {
+.settings-name-value {
   display: flex;
-  justify-content: center;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
 }
-.settings-logout .button {
-  min-width: 160px;
+.settings-text-button {
+  flex-shrink: 0;
+  padding: 2px 4px;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-primary);
+  font-size: var(--font-caption);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+}
+.settings-text-button:hover {
+  background: var(--color-primary-background);
+}
+.settings-info-list > .settings-name-edit {
+  flex-direction: column;
+  gap: 10px;
+}
+.settings-name-edit dd {
+  text-align: left;
+}
+.settings-name-edit form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.settings-name-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+/* 로그아웃은 화면 맨 아래 가운데에 작게 둡니다. */
+.settings-logout {
+  align-self: center;
+  min-width: 120px;
+  margin-top: 8px;
 }
 @media (max-width: 600px) {
   .settings-profile {
@@ -561,9 +547,6 @@
   }
   .settings-group-card {
     padding: 4px 16px;
-  }
-  .settings-logout .button {
-    width: 100%;
   }
 }
 

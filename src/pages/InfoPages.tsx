@@ -1,5 +1,7 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { updateMyName } from "../api/auth";
+import { apiErrorMessage } from "../api/client";
 import { useAuth } from "../auth/useAuth";
 import { LegalDocument } from "../components/info/LegalDocument";
 import {
@@ -14,6 +16,7 @@ import {
   NotificationRowContent,
   SwitchRow,
 } from "../components/ui/HeaderDialogs";
+import { TextInput } from "../components/ui/TextInput";
 import { Skeleton, SkeletonStatus } from "../components/ui/Skeleton";
 import { Tabs } from "../components/ui/Tabs";
 import { toNotificationRow } from "../components/ui/headerSettings";
@@ -115,12 +118,104 @@ function ProfileSkeleton() {
   );
 }
 
+/** 계정 정보의 이름 줄. '수정'을 누르면 그 자리에서 입력칸으로 바뀝니다. */
+function NameRow({ name }: { name: string }) {
+  const { reloadUser } = useAuth();
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(name);
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    const next = value.trim();
+    if (!next || next.length > 50) {
+      setError("이름을 50자 이내로 입력해주세요.");
+      return;
+    }
+    if (next === name) {
+      setEditing(false);
+      return;
+    }
+    setSaving(true);
+    try {
+      await updateMyName(next);
+      await reloadUser();
+      setEditing(false);
+      setError("");
+    } catch (caught) {
+      setError(apiErrorMessage(caught, "이름을 바꾸지 못했습니다."));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (!editing) {
+    return (
+      <div>
+        <dt>이름</dt>
+        <dd className="settings-name-value">
+          {name}
+          <button
+            type="button"
+            className="settings-text-button"
+            onClick={() => {
+              setValue(name);
+              setError("");
+              setEditing(true);
+            }}
+          >
+            수정
+          </button>
+        </dd>
+      </div>
+    );
+  }
+
+  return (
+    <div className="settings-name-edit">
+      <dt>
+        <label htmlFor="settings-name">이름</label>
+      </dt>
+      <dd>
+        <form onSubmit={(event) => void submit(event)} noValidate>
+          <TextInput
+            id="settings-name"
+            value={value}
+            maxLength={50}
+            autoComplete="name"
+            autoFocus
+            disabled={saving}
+            error={error || undefined}
+            onChange={(event) => {
+              setValue(event.target.value);
+              setError("");
+            }}
+          />
+          <div className="settings-name-actions">
+            <Button
+              size="small"
+              variant="secondary"
+              disabled={saving}
+              onClick={() => setEditing(false)}
+            >
+              취소
+            </Button>
+            <Button size="small" type="submit" loading={saving}>
+              저장
+            </Button>
+          </div>
+        </form>
+      </dd>
+    </div>
+  );
+}
+
 export function SettingsPage() {
   const { user, loading, logout } = useAuth();
   const navigate = useNavigate();
-  const { notify, sound, error: settingsError, setNotify, setSound } = useUserSettings();
+  const { notify, error: settingsError, setNotify } = useUserSettings();
   const [loggingOut, setLoggingOut] = useState(false);
-  const roleLabel = user?.role === "TEACHER" ? "선생님" : "학생";
 
   return (
     <InfoLayout
@@ -169,10 +264,7 @@ export function SettingsPage() {
                 <dt>아이디</dt>
                 <dd>{user.username}</dd>
               </div>
-              <div>
-                <dt>구분</dt>
-                <dd>{roleLabel}</dd>
-              </div>
+              <NameRow key={user.name} name={user.name} />
               {user.role === "STUDENT" && user.grade !== null && (
                 <div>
                   <dt>학년·반·번호</dt>
@@ -195,14 +287,11 @@ export function SettingsPage() {
             checked={notify}
             onChange={(value) => void setNotify(value)}
           />
-          <SwitchRow
-            id="page-sound"
-            label="알림 소리"
-            description="새 알림이 오면 소리로 알려줍니다."
-            checked={sound}
-            onChange={(value) => void setSound(value)}
-          />
-          {settingsError && <p className="info-error" role="alert">{settingsError}</p>}
+          {settingsError && (
+            <p className="info-error" role="alert">
+              {settingsError}
+            </p>
+          )}
         </SettingsGroup>
 
         <SettingsGroup title="서비스 정보">
@@ -221,20 +310,20 @@ export function SettingsPage() {
         </SettingsGroup>
 
         {user && (
-          <div className="settings-logout">
-            <Button
-              variant="secondary"
-              loading={loggingOut}
-              onClick={() => {
-                setLoggingOut(true);
-                void logout()
-                  .then(() => navigate(paths.home))
-                  .finally(() => setLoggingOut(false));
-              }}
-            >
-              로그아웃
-            </Button>
-          </div>
+          <Button
+            variant="white-danger"
+            size="small"
+            className="settings-logout"
+            loading={loggingOut}
+            onClick={() => {
+              setLoggingOut(true);
+              void logout()
+                .then(() => navigate(paths.home))
+                .finally(() => setLoggingOut(false));
+            }}
+          >
+            로그아웃
+          </Button>
         )}
       </div>
     </InfoLayout>
@@ -246,10 +335,12 @@ export function NotificationsPage() {
   const [filter, setFilter] = useState<"all" | "unread">("all");
   const { user } = useAuth();
   const enabled = user?.role === "TEACHER";
-  const { items, unread, loading, error, markRead, markAllRead } = useNotifications(enabled);
+  const { items, unread, loading, error, markRead, markAllRead } =
+    useNotifications(enabled);
   const rows = items.map(toNotificationRow);
   const unreadCount = enabled ? unread : 0;
-  const isRead = (id: string) => rows.find((item) => item.id === id)?.read ?? true;
+  const isRead = (id: string) =>
+    rows.find((item) => item.id === id)?.read ?? true;
   const selectedId = params.get("id");
   const selected = rows.find((item) => item.id === selectedId);
   const visible = rows.filter(
@@ -311,7 +402,11 @@ export function NotificationsPage() {
           </div>
         ) : visible.length === 0 ? (
           <div className="notifications-empty">
-            <strong>{filter === "unread" ? "읽지 않은 알림이 없습니다" : "알림이 없습니다"}</strong>
+            <strong>
+              {filter === "unread"
+                ? "읽지 않은 알림이 없습니다"
+                : "알림이 없습니다"}
+            </strong>
             <p>새 소식이 오면 이곳에 표시됩니다.</p>
           </div>
         ) : (

@@ -1,44 +1,17 @@
 import { useState, type FormEvent } from "react";
-import { changeMyPassword, updateMyName } from "../../api/auth";
+import { changeMyPassword } from "../../api/auth";
 import { apiErrorMessage } from "../../api/client";
-import { useAuth } from "../../auth/useAuth";
 import { Button } from "../ui/Button";
 import { TextInput } from "../ui/TextInput";
 
-/** 설정 화면의 계정 관리: 이름 수정과 비밀번호 변경(선생님 전용). */
+/** 설정 화면의 비밀번호 변경(선생님 전용). 이름 수정은 계정 정보 카드에서 합니다. */
 export function AccountSettings() {
-  const { user, reloadUser } = useAuth();
-  const [name, setName] = useState(user?.name ?? "");
-  const [nameError, setNameError] = useState("");
-  const [nameDone, setNameDone] = useState("");
-  const [nameBusy, setNameBusy] = useState(false);
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
   const [confirm, setConfirm] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [passwordDone, setPasswordDone] = useState("");
   const [passwordBusy, setPasswordBusy] = useState(false);
-
-  async function submitName(event: FormEvent) {
-    event.preventDefault();
-    setNameDone("");
-    const value = name.trim();
-    if (!value || value.length > 50) {
-      setNameError("이름을 50자 이내로 입력해주세요.");
-      return;
-    }
-    setNameBusy(true);
-    try {
-      await updateMyName(value);
-      await reloadUser();
-      setNameError("");
-      setNameDone("이름을 바꿨어요.");
-    } catch (caught) {
-      setNameError(apiErrorMessage(caught, "이름을 바꾸지 못했습니다."));
-    } finally {
-      setNameBusy(false);
-    }
-  }
 
   async function submitPassword(event: FormEvent) {
     event.preventDefault();
@@ -64,33 +37,22 @@ export function AccountSettings() {
       setPasswordError("");
       setPasswordDone(result?.message ?? "비밀번호를 바꿨어요.");
     } catch (caught) {
-      setPasswordError(apiErrorMessage(caught, "비밀번호를 바꾸지 못했습니다."));
+      setPasswordError(
+        apiErrorMessage(caught, "비밀번호를 바꾸지 못했습니다."),
+      );
     } finally {
       setPasswordBusy(false);
     }
   }
 
   return (
-    <section className="info-card">
-      <h2>내 정보</h2>
-      <form className="info-form" onSubmit={submitName}>
-        <TextInput
-          label="이름"
-          value={name}
-          maxLength={50}
-          error={nameError}
-          onChange={(event) => {
-            setName(event.target.value);
-            setNameError("");
-            setNameDone("");
-          }}
-        />
-        {nameDone && <p className="info-done">{nameDone}</p>}
-        <div className="info-actions">
-          <Button type="submit" loading={nameBusy}>이름 저장</Button>
-        </div>
-      </form>
-      <form className="info-form" onSubmit={submitPassword}>
+    <section className="settings-group" aria-label="비밀번호 변경">
+      <h2>비밀번호 변경</h2>
+      <form
+        className="settings-group-card settings-password-form"
+        onSubmit={submitPassword}
+        noValidate
+      >
         <TextInput
           label="현재 비밀번호"
           type="password"
@@ -122,9 +84,13 @@ export function AccountSettings() {
             setPasswordError("");
           }}
         />
-        {passwordDone && <p className="info-done">{passwordDone}</p>}
-        <div className="info-actions">
-          <Button type="submit" loading={passwordBusy}>비밀번호 변경</Button>
+        {passwordDone && (
+          <p className="settings-password-done">{passwordDone}</p>
+        )}
+        <div className="settings-name-actions">
+          <Button size="small" type="submit" loading={passwordBusy}>
+            비밀번호 변경
+          </Button>
         </div>
       </form>
     </section>

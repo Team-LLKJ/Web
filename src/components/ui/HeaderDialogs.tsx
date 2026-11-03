@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuth } from "../../auth/useAuth";
 import { paths } from "../../router/paths";
 import { Avatar } from "./Avatar";
-import { Button } from "./Button";
 import { Icon } from "./Icon";
 import { IconButton } from "./IconButton";
 import {
@@ -182,12 +181,10 @@ function NotificationsPopover() {
   const { user } = useAuth();
   const settings = useUserSettings();
   const enabled = user?.role === "TEACHER";
-  const { items, unread, loading, error, markRead, markAllRead } = useNotifications(
-    enabled,
-    () => {
+  const { items, unread, loading, error, markRead, markAllRead } =
+    useNotifications(enabled, () => {
       if (settings.notify && settings.sound) playAlertSound();
-    },
-  );
+    });
   const rows = items.map(toNotificationRow);
   const unreadCount = enabled ? unread : 0;
   return (
@@ -213,7 +210,9 @@ function NotificationsPopover() {
       }
     >
       {!enabled ? (
-        <p className="notification-empty">선생님으로 로그인하면 평가 소식을 알림으로 받을 수 있어요.</p>
+        <p className="notification-empty">
+          선생님으로 로그인하면 평가 소식을 알림으로 받을 수 있어요.
+        </p>
       ) : loading ? (
         <p className="notification-empty">알림을 불러오고 있어요.</p>
       ) : error ? (
@@ -242,29 +241,20 @@ function NotificationsPopover() {
 }
 
 function SettingsPopover() {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
-  const { notify, sound, error, setNotify, setSound } = useUserSettings();
+  const { user } = useAuth();
+  const { notify, error, setNotify } = useUserSettings();
   return (
     <HeaderPopover
       label="설정"
       icon="settings"
       title="설정"
       footer={
-        <>
-          <Link className="header-popover-link" to={paths.settings}>
-            전체 설정 보기
-          </Link>
-          {user && (
-            <Button
-              size="small"
-              variant="secondary"
-              onClick={() => void logout().then(() => navigate(paths.home))}
-            >
-              로그아웃
-            </Button>
-          )}
-        </>
+        <Link
+          className="button button--secondary button--small neutral header-popover-cta"
+          to={paths.settings}
+        >
+          전체 설정 보기
+        </Link>
       }
     >
       {user ? (
@@ -304,14 +294,11 @@ function SettingsPopover() {
         checked={notify}
         onChange={(value) => void setNotify(value)}
       />
-      <SwitchRow
-        id="setting-sound"
-        label="알림 소리"
-        description="새 알림이 오면 소리로 알려줍니다."
-        checked={sound}
-        onChange={(value) => void setSound(value)}
-      />
-      {error && <p className="notification-empty" role="alert">{error}</p>}
+      {error && (
+        <p className="notification-empty" role="alert">
+          {error}
+        </p>
+      )}
     </HeaderPopover>
   );
 }

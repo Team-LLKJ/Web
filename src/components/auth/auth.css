@@ -616,6 +616,8 @@
   font-size: var(--font-text-lg);
 }
 .legal-modal .legal-section-title span {
+  width: 28px;
+  height: 28px;
   font-size: var(--font-caption);
 }
 .legal-modal .legal-section-card {
