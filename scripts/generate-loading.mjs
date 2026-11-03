@@ -22,6 +22,7 @@ try {
     "lobby",
     "form",
     "edit",
+    "assessment-edit",
     "results",
     "grading",
     "neutral",

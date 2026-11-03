@@ -5,6 +5,7 @@
 @import "../student/student.css";
 @import "../teacher/teacher.css";
 @import "./skeleton.css";
+@import "../teacher/assessment-edit-skeleton.css";
 
 body {
   margin: 0;
@@ -116,4 +117,30 @@ body {
   margin: 0 0 20px;
   font-size: var(--font-title-md);
   line-height: var(--line-title-md);
+}
+
+.page-loading-header nav {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.page-loading-header nav a {
+  display: inline-flex;
+  text-decoration: none;
+  color: var(--color-grey-60);
+}
+.page-loading-header nav img {
+  width: 22px;
+  height: 22px;
+}
+.page-loading-exit {
+  padding: 8px 16px;
+  border-radius: 10px;
+  background: var(--color-grey-10);
+}
+.page-loading .teacher-rich-editor {
+  min-height: 205px;
+}
+.page-loading .teacher-step-number {
+  flex-shrink: 0;
 }

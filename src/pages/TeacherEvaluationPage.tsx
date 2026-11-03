@@ -520,7 +520,7 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
     }
   }
 
-  if (loading) return <PageLoading layout={editFolderId ? "form" : "lobby"} />;
+  if (loading) return <PageLoading layout={editFolderId ? "assessment-edit" : "lobby"} />;
 
   return (
     <main className="teacher-page">

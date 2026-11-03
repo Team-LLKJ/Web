@@ -1,9 +1,16 @@
 import {
+  AssessmentEditSkeleton,
+  EvaluationEditSkeleton,
+} from "./AssessmentEditSkeleton";
+import {
   StudentSidebarSkeleton,
   SubmissionSkeleton,
-  ReviewSkeleton,
 } from "../grading/GradingSkeleton";
+import { Tabs } from "../ui/Tabs";
+import { ChatHistorySkeleton } from "../grading/ChatHistorySkeleton";
 import { StudentWorkspace } from "../student/StudentWorkspace";
+import { RichTextEditor } from "./RichTextEditor";
+import { TextInput } from "../ui/TextInput";
 import { Skeleton } from "../ui/Skeleton";
 import type { LoadingLayout } from "../ui/loadingLayout";
 
@@ -54,7 +61,7 @@ function Folder() {
   return (
     <>
       <div className="folder-back">
-        <Line width="110px" />
+        <a href="/teacher/folders">← 내 수행평가</a>
       </div>
       <div className="teacher-list-title-row">
         <Title />
@@ -176,57 +183,55 @@ function Lobby() {
 function Form() {
   return (
     <>
-      <Title />
-      <div className="teacher-create-card">
-        <div className="teacher-create-stepper">
-          {["기본 정보", "평가 설정", "문항 작성"].map((label, i) => (
+      <h1 className="screen-loading-title">수행평가 만들기</h1>
+      <div className="teacher-create-card" inert>
+        <div className="teacher-create-stepper" aria-label="평가 생성 단계">
+          {["평가 정보", "평가 설정", "문항 작성"].map((label, i) => (
             <span key={label} className={i === 0 ? "is-current" : ""}>
-              <b className="teacher-step-number">{i + 1}</b>
-              {label}
+              <span className="teacher-step-number">{i + 1}</span>
+              <span>{label}</span>
             </span>
           ))}
         </div>
         <section className="teacher-card teacher-create-section">
           <header className="teacher-create-section-head">
-            <h2>기본 정보</h2>
+            <h2>
+              <span className="teacher-section-num">1</span>기본 정보
+            </h2>
           </header>
           <div className="teacher-form-grid">
-            {["수행평가 제목", "평가 설명"].map((label) => (
-              <div className="screen-loading-field" key={label}>
-                <span>{label}</span>
-                <Line height={label === "평가 설명" ? "110px" : "46px"} />
-              </div>
-            ))}
+            <TextInput
+              label="수행평가 제목"
+              placeholder="예) 2학기 국어 수행평가"
+              disabled
+            />
           </div>
         </section>
-        <div className="teacher-form-actions teacher-form-actions--end">
-          <Line width="100px" height="42px" />
-        </div>
-      </div>
-    </>
-  );
-}
-
-function Edit() {
-  return (
-    <>
-      <div className="teacher-list-title-row">
-        <div>
-          <h1>수행평가 수정</h1>
-          <p>
-            <Line width="12em" />
+        <section className="teacher-card teacher-create-section">
+          <header className="teacher-create-section-head">
+            <h2>
+              <span className="teacher-section-num">2</span>평가 내용
+            </h2>
+          </header>
+          <RichTextEditor
+            label="평가 내용"
+            value=""
+            placeholder="평가 기준이나 규칙을 적어 주세요."
+            onChange={() => {}}
+          />
+          <p className="teacher-section-hint">
+            학생 화면에는 텍스트로 공유돼요. 서식은 줄바꿈 위주로 저장되며 최대
+            10,000자까지 입력할 수 있어요.
           </p>
-        </div>
-        <Line width="100px" height="42px" />
-      </div>
-      <section className="teacher-card teacher-config-card screen-loading-field">
-        {["AI 사용 정책", "평가 항목", "문항"].map((label, i) => (
-          <div className="screen-loading-field" key={label}>
-            <span>{label}</span>
-            <Line height={i === 2 ? "120px" : "46px"} />
+        </section>
+        <div className="teacher-form-actions teacher-form-actions--bar">
+          <div>
+            <button className="button button--primary primary" disabled>
+              다음
+            </button>
           </div>
-        ))}
-      </section>
+        </div>
+      </div>
     </>
   );
 }
@@ -282,7 +287,25 @@ function Grading() {
         storageKey="lit:teacher-sidebar-width:v2"
         defaultWidth={36}
         editor={<SubmissionSkeleton />}
-        chat={<ReviewSkeleton />}
+        chat={
+          <aside className="details" aria-label="학생 평가 자료">
+            <Tabs
+              label="평가 자료"
+              value="AI 대화창"
+              items={["AI 대화창", "활동", "루브릭"].map((value) => ({
+                value,
+                label: value,
+              }))}
+              onChange={() => {}}
+              variant="pill"
+            />
+            <div className="review-panel-scroll">
+              <div className="messages student-chat teacher-chat">
+                <ChatHistorySkeleton count={4} />
+              </div>
+            </div>
+          </aside>
+        }
       />
     </div>
   );
@@ -295,8 +318,10 @@ export function TeacherScreenSkeleton({ layout }: { layout: LoadingLayout }) {
         <Folder />
       ) : layout === "lobby" ? (
         <Lobby />
+      ) : layout === "assessment-edit" ? (
+        <AssessmentEditSkeleton />
       ) : layout === "edit" ? (
-        <Edit />
+        <EvaluationEditSkeleton />
       ) : layout === "form" ? (
         <Form />
       ) : layout === "results" ? (
