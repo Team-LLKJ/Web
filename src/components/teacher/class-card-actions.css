@@ -1,0 +1,8 @@
+/* 반 카드의 수정·삭제 버튼: 아이콘 크기와 호버 색상 */
+.evaluation-card-actions > button svg {
+  width: 22px;
+  height: 22px;
+}
+.evaluation-card-actions > button:first-child:hover {
+  color: var(--color-primary);
+}

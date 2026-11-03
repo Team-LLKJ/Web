@@ -517,7 +517,7 @@
   border-radius: 8px;
   background: transparent;
   color: var(--color-grey-50);
-  font-size: 12px;
+  font-size: calc(12px + var(--font-bump));
   line-height: 16px;
   text-align: center;
   transition:
@@ -550,7 +550,7 @@
   background: #fff1f0;
   border-bottom: 1px solid #ffc9c5;
   color: #b42318;
-  font-size: 14px;
+  font-size: calc(14px + var(--font-bump));
 }
 .grading-error button {
   border: 0;
@@ -588,12 +588,12 @@
   text-align: center;
 }
 .review-locked strong {
-  font-size: 15px;
+  font-size: calc(15px + var(--font-bump));
 }
 .review-locked p {
   margin: 0;
   color: var(--color-grey-60, #636366);
-  font-size: 14px;
+  font-size: calc(14px + var(--font-bump));
   line-height: 1.5;
 }
 
@@ -626,10 +626,10 @@
     padding: 20px 14px;
   }
   .review-locked strong {
-    font-size: 14px;
+    font-size: calc(14px + var(--font-bump));
   }
   .review-locked p {
-    font-size: 13px;
+    font-size: calc(13px + var(--font-bump));
   }
   .review-locked--compact {
     margin: 12px 15px 0;
@@ -667,7 +667,7 @@
   box-shadow: none;
   background: #fff;
   color: #1c1c1e;
-  font-size: 12px;
+  font-size: calc(12px + var(--font-bump));
 }
 .teacher-submission .student-answer-content.tiptap :is(p, h1, h2, h3) {
   margin: 0 0 6px;
@@ -683,7 +683,7 @@
 }
 
 .teacher-submission .teacher-question p {
-  font-size: 17px;
+  font-size: calc(17px + var(--font-bump));
   line-height: 1.65;
   font-weight: 500;
 }
@@ -712,7 +712,7 @@
 }
 .warnings-card .warning-description {
   gap: 10px;
-  font-size: 15px;
+  font-size: calc(15px + var(--font-bump));
   line-height: 1.4;
 }
 .warnings-card .warning-icon {
@@ -729,7 +729,7 @@
   height: 16px;
 }
 .warnings-card .warning-row time {
-  font-size: 13px;
+  font-size: calc(13px + var(--font-bump));
   line-height: 1.4;
   font-variant-numeric: tabular-nums;
 }

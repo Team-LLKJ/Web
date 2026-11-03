@@ -12,6 +12,7 @@ export type LoadingLayout =
 export function getLoadingLayout(pathname: string): LoadingLayout {
   const path = pathname.replace(/\/+$/, "");
   if (/^\/teacher(?:\/(?:folders|evaluations))?$/.test(path)) return "list";
+  if (/^\/teacher\/folders\/[^/]+\/edit$/.test(path)) return "form";
   if (/^\/teacher\/evaluations\/[^/]+\/edit$/.test(path)) return "edit";
   if (/^\/teacher\/(?:folders|evaluations)\/new$/.test(path)) return "form";
   if (/^\/teacher\/evaluations\/[^/]+\/results$/.test(path)) return "results";

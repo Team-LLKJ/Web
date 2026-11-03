@@ -1,0 +1,7 @@
+/* 수행평가 상세: px로 고정돼 있던 작은 글자를 2px 키움 */
+.folder-chips li {
+  font-size: 15px;
+}
+.folder-policy small {
+  font-size: 15px;
+}

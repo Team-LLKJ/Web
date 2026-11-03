@@ -1,0 +1,4 @@
+/* 안내(파란색) 토스트: 어떤 배경 위에서도 어색하지 않게 흰 배경 */
+.teacher-toast.teacher-toast--info {
+  background: var(--color-white);
+}

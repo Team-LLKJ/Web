@@ -1,4 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../auth/useAuth";
+import { homePathFor } from "../router/paths";
 import { LandingHeader } from "../components/landing/LandingHeader";
 import { LandingHero } from "../components/landing/LandingHero";
 import { FeatureSection } from "../components/landing/FeatureSection";
@@ -9,6 +12,7 @@ import { Modal } from "../components/ui/Modal";
 import { Button } from "../components/ui/Button";
 import "../components/landing/landing.css";
 export function LandingPage() {
+  const { user, loading } = useAuth();
   const [notice, setNotice] = useState("");
   const pageRef = useRef<HTMLDivElement>(null);
 
@@ -41,6 +45,9 @@ export function LandingPage() {
       page.classList.remove("reveal-ready");
     };
   }, []);
+
+  // 이미 로그인되어 있으면 소개 화면 대신 기본 페이지로 바로 이동합니다.
+  if (!loading && user) return <Navigate to={homePathFor(user.role)} replace />;
 
   return (
     <div className="landing-page" ref={pageRef}>
