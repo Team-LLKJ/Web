@@ -1,6 +1,9 @@
 import { ApiError, apiRequest, clearTokens, setTokens } from "./client";
 import type {
   ApiMessage,
+  Consents,
+  EmailVerificationConfirmed,
+  EmailVerificationSent,
   LoginRequest,
   StudentSignup,
   TeacherInvitation,
@@ -51,11 +54,6 @@ export async function logout() {
   }
 }
 
-// 내 정보. 이름 수정.
-export function updateMyName(name: string) {
-  return apiRequest<User>("/api/users/me", { method: "PATCH", body: { name } });
-}
-
 export function createTeacherInvitation(expiresInHours: number) {
   return apiRequest<TeacherInvitation>("/api/auth/teacher-invitations", {
     method: "POST",
@@ -79,3 +77,51 @@ export function confirmPasswordReset(token: string, newPassword: string) {
   });
 }
 
+
+// 내 정보. 이름 수정과 비밀번호 변경(다른 기기의 로그인은 서버가 해제합니다).
+export function updateMyName(name: string) {
+  return apiRequest<User>("/api/users/me", { method: "PATCH", body: { name } });
+}
+
+export function changeMyPassword(currentPassword: string, newPassword: string) {
+  return apiRequest<ApiMessage>("/api/users/me/password", {
+    method: "POST",
+    body: { currentPassword, newPassword },
+  });
+}
+
+// 회원가입 도우미(공개 API): 아이디 중복 확인과 이메일 인증번호 발송·확인.
+export function checkUsernameAvailable(username: string) {
+  return apiRequest<{ username: string; available: boolean }>(
+    `/api/auth/username-availability?${new URLSearchParams({ username })}`,
+    { auth: false },
+  );
+}
+
+export function sendEmailVerification(email: string) {
+  return apiRequest<EmailVerificationSent>("/api/auth/email-verifications", {
+    method: "POST",
+    body: { email },
+    auth: false,
+  });
+}
+
+export function confirmEmailVerification(email: string, code: string) {
+  return apiRequest<EmailVerificationConfirmed>("/api/auth/email-verifications/confirm", {
+    method: "POST",
+    body: { email, code },
+    auth: false,
+  });
+}
+
+// 이용약관·개인정보 처리방침 동의(로그인한 교사).
+export function getConsents() {
+  return apiRequest<Consents>("/api/users/me/consents");
+}
+
+export function acceptConsents(termsVersion: string, privacyVersion: string) {
+  return apiRequest<Consents>("/api/users/me/consents", {
+    method: "POST",
+    body: { termsVersion, termsAccepted: true, privacyVersion, privacyAccepted: true },
+  });
+}

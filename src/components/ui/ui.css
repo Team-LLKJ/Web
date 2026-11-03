@@ -716,7 +716,7 @@
   align-items: center;
   gap: 4px;
   color: var(--color-grey-40);
-  font-size: 13px;
+  font-size: calc(13px + var(--font-bump));
   line-height: 18px;
 }
 .notification-item-body {
@@ -764,7 +764,7 @@
   border-radius: 999px;
   background: var(--color-danger);
   color: var(--color-white);
-  font-size: 11px;
+  font-size: calc(11px + var(--font-bump));
   font-weight: var(--weight-semibold);
   line-height: 14px;
   text-align: center;
@@ -783,7 +783,7 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  font-size: 18px;
+  font-size: calc(18px + var(--font-bump));
   font-weight: var(--weight-semibold);
 }
 .settings-account-guest {
@@ -1011,18 +1011,18 @@
 
 /* 모달 글자 크기: 제목 22px / 본문 16px / 버튼 16px */
 :root .modal .modal-heading h2 {
-  font-size: 22px;
+  font-size: calc(22px + var(--font-bump));
   line-height: 30px;
 }
 :root .modal > p,
 :root .modal > form > p,
 :root .modal .student-policy-copy p,
 :root .modal .submission-preview-message p {
-  font-size: 16px;
+  font-size: calc(16px + var(--font-bump));
   line-height: 24px;
 }
 :root .modal .modal-actions .button {
-  font-size: 16px;
+  font-size: calc(16px + var(--font-bump));
   line-height: 24px;
 }
 
@@ -1055,7 +1055,7 @@
   padding: 14px 16px 10px;
 }
 .header-popover-head h2 {
-  font-size: 18px;
+  font-size: calc(18px + var(--font-bump));
   line-height: 26px;
   font-weight: var(--weight-semibold);
 }
@@ -1080,7 +1080,7 @@
 }
 .header-popover-link {
   color: var(--color-primary);
-  font-size: 14px;
+  font-size: calc(14px + var(--font-bump));
   line-height: 20px;
   background: transparent;
   cursor: pointer;
@@ -1194,4 +1194,61 @@
   .button-spinner {
     animation-duration: 1.6s;
   }
+}
+
+/* 알림: 눌러서 이동하는 항목, 빈 안내, 안 읽은 알림 표시 */
+.notification-open {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.notification-open:hover strong {
+  color: var(--color-primary);
+}
+.notification-empty {
+  margin: 0;
+  padding: 18px 8px;
+  color: var(--color-grey-50);
+  font-size: var(--font-text-sm);
+  text-align: center;
+}
+.icon-button {
+  position: relative;
+}
+.header-icon-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 9px;
+  height: 9px;
+  border: 2px solid var(--color-white);
+  border-radius: 50%;
+  background: var(--color-primary);
+}
+
+
+/* 모든 세그먼트 탭바 크기 통일 */
+:root:root:root:root .segment-tabs {
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+}
+:root:root:root:root .segment-tabs button {
+  min-width: 0;
+  padding: 8px 22px;
+  border-radius: 9px;
+  font-size: var(--font-text-sm);
+  line-height: var(--line-text-sm);
+}
+:root:root:root:root .segment-thumb {
+  top: 4px;
+  bottom: 4px;
+  border-radius: 9px;
 }

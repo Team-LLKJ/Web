@@ -10,6 +10,8 @@ export function QuestionFields({
   onRemove,
   onMove,
   showAdd = true,
+  errorKey = null,
+  errorMessage = "",
 }: {
   questions: DraftQuestion[];
   disabled: boolean;
@@ -24,6 +26,9 @@ export function QuestionFields({
   onMove: (key: string, toIndex: number) => void;
   /** false면 하단 "문항 추가" 버튼을 그리지 않습니다(바깥에서 따로 둘 때). */
   showAdd?: boolean;
+  /** 오류를 표시할 문항 key (입력창 아래에 메시지를 보여 줍니다). */
+  errorKey?: string | null;
+  errorMessage?: string;
 }) {
   const [grabbedKey, setGrabbedKey] = useState<string | null>(null);
   const [draggingKey, setDraggingKey] = useState<string | null>(null);
@@ -36,6 +41,7 @@ export function QuestionFields({
           <fieldset
             className={`tq-card${draggingKey === question.key ? " is-dragging" : ""}`}
             key={question.key}
+            data-question-key={question.key}
             disabled={disabled}
             draggable={!disabled && grabbedKey === question.key}
             onDragStart={(event) => {
@@ -93,8 +99,12 @@ export function QuestionFields({
               placeholder="문항 내용을 입력하세요"
               maxLength={10000}
               value={question.content}
+              aria-invalid={errorKey === question.key}
               onChange={(event) => onChange(question.key, event.target.value)}
             />
+            {errorKey === question.key && errorMessage && (
+              <p className="input-error tq-error">{errorMessage}</p>
+            )}
             <div className="tq-foot">
               {(() => {
                 const open =

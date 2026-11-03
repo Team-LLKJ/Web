@@ -19,12 +19,11 @@ import {
 import { TextInput } from "../components/ui/TextInput";
 import { Skeleton, SkeletonStatus } from "../components/ui/Skeleton";
 import { Tabs } from "../components/ui/Tabs";
-import {
-  SAMPLE_NOTIFICATIONS,
-  readFlag,
-  saveFlag,
-  useNotificationReads,
-} from "../components/ui/headerSettings";
+import { toNotificationRow } from "../components/ui/headerSettings";
+import { AccountSettings } from "../components/info/AccountSettings";
+import { useNotifications } from "../hooks/useNotifications";
+import { useUserSettings } from "../hooks/useUserSettings";
+import "../components/info/account-settings.css";
 import { paths } from "../router/paths";
 import "../components/landing/landing.css";
 import "../components/info/info.css";
@@ -215,9 +214,7 @@ function NameRow({ name }: { name: string }) {
 export function SettingsPage() {
   const { user, loading, logout } = useAuth();
   const navigate = useNavigate();
-  const [notify, setNotify] = useState(() =>
-    readFlag("lit:setting:notify", true),
-  );
+  const { notify, error: settingsError, setNotify } = useUserSettings();
   const [loggingOut, setLoggingOut] = useState(false);
 
   return (
@@ -280,17 +277,21 @@ export function SettingsPage() {
           </SettingsGroup>
         )}
 
+        {user?.role === "TEACHER" && <AccountSettings />}
+
         <SettingsGroup title="알림">
           <SwitchRow
             id="page-notify"
             label="알림 받기"
             description="평가 진행 소식을 알림으로 받습니다."
             checked={notify}
-            onChange={(value) => {
-              setNotify(value);
-              saveFlag("lit:setting:notify", value);
-            }}
+            onChange={(value) => void setNotify(value)}
           />
+          {settingsError && (
+            <p className="info-error" role="alert">
+              {settingsError}
+            </p>
+          )}
         </SettingsGroup>
 
         <SettingsGroup title="서비스 정보">
@@ -332,17 +333,25 @@ export function SettingsPage() {
 export function NotificationsPage() {
   const [params, setParams] = useSearchParams();
   const [filter, setFilter] = useState<"all" | "unread">("all");
-  const { isRead, unreadCount, markRead, markAllRead } = useNotificationReads();
+  const { user } = useAuth();
+  const enabled = user?.role === "TEACHER";
+  const { items, unread, loading, error, markRead, markAllRead } =
+    useNotifications(enabled);
+  const rows = items.map(toNotificationRow);
+  const unreadCount = enabled ? unread : 0;
+  const isRead = (id: string) =>
+    rows.find((item) => item.id === id)?.read ?? true;
   const selectedId = params.get("id");
-  const selected = SAMPLE_NOTIFICATIONS.find((item) => item.id === selectedId);
-  const visible = SAMPLE_NOTIFICATIONS.filter(
-    (item) => filter === "all" || !isRead(item.id) || item.id === selectedId,
+  const selected = rows.find((item) => item.id === selectedId);
+  const visible = rows.filter(
+    (item) => filter === "all" || !item.read || item.id === selectedId,
   );
 
   // 주소로 바로 들어온 알림도 읽음으로 표시합니다.
+  const selectedUnread = selected && !selected.read ? selected.id : null;
   useEffect(() => {
-    if (selected) markRead(selected.id);
-  }, [selected, markRead]);
+    if (selectedUnread) void markRead(Number(selectedUnread));
+  }, [selectedUnread, markRead]);
 
   return (
     <InfoLayout footer={false}>
@@ -359,7 +368,7 @@ export function NotificationsPage() {
           type="button"
           className="notifications-read-all"
           disabled={unreadCount === 0}
-          onClick={markAllRead}
+          onClick={() => void markAllRead()}
         >
           모두 읽음
         </button>
@@ -378,9 +387,26 @@ export function NotificationsPage() {
         onChange={setFilter}
       />
       <section className="notifications-card" aria-label="알림 목록">
-        {visible.length === 0 ? (
+        {!enabled ? (
           <div className="notifications-empty">
-            <strong>읽지 않은 알림이 없습니다</strong>
+            <strong>선생님으로 로그인하면 알림을 받을 수 있어요</strong>
+            <p>평가 진행 소식이 이곳에 표시됩니다.</p>
+          </div>
+        ) : loading ? (
+          <div className="notifications-empty">
+            <p>알림을 불러오고 있어요.</p>
+          </div>
+        ) : error ? (
+          <div className="notifications-empty">
+            <p>{error}</p>
+          </div>
+        ) : visible.length === 0 ? (
+          <div className="notifications-empty">
+            <strong>
+              {filter === "unread"
+                ? "읽지 않은 알림이 없습니다"
+                : "알림이 없습니다"}
+            </strong>
             <p>새 소식이 오면 이곳에 표시됩니다.</p>
           </div>
         ) : (

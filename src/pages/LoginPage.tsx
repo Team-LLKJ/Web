@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
-import { paths } from "../router/paths";
+import { homePathFor } from "../router/paths";
 import { AuthLayout } from "../components/auth/AuthLayout";
 import { AuthForm, type AuthFormPayload } from "../components/auth/AuthForm";
 
@@ -14,8 +14,8 @@ export function LoginPage() {
 
   async function submit(payload: AuthFormPayload) {
     if ("email" in payload) throw new Error("로그인 정보를 확인해주세요.");
-    await login(payload);
-    navigate(paths.evaluations, { replace: true });
+    const current = await login(payload);
+    navigate(homePathFor(current.role), { replace: true });
   }
 
   return (

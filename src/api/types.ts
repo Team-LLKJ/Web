@@ -34,13 +34,23 @@ export type StudentSignup = {
   studentNumber: number;
 };
 
+// 교사 회원가입: 이메일 인증 후 받은 emailVerificationToken으로 가입합니다(학교·초대 코드는 쓰지 않습니다).
 export type TeacherSignup = {
   username: string;
   password: string;
   email: string;
   name: string;
-  school: string;
-  inviteCode: string;
+  emailVerificationToken: string;
+};
+
+export type EmailVerificationSent = { expiresAt: string; resendAfterSeconds: number };
+export type EmailVerificationConfirmed = { emailVerificationToken: string; expiresAt: string };
+
+export type PolicyConsent = { version: string; accepted: boolean; acceptedAt: string | null };
+export type Consents = {
+  terms: PolicyConsent;
+  privacy: PolicyConsent;
+  requiresAcceptance: boolean;
 };
 
 export type LoginRequest = { username: string; password: string };

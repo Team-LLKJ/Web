@@ -1,0 +1,16 @@
+/* 수행평가 목록 카드: 제목이 길면 한 줄로 두고 끝을 …으로 줄입니다. */
+.folder-card .folder-card-link strong {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+/* 공유 아이콘은 호버 시 파란색 */
+.folder-card-actions > button.folder-share-action:hover {
+  color: var(--color-primary);
+}
+.folder-card,
+.folder-card .folder-card-link {
+  min-width: 0;
+}

@@ -1,0 +1,16 @@
+/* 설정 화면의 비밀번호 변경 카드 */
+.settings-password-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+}
+.settings-password-done {
+  color: var(--color-primary);
+  font-size: var(--font-caption);
+}
+@media (max-width: 600px) {
+  .settings-password-form {
+    padding: 16px;
+  }
+}
