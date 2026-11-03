@@ -1,0 +1,47 @@
+.assessment-edit-skeleton .text-input--box {
+  min-height: 50px;
+}
+.assessment-edit-editor {
+  position: relative;
+}
+.assessment-edit-lines {
+  position: absolute;
+  top: 64px;
+  left: 16px;
+  right: 16px;
+  display: grid;
+  gap: 12px;
+  pointer-events: none;
+}
+.assessment-edit-lines .skeleton {
+  height: 22px;
+}
+.evaluation-edit-select {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--color-grey-20);
+  border-radius: 8px;
+  background: var(--color-white);
+}
+.evaluation-edit-question-number {
+  display: inline-block;
+  width: 18px;
+  height: 22px;
+  vertical-align: middle;
+}
+.evaluation-edit-question-content {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  min-height: 128px;
+  padding: 14px;
+  border: 1px solid var(--color-grey-20);
+  border-radius: 10px;
+  background: var(--color-white);
+}
+.evaluation-edit-question-content .skeleton {
+  height: 22px;
+}

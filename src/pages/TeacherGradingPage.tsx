@@ -1,3 +1,4 @@
+import { PageLoading } from "../components/ui/PageLoading";
 import { StudentWorkspace } from "../components/student/StudentWorkspace";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useState } from "react";
@@ -93,6 +94,8 @@ function TeacherGradingPage() {
       </div>
     );
   }
+  if (showLoading) return <PageLoading layout="grading" />;
+
   // 첫 로딩 중에는 학생이 아직 없으므로 자리표시 데이터로 스켈레톤 화면을 그립니다.
   const current: Student = student ?? {
     id: "loading",

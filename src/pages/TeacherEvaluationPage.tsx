@@ -40,8 +40,8 @@ import {
   plainTextToHtml,
 } from "../lib/guidelinesText";
 import { Button } from "../components/ui/Button";
+import { PageLoading } from "../components/ui/PageLoading";
 import { Tabs } from "../components/ui/Tabs";
-import { Skeleton, SkeletonStatus } from "../components/ui/Skeleton";
 import { TextInput } from "../components/ui/TextInput";
 import { evaluationCriteria } from "../data/landing";
 import "../components/teacher/teacher.css";
@@ -520,57 +520,7 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
     }
   }
 
-  if (loading)
-    return (
-      <main className="teacher-page teacher-loading-page">
-        <header className="header teacher-header" aria-hidden="true">
-          <Skeleton style={{ width: 100, height: 40 }} />
-          <div className="teacher-loading-header-actions">
-            <Skeleton />
-            <Skeleton />
-            <Skeleton />
-          </div>
-        </header>
-        <SkeletonStatus
-          className="teacher-page-content teacher-detail-skeleton"
-          label="평가 정보를 불러오고 있습니다."
-        >
-          <Skeleton
-            className="teacher-skeleton-eyebrow"
-            style={{ width: 190, height: 20, marginBottom: 10 }}
-          />
-          <Skeleton
-            style={{ width: "min(520px, 75vw)", height: "clamp(46px, 4.8vw, 60px)", marginBottom: 24 }}
-          />
-          <div className="teacher-dashboard-grid" aria-hidden="true">
-            <section className="teacher-card teacher-evaluation-card teacher-card-skeleton">
-              <div className="teacher-loading-skeleton-pair">
-                <Skeleton style={{ width: 150, height: 52 }} />
-                <Skeleton style={{ width: 92, height: 42, borderRadius: 10 }} />
-              </div>
-              <Skeleton style={{ width: "72%", height: 22 }} />
-              <Skeleton style={{ width: "85%", height: 22 }} />
-              <div className="teacher-loading-skeleton-pair">
-                <Skeleton style={{ width: 135, height: 42, borderRadius: 10 }} />
-                <Skeleton style={{ width: 135, height: 42, borderRadius: 10 }} />
-              </div>
-            </section>
-            <section className="teacher-card teacher-card-skeleton teacher-skeleton-participants">
-              <Skeleton style={{ width: 135, height: 28 }} />
-              <Skeleton style={{ width: "100%", height: 42 }} />
-              <Skeleton style={{ width: "100%", height: 42 }} />
-              <Skeleton style={{ width: "100%", height: 42 }} />
-            </section>
-            <section className="teacher-card teacher-config-card teacher-card-skeleton">
-              <Skeleton style={{ width: 170, height: 28 }} />
-              <Skeleton style={{ width: "38%", height: 42 }} />
-              <Skeleton style={{ width: "100%", height: 120 }} />
-              <Skeleton style={{ width: "100%", height: 120 }} />
-            </section>
-          </div>
-        </SkeletonStatus>
-      </main>
-    );
+  if (loading) return <PageLoading layout={editFolderId ? "assessment-edit" : "lobby"} />;
 
   return (
     <main className="teacher-page">

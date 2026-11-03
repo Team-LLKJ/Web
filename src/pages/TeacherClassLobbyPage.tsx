@@ -100,7 +100,7 @@ export function TeacherClassLobbyPage() {
     };
   }, [running, sessionId]);
 
-  if (loading) return <PageLoading layout="detail" />;
+  if (loading) return <PageLoading layout="lobby" />;
 
   if (!folder || !session) {
     return (

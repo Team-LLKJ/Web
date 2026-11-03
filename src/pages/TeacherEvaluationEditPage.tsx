@@ -20,7 +20,7 @@ import {
 } from "../components/teacher/questionDraft";
 import { Button } from "../components/ui/Button";
 import { DeleteEvaluationDialog } from "../components/teacher/DeleteEvaluationDialog";
-import { Skeleton, SkeletonStatus } from "../components/ui/Skeleton";
+import { PageLoading } from "../components/ui/PageLoading";
 import { paths } from "../router/paths";
 import "../components/teacher/teacher.css";
 import { Toast } from "../components/teacher/Toast";
@@ -109,6 +109,8 @@ export function TeacherEvaluationEditPage() {
     });
   }
 
+  if (loading) return <PageLoading layout="edit" />;
+
   return (
     <main className="teacher-page">
       <TeacherHeader />
@@ -127,15 +129,7 @@ export function TeacherEvaluationEditPage() {
           </Button>
         </div>
         <Toast message={notice} onClose={() => setNotice("")} />
-        {loading ? (
-          <SkeletonStatus label="평가 정보를 불러오는 중입니다.">
-            <section className="teacher-card teacher-card-skeleton">
-              <Skeleton style={{ width: 170, height: 28 }} />
-              <Skeleton style={{ width: "100%", height: 120 }} />
-              <Skeleton style={{ width: "100%", height: 120 }} />
-            </section>
-          </SkeletonStatus>
-        ) : evaluation ? (
+        {evaluation ? (
           <form className="teacher-card teacher-config-card" onSubmit={save}>
             {locked && (
               <p className="teacher-notice">
