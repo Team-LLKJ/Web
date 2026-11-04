@@ -100,13 +100,21 @@
 .folder-action--danger:hover svg {
   color: var(--color-danger);
 }
+/* 공유 인원: 버튼 글자와 같은 줄에 작은 숫자로만 표시 */
 .folder-action-count {
-  min-width: 20px;
-  padding: 1px 6px;
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
   border-radius: 999px;
+  background: var(--color-grey-10);
+  color: var(--color-grey-60);
+  font-size: calc(12px + var(--font-bump));
+  font-weight: var(--weight-semibold);
+  line-height: 1;
+}
+.folder-action:hover .folder-action-count {
   background: var(--color-primary-soft);
   color: var(--color-primary);
-  font-size: var(--font-caption);
-  line-height: var(--line-caption);
-  text-align: center;
 }

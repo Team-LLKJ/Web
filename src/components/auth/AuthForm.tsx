@@ -49,6 +49,8 @@ export function AuthForm({ mode, onSubmit }: Props) {
   const [emailToken, setEmailToken] = useState("");
   const [verifiedEmail, setVerifiedEmail] = useState("");
   const [resendIn, setResendIn] = useState(0);
+  // 인증번호 발송·확인 중 표시(회원가입 버튼과 따로 둡니다).
+  const [emailBusy, setEmailBusy] = useState<"send" | "confirm" | null>(null);
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const [consent, setConsent] = useState<ConsentState>(EMPTY_CONSENT);
@@ -70,7 +72,7 @@ export function AuthForm({ mode, onSubmit }: Props) {
       setNotice("올바른 이메일 주소를 입력해주세요.");
       return;
     }
-    setBusy(true);
+    setEmailBusy("send");
     try {
       const result = await sendEmailVerification(value);
       setCodeSent(true);
@@ -81,7 +83,7 @@ export function AuthForm({ mode, onSubmit }: Props) {
     } catch (error) {
       setNotice(apiErrorMessage(error, "인증번호를 보내지 못했습니다."));
     } finally {
-      setBusy(false);
+      setEmailBusy(null);
     }
   }
 
@@ -91,7 +93,7 @@ export function AuthForm({ mode, onSubmit }: Props) {
       setNotice("인증번호 6자리를 입력해주세요.");
       return;
     }
-    setBusy(true);
+    setEmailBusy("confirm");
     try {
       const result = await confirmEmailVerification(email.trim(), code);
       setEmailToken(result.emailVerificationToken);
@@ -100,7 +102,7 @@ export function AuthForm({ mode, onSubmit }: Props) {
     } catch (error) {
       setNotice(apiErrorMessage(error, "인증번호를 확인하지 못했습니다."));
     } finally {
-      setBusy(false);
+      setEmailBusy(null);
     }
   }
 
@@ -318,11 +320,12 @@ export function AuthForm({ mode, onSubmit }: Props) {
             trailingAction={
               <button
                 type="button"
-                className="auth-inline-action"
-                disabled={busy || emailVerified || resendIn > 0 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())}
+                className={`auth-inline-action${emailVerified ? " is-verified" : ""}`}
+                disabled={busy || emailBusy !== null || emailVerified || resendIn > 0 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())}
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => void sendCode()}
               >
+                {emailBusy === "send" && <span className="auth-inline-spinner" aria-hidden="true" />}
                 {emailVerified ? "인증 완료" : resendIn > 0 ? `재발송 ${resendIn}초` : codeSent ? "다시 보내기" : "인증하기"}
               </button>
             }
@@ -344,10 +347,11 @@ export function AuthForm({ mode, onSubmit }: Props) {
                 <button
                   type="button"
                   className="auth-inline-action"
-                  disabled={busy || code.length !== 6}
+                  disabled={busy || emailBusy !== null || code.length !== 6}
                   onMouseDown={(event) => event.preventDefault()}
                   onClick={() => void confirmCode()}
                 >
+                  {emailBusy === "confirm" && <span className="auth-inline-spinner" aria-hidden="true" />}
                   확인
                 </button>
               }
