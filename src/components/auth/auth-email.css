@@ -31,3 +31,28 @@
   color: var(--color-grey-60);
   -webkit-text-fill-color: var(--color-grey-60);
 }
+/* 이메일 인증을 마치면 "인증 완료"를 파란색으로 */
+.auth-form .auth-inline-action.is-verified,
+.auth-form .auth-inline-action.is-verified:disabled {
+  color: var(--color-primary);
+}
+/* 인증번호 발송·확인 중: 버튼 글자 옆 작은 로딩 표시 */
+.auth-form .auth-inline-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.auth-inline-spinner {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 12px;
+  border: 2px solid var(--color-primary);
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: auth-loading-spin 700ms linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-inline-spinner {
+    animation: none;
+  }
+}
