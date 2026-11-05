@@ -5,10 +5,12 @@ export function FolderListSkeleton() {
     <div aria-hidden="true">
       <div className="folder-list-header">
         <h1 className="folder-list-heading">내 수행평가</h1>
-        <span className="folder-list-create folder-list-create-placeholder">
-          <span>수행평가 만들기</span>
-          <Skeleton className="folder-list-create-cover" />
-        </span>
+        <a
+          className="button button--primary primary folder-list-create"
+          href="/teacher/folders/new"
+        >
+          수행평가 만들기
+        </a>
       </div>
       <div className="folder-tabs folder-list-loading-tabs">
         <span className="folder-tab-placeholder is-active">

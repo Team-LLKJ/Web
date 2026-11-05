@@ -1,68 +1,49 @@
-import { Skeleton, SkeletonStatus } from "./Skeleton";
+import { SkeletonStatus } from "./Skeleton";
+import { Icon } from "./Icon";
 import { FolderListSkeleton } from "../teacher/FolderListSkeleton";
+import { TeacherScreenSkeleton } from "../teacher/TeacherScreenSkeleton";
+import type { LoadingLayout } from "./loadingLayout";
 
-type Props = {
-  layout?: "folder" | "list" | "detail";
-};
-
-// Linked from index.html so the same skeleton is visible before React starts.
-function LoadingCard() {
+export function PageLoading({
+  layout = "neutral",
+}: {
+  layout?: LoadingLayout;
+}) {
   return (
-    <div className="page-loading-panel page-loading-card" aria-hidden="true">
-      <Skeleton className="page-loading-subheading" />
-      <Skeleton className="page-loading-line" />
-      <Skeleton className="page-loading-line page-loading-line--short" />
-      <Skeleton className="page-loading-action" />
-    </div>
-  );
-}
-
-export function PageLoading({ layout = "detail" }: Props) {
-  return (
-    <main className="page-loading" aria-busy="true">
-      <header className="page-loading-header" aria-hidden="true">
-        <img src="/lit-logo.png" width="76" height="38" alt="" />
-        <div className="page-loading-header-tools">
-          <Skeleton className="page-loading-icon" />
-          <Skeleton className="page-loading-icon" />
-        </div>
+    <div
+      className={`page-loading teacher-page screen-loading--${layout}${layout === "grading" ? " grading-workspace" : ""}`}
+      aria-busy="true"
+    >
+      <header className="page-loading-header">
+        <a href="/teacher/evaluations" aria-label="내 수행평가로 이동">
+          <img src="/lit-logo.png" width="76" height="38" alt="LIT" />
+        </a>
+        <nav aria-label="선생님 도구">
+          <a href="/notifications" aria-label="알림">
+            <Icon name="bell" />
+          </a>
+          <a href="/settings" aria-label="설정">
+            <Icon name="settings" />
+          </a>
+          {layout !== "list" &&
+            layout !== "edit" &&
+            layout !== "assessment-edit" && (
+              <a className="page-loading-exit" href="/teacher/evaluations">
+                나가기
+              </a>
+            )}
+        </nav>
       </header>
       <SkeletonStatus
-        className="page-loading-content"
-        label={
-          layout === "list"
-            ? "내 수행평가 목록을 불러오고 있습니다."
-            : "화면을 불러오고 있습니다."
-        }
+        className={`teacher-page-content${layout === "form" || layout === "assessment-edit" ? " teacher-page-content--create" : ""}${layout === "grading" ? " screen-loading-grading-content" : ""}`}
+        label="데이터를 불러오고 있습니다."
       >
-        {layout !== "list" && (
-          <div className="page-loading-title" aria-hidden="true">
-            <Skeleton className="page-loading-back" />
-            <Skeleton className="page-loading-heading" />
-          </div>
-        )}
         {layout === "list" ? (
           <FolderListSkeleton />
         ) : (
-          <>
-            {Array.from({ length: 2 }, (_, index) => (
-              <div
-                className="page-loading-panel"
-                aria-hidden="true"
-                key={index}
-              >
-                <Skeleton className="page-loading-subheading" />
-                <Skeleton className="page-loading-line" />
-                <Skeleton className="page-loading-line" />
-                <Skeleton className="page-loading-line page-loading-line--short" />
-              </div>
-            ))}
-            <div className="page-loading-cards">
-              <LoadingCard />
-            </div>
-          </>
+          <TeacherScreenSkeleton layout={layout} />
         )}
       </SkeletonStatus>
-    </main>
+    </div>
   );
 }
