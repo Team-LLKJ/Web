@@ -87,14 +87,14 @@ export function ConsentGate() {
         <label className="consent-row">
           <input type="checkbox" checked={terms} onChange={(event) => setTerms(event.target.checked)} />
           <span>
-            (필수) 이용약관 {consents.terms.version} 동의 ·{" "}
+            (필수) 이용약관 동의 ·{" "}
             <a href="/terms" target="_blank" rel="noreferrer">보기</a>
           </span>
         </label>
         <label className="consent-row">
           <input type="checkbox" checked={privacy} onChange={(event) => setPrivacy(event.target.checked)} />
           <span>
-            (필수) 개인정보 처리방침 {consents.privacy.version} 동의 ·{" "}
+            (필수) 개인정보 처리방침 동의 ·{" "}
             <a href="/privacy" target="_blank" rel="noreferrer">보기</a>
           </span>
         </label>

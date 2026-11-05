@@ -5,6 +5,7 @@ import type {
 import { Tabs } from "../ui/Tabs";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Skeleton, SkeletonStatus } from "../ui/Skeleton";
+import { guidelinesToSafeHtml } from "../../lib/guidelinesText";
 
 const loadRichAnswerField = () => import("./RichAnswerField");
 const RichAnswerField = lazy(() =>
@@ -76,7 +77,12 @@ function OverviewPanel({
       {guidelines.trim() && (
         <div className="assessment-overview-block">
           <h3>수행평가 안내</h3>
-          <p className="assessment-overview-guidelines">{guidelines}</p>
+          <div
+            className="assessment-overview-guidelines"
+            dangerouslySetInnerHTML={{
+              __html: guidelinesToSafeHtml(guidelines),
+            }}
+          />
         </div>
       )}
       <div className="assessment-overview-block">

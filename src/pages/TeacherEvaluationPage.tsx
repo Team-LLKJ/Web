@@ -777,7 +777,7 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
                     <p className="input-error">{guidelinesError}</p>
                   )}
                   <p className="teacher-section-hint">
-                    학생 화면에는 텍스트로 공유돼요. 서식은 줄바꿈 위주로 저장되며 최대 10,000자까지 입력할 수 있어요.
+                    학생 화면에도 서식이 적용되어 보여요. 최대 10,000자까지 입력할 수 있어요.
                   </p>
                 </section>
                 {!editFolderId && (
