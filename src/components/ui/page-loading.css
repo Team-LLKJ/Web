@@ -10,6 +10,7 @@
 @import "../teacher/folder-share.css";
 @import "../teacher/class-card-actions.css";
 @import "../teacher/class-add-card.css";
+@import "../teacher/class-evaluation-loading.css";
 @import "../teacher/folder-detail-text.css";
 @import "./empty-state.css";
 @import "../teacher/assessment-edit-skeleton.css";

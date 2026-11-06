@@ -1,3 +1,4 @@
+import { ClassParticipantsSkeleton } from "./ClassParticipantsSkeleton";
 import {
   AssessmentEditSkeleton,
   EvaluationEditSkeleton,
@@ -12,7 +13,7 @@ import { StudentWorkspace } from "../student/StudentWorkspace";
 import { RichTextEditor } from "./RichTextEditor";
 import { TextInput } from "../ui/TextInput";
 import { Skeleton } from "../ui/Skeleton";
-import { EditIcon, TrashIcon } from "./folderIcons";
+import { ClassEvaluationSkeleton } from "./ClassEvaluationSection";
 import { isSharedFolderId } from "../../lib/sharedFolders";
 import { evaluationCriteria } from "../../data/landing";
 import type { LoadingLayout } from "../ui/loadingLayout";
@@ -32,7 +33,17 @@ function Line({
 function Back({ label }: { label: string }) {
   return (
     <span className="folder-back">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
         <path d="m15 18-6-6 6-6" />
       </svg>
       {label}
@@ -48,45 +59,16 @@ function Title() {
   );
 }
 
-function ClassCard() {
-  return (
-    <article className="teacher-card teacher-evaluation-item">
-      <div className="evaluation-card-top">
-        <Line width="68px" height="30px" />
-        <span className="evaluation-card-actions">
-          <button type="button" tabIndex={-1} disabled aria-hidden="true">
-            <EditIcon />
-          </button>
-          <button type="button" tabIndex={-1} disabled aria-hidden="true">
-            <TrashIcon />
-          </button>
-        </span>
-      </div>
-      <h2>
-        <Line width="60%" />
-      </h2>
-      <dl>
-        {["평가 인원", "제출"].map((label) => (
-          <div key={label}>
-            <dt>{label}</dt>
-            <dd>
-              <Line width="3em" />
-            </dd>
-          </div>
-        ))}
-      </dl>
-      <Line height="42px" />
-    </article>
-  );
-}
-
 function Folder() {
   // 공유받은 수행평가로 알려진 주소면 삭제 버튼을 두지 않습니다(소유자만 삭제할 수 있어요).
   const folderId =
     typeof window === "undefined"
       ? ""
-      : window.location.pathname.match(/^\/teacher\/(?:folders|evaluations)\/([^/]+)\/?$/)?.[1] ?? "";
-  const hideDelete = folderId !== "" && isSharedFolderId(decodeURIComponent(folderId));
+      : (window.location.pathname.match(
+          /^\/teacher\/(?:folders|evaluations)\/([^/]+)\/?$/,
+        )?.[1] ?? "");
+  const hideDelete =
+    folderId !== "" && isSharedFolderId(decodeURIComponent(folderId));
   return (
     <>
       <Back label="내 수행평가" />
@@ -94,7 +76,17 @@ function Folder() {
         <Title />
         <div className="folder-title-actions">
           <span className="folder-action">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
               <circle cx="9.5" cy="8" r="3.5" />
               <path d="M3 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6" />
               <path d="M19 8v6M16 11h6" />
@@ -102,22 +94,42 @@ function Folder() {
             공유
           </span>
           <span className="folder-action">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
               <path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3Z" />
               <path d="M14.5 7.5l3 3" />
             </svg>
             수정
           </span>
           {!hideDelete && (
-          <span className="folder-action folder-action--danger folder-skeleton-delete">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M4 7h16" />
-              <path d="M10 11v6M14 11v6" />
-              <path d="M6 7l1 13h10l1-13" />
-              <path d="M9 7V4h6v3" />
-            </svg>
-            삭제
-          </span>
+            <span className="folder-action folder-action--danger folder-skeleton-delete">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M4 7h16" />
+                <path d="M10 11v6M14 11v6" />
+                <path d="M6 7l1 13h10l1-13" />
+                <path d="M9 7V4h6v3" />
+              </svg>
+              삭제
+            </span>
           )}
         </div>
       </div>
@@ -168,24 +180,7 @@ function Folder() {
           </div>
         </dl>
       </section>
-      <section className="folder-section folder-section--plain">
-        <header className="folder-section-head">
-          <h2>반별 평가</h2>
-        </header>
-        <div className="teacher-filter-chips folder-filter">
-          {["전체", "시작 전", "진행 중", "종료됨"].map((label, index) => (
-            <span
-              className={`teacher-filter-chip screen-loading-filter${index === 0 ? " is-active" : ""}`}
-              key={label}
-            >
-              {label}
-            </span>
-          ))}
-        </div>
-        <div className="teacher-evaluation-list class-evaluation-grid">
-          <ClassCard />
-        </div>
-      </section>
+      <ClassEvaluationSkeleton />
     </>
   );
 }
@@ -208,7 +203,7 @@ function Lobby() {
               <Line width="6ch" />
             </p>
             <p className="teacher-join-hint">
-              <Line width="24em" />
+              QR코드를 스캔하거나 PIN을 입력해 참여하세요
             </p>
           </div>
           <div className="teacher-join-qr">
@@ -221,14 +216,7 @@ function Lobby() {
               참여자 <Line width="2em" />
             </h2>
           </div>
-          <div className="teacher-lobby-pills">
-            {[0, 1, 2, 3].map((i) => (
-              <div className="teacher-lobby-pill" key={i}>
-                <Skeleton className="teacher-lobby-avatar" />
-                <Line width="3em" />
-              </div>
-            ))}
-          </div>
+          <ClassParticipantsSkeleton />
         </section>
       </div>
     </>

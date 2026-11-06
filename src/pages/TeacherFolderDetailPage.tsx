@@ -1,6 +1,16 @@
+import {
+  ClassEvaluationCard,
+  ClassEvaluationSection,
+} from "../components/teacher/ClassEvaluationSection";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { EmptyState } from "../components/ui/EmptyState";
-import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import {
+  Link,
+  useLocation,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
 import { apiErrorMessage } from "../api/client";
 import { PageLoading } from "../components/ui/PageLoading";
 import { AddClassCard } from "../components/teacher/AddClassCard";
@@ -33,25 +43,15 @@ const ANTI_CHEAT_LABEL: Record<string, string> = {
   PRINT_BLOCK: "프린트 금지",
 };
 
-const STATE_LABEL: Record<SessionState, string> = {
-  READY: "시작 전",
-  IN_PROGRESS: "진행 중",
-  ENDED: "종료",
-};
-
-const STATE_CLASS: Record<SessionState, string> = {
-  READY: "waiting",
-  IN_PROGRESS: "started",
-  ENDED: "ended",
-};
-
 export function TeacherFolderDetailPage() {
   const { folderId = "" } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const [folder, setFolder] = useState<EvaluationFolder | null>(() => getCachedFolder(folderId));
-  const [loadState, setLoadState] = useState<"loading" | "ready" | "missing">(() =>
-    getCachedFolder(folderId) ? "ready" : "loading",
+  const [folder, setFolder] = useState<EvaluationFolder | null>(() =>
+    getCachedFolder(folderId),
+  );
+  const [loadState, setLoadState] = useState<"loading" | "ready" | "missing">(
+    () => (getCachedFolder(folderId) ? "ready" : "loading"),
   );
   const [busy, setBusy] = useState(false);
   const [adding, setAdding] = useState(false);
@@ -118,7 +118,10 @@ export function TeacherFolderDetailPage() {
             title="수행평가를 찾을 수 없어요"
             description="삭제됐거나 공유가 해제된 수행평가일 수 있어요."
             action={
-              <Link className="button button--secondary neutral" to="/teacher/folders">
+              <Link
+                className="button button--secondary neutral"
+                to="/teacher/folders"
+              >
                 내 수행평가로
               </Link>
             }
@@ -174,7 +177,9 @@ export function TeacherFolderDetailPage() {
       setRenameTarget(null);
       return;
     }
-    if (folder!.sessions.some((s) => s.id !== target.id && s.className === value)) {
+    if (
+      folder!.sessions.some((s) => s.id !== target.id && s.className === value)
+    ) {
       setError("이미 있는 반 이름입니다.");
       return;
     }
@@ -211,9 +216,25 @@ export function TeacherFolderDetailPage() {
     <main className="teacher-page">
       <TeacherHeader />
       <div className="teacher-page-content">
-        <Toast message={notice} tone={noticeTone} onClose={() => setNotice("")} />
+        <Toast
+          message={notice}
+          tone={noticeTone}
+          onClose={() => setNotice("")}
+        />
         <Link className="folder-back" to="/teacher/folders">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="m15 18-6-6 6-6" />
+          </svg>
           내 수행평가
         </Link>
         <div className="teacher-list-title-row">
@@ -226,19 +247,56 @@ export function TeacherFolderDetailPage() {
             )}
           </div>
           <div className="folder-title-actions">
-            <button type="button" className="folder-action" onClick={() => setShareOpen(true)}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="9.5" cy="8" r="3.5" /><path d="M3 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6" /><path d="M19 8v6M16 11h6" /></svg>
+            <button
+              type="button"
+              className="folder-action"
+              onClick={() => setShareOpen(true)}
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="9.5" cy="8" r="3.5" />
+                <path d="M3 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6" />
+                <path d="M19 8v6M16 11h6" />
+              </svg>
               {isOwner ? "공유" : "공유 멤버"}
               {isOwner && Boolean(folder.collaboratorCount) && (
-                <span className="folder-action-count">{folder.collaboratorCount}</span>
+                <span className="folder-action-count">
+                  {folder.collaboratorCount}
+                </span>
               )}
             </button>
             <button
               type="button"
               className="folder-action"
-              onClick={() => navigate(`/teacher/folders/${encodeURIComponent(folder.id)}/edit`)}
+              onClick={() =>
+                navigate(
+                  `/teacher/folders/${encodeURIComponent(folder.id)}/edit`,
+                )
+              }
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3Z" /><path d="M14.5 7.5l3 3" /></svg>
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3Z" />
+                <path d="M14.5 7.5l3 3" />
+              </svg>
               수정
             </button>
             {!folder.owner && (
@@ -247,7 +305,22 @@ export function TeacherFolderDetailPage() {
                 className="folder-action folder-action--danger"
                 onClick={() => setConfirmDelete(true)}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 7h16" /><path d="M10 11v6M14 11v6" /><path d="M6 7l1 13h10l1-13" /><path d="M9 7V4h6v3" /></svg>
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M4 7h16" />
+                  <path d="M10 11v6M14 11v6" />
+                  <path d="M6 7l1 13h10l1-13" />
+                  <path d="M9 7V4h6v3" />
+                </svg>
                 삭제
               </button>
             )}
@@ -276,7 +349,11 @@ export function TeacherFolderDetailPage() {
               ))
             ) : (
               <li className="folder-empty-item">
-                <EmptyState size="inline" icon="doc" title="아직 문항이 없어요" />
+                <EmptyState
+                  size="inline"
+                  icon="doc"
+                  title="아직 문항이 없어요"
+                />
               </li>
             )}
           </ol>
@@ -317,41 +394,11 @@ export function TeacherFolderDetailPage() {
           </dl>
         </section>
 
-        <section className="folder-section folder-section--plain">
-          <header className="folder-section-head">
-            <h2>반별 평가</h2>
-          </header>
-          <div
-            className="teacher-filter-chips folder-filter"
-            role="group"
-            aria-label="진행 상태 필터"
-          >
-            {(
-              [
-                ["ALL", "전체"],
-                ["READY", "시작 전"],
-                ["IN_PROGRESS", "진행 중"],
-                ["ENDED", "종료됨"],
-              ] as const
-            ).map(([value, label]) => {
-              const count =
-                value === "ALL"
-                  ? folder.sessions.length
-                  : folder.sessions.filter((session) => session.state === value)
-                      .length;
-              return (
-                <button
-                  key={value}
-                  type="button"
-                  className={`teacher-filter-chip${filter === value ? " is-active" : ""}`}
-                  aria-pressed={filter === value}
-                  onClick={() => setFilter(value)}
-                >
-                  {label} {count}
-                </button>
-              );
-            })}
-          </div>
+        <ClassEvaluationSection
+          sessions={folder.sessions}
+          filter={filter}
+          onFilter={setFilter}
+        >
           {/* 고른 상태의 반이 없을 때(반이 시작·종료되거나 삭제된 경우 포함) */}
           {visibleSessions.length === 0 && filter !== "ALL" && (
             <EmptyState
@@ -374,98 +421,28 @@ export function TeacherFolderDetailPage() {
             />
           )}
           <div className="teacher-evaluation-list class-evaluation-grid">
-            {visibleSessions.map((session) => {
-              const done = session.state === "ENDED";
-              return (
-                <article
-                  className={`teacher-card teacher-evaluation-item${done ? " teacher-evaluation-item--done" : ""}`}
-                  key={session.id}
-                >
-                  <div className="evaluation-card-top">
-                    <span
-                      className={`evaluation-state evaluation-state--${STATE_CLASS[session.state]}`}
-                    >
-                      {STATE_LABEL[session.state]}
-                    </span>
-                    <span className="evaluation-card-actions">
-                      <button
-                        type="button"
-                        aria-label={`${session.className} 이름 수정`}
-                        title="수정"
-                        onClick={() => {
-                          setClassName(session.className);
-                          setError("");
-                          setRenameTarget(session);
-                        }}
-                      >
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                          <path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3Z" />
-                          <path d="M14.5 7.5l3 3" />
-                        </svg>
-                      </button>
-                      {session.state !== "IN_PROGRESS" && (
-                        <button
-                          type="button"
-                          aria-label={`${session.className} 삭제`}
-                          title="삭제"
-                          onClick={() => setRemoveTarget(session)}
-                        >
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                            <path d="M4 7h16" />
-                            <path d="M10 11v6M14 11v6" />
-                            <path d="M6 7l1 13h10l1-13" />
-                            <path d="M9 7V4h6v3" />
-                          </svg>
-                        </button>
-                      )}
-                    </span>
-                  </div>
-                  <h2 title={session.className}>{session.className}</h2>
-                  <dl>
-                    <div>
-                      <dt>평가 인원</dt>
-                      <dd>
-                        {session.state === "READY"
-                          ? "-"
-                          : `${session.participants}명`}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt>제출</dt>
-                      <dd>
-                        {session.state === "READY"
-                          ? "-"
-                          : `${session.submitted}/${session.participants}명`}
-                      </dd>
-                    </div>
-                  </dl>
-                  <button
-                    type="button"
-                    className="evaluation-card-cta"
-                    onClick={() => {
-                      if (session.state === "ENDED") {
-                        navigate(
-                          `/teacher/grading/${encodeURIComponent(session.id)}`,
-                        );
-                      } else {
-                        navigate(
-                          `/teacher/folders/${encodeURIComponent(folder.id)}/classes/${encodeURIComponent(session.id)}`,
-                        );
-                      }
-                    }}
-                  >
-                    {session.state === "READY"
-                      ? "평가 시작하러 가기"
-                      : session.state === "IN_PROGRESS"
-                        ? "수행평가 현황보기"
-                        : "채점 결과 보기"}
-                  </button>
-                </article>
-              );
-            })}
+            {visibleSessions.map((session) => (
+              <ClassEvaluationCard
+                key={session.id}
+                session={session}
+                onRename={() => {
+                  setClassName(session.className);
+                  setError("");
+                  setRenameTarget(session);
+                }}
+                onRemove={() => setRemoveTarget(session)}
+                onOpen={() =>
+                  navigate(
+                    session.state === "ENDED"
+                      ? `/teacher/grading/${encodeURIComponent(session.id)}`
+                      : `/teacher/folders/${encodeURIComponent(folder.id)}/classes/${encodeURIComponent(session.id)}`,
+                  )
+                }
+              />
+            ))}
             {canAddHere && <AddClassCard onAddClass={() => setAdding(true)} />}
           </div>
-        </section>
+        </ClassEvaluationSection>
       </div>
 
       {adding && (
@@ -483,7 +460,9 @@ export function TeacherFolderDetailPage() {
               }}
             />
             <div className="folder-modal-actions">
-              <Button type="submit" loading={busy}>추가</Button>
+              <Button type="submit" loading={busy}>
+                추가
+              </Button>
               <Button variant="secondary" onClick={() => setAdding(false)}>
                 취소
               </Button>
@@ -496,9 +475,13 @@ export function TeacherFolderDetailPage() {
           folder={folder}
           onClose={() => setShareOpen(false)}
           onCountChange={(count) =>
-            setFolder((current) => (current ? { ...current, collaboratorCount: count } : current))
+            setFolder((current) =>
+              current ? { ...current, collaboratorCount: count } : current,
+            )
           }
-          onLeft={() => navigate("/teacher/folders?tab=shared", { replace: true })}
+          onLeft={() =>
+            navigate("/teacher/folders?tab=shared", { replace: true })
+          }
         />
       )}
       {renameTarget && (
@@ -515,7 +498,9 @@ export function TeacherFolderDetailPage() {
               }}
             />
             <div className="folder-modal-actions">
-              <Button type="submit" loading={busy}>저장</Button>
+              <Button type="submit" loading={busy}>
+                저장
+              </Button>
               <Button variant="secondary" onClick={() => setRenameTarget(null)}>
                 취소
               </Button>
@@ -529,7 +514,11 @@ export function TeacherFolderDetailPage() {
           onClose={() => setRemoveTarget(null)}
           actions={
             <>
-              <Button variant="white-danger" loading={busy} onClick={() => void confirmRemove()}>
+              <Button
+                variant="white-danger"
+                loading={busy}
+                onClick={() => void confirmRemove()}
+              >
                 삭제
               </Button>
               <Button variant="secondary" onClick={() => setRemoveTarget(null)}>
@@ -561,7 +550,12 @@ export function TeacherFolderDetailPage() {
                     navigate("/teacher/folders", { replace: true });
                   } catch (caught) {
                     setConfirmDelete(false);
-                    showError(apiErrorMessage(caught, "수행평가를 삭제하지 못했습니다."));
+                    showError(
+                      apiErrorMessage(
+                        caught,
+                        "수행평가를 삭제하지 못했습니다.",
+                      ),
+                    );
                     setBusy(false);
                   }
                 }}
