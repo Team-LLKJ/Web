@@ -1,0 +1,23 @@
+.class-evaluation-count {
+  display: inline-block;
+  width: 1.2em;
+  height: 1em;
+  vertical-align: -0.1em;
+}
+.folder-filter .teacher-filter-chip:disabled {
+  cursor: default;
+  opacity: 1;
+}
+.class-evaluation-grid .evaluation-card-cta:disabled {
+  background: var(--color-primary-soft);
+  opacity: 1;
+}
+.class-evaluation-grid .class-add-card:disabled {
+  cursor: default;
+}
+.class-evaluation-grid .class-add-card:disabled:hover {
+  border-color: var(--color-grey-20);
+}
+.class-evaluation-grid .class-add-card:disabled:hover .class-add-card-title {
+  color: var(--color-grey-60);
+}
