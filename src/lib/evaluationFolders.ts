@@ -9,6 +9,7 @@ import {
   addCollaborator,
   getAssessments,
   getCollaborators,
+  openAssessmentClass,
   removeCollaborator,
   renameAssessmentClass,
   startAssessmentClass,
@@ -124,6 +125,10 @@ export async function renameSession(folderId: string, sessionId: string, classNa
 
 export const removeSession = (folderId: string, sessionId: string) =>
   deleteAssessmentClass(folderId, sessionId);
+
+export async function openSession(folderId: string, sessionId: string) {
+  return toSession(await openAssessmentClass(folderId, sessionId));
+}
 
 export async function startSession(folderId: string, sessionId: string, expiresInMinutes: number) {
   return toSession(await startAssessmentClass(folderId, sessionId, expiresInMinutes));

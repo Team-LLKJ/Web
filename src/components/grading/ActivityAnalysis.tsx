@@ -1,3 +1,4 @@
+import { EmptyState } from "../ui/EmptyState";
 import type { StudentReview } from "../../data/review";
 import { ContributionChart } from "./ContributionChart";
 export function ActivityAnalysis({
@@ -53,7 +54,7 @@ export function ActivityAnalysis({
               </div>
             ))
           ) : (
-            <p className="empty">분석 자료가 없습니다.</p>
+            <EmptyState size="inline" icon="doc" title="분석 자료가 없어요" />
           )}
         </div>
       </section>
@@ -90,7 +91,7 @@ export function ActivityAnalysis({
               </div>
             ))
           ) : (
-            <p className="empty">경고 기록이 없습니다.</p>
+            <EmptyState size="inline" icon="doc" title="경고 기록이 없어요" />
           )}
         </div>
       </section>

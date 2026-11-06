@@ -1,3 +1,4 @@
+import { EmptyState } from "../ui/EmptyState";
 import type {
   AiPolicy,
   ApiQuestion,
@@ -218,7 +219,7 @@ export function AnswerEditor({
           </Suspense>
         </>
       ) : (
-        <p className="empty">등록된 문항이 없습니다.</p>
+        <EmptyState size="inline" icon="doc" title="등록된 문항이 없어요" />
       )}
     </section>
   );

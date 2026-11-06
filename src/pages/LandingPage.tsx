@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
 import { homePathFor } from "../router/paths";
 import { LandingHeader } from "../components/landing/LandingHeader";
@@ -13,7 +13,11 @@ import { Button } from "../components/ui/Button";
 import "../components/landing/landing.css";
 export function LandingPage() {
   const { user, loading } = useAuth();
-  const [notice, setNotice] = useState("");
+  const location = useLocation();
+  // 학생이 답안을 제출하고 돌아왔을 때 같은 안내를 보여 줍니다.
+  const [notice, setNotice] = useState(
+    (location.state as { notice?: string } | null)?.notice ?? "",
+  );
   const pageRef = useRef<HTMLDivElement>(null);
 
   // Content fades up as it scrolls into view.
@@ -51,7 +55,7 @@ export function LandingPage() {
 
   return (
     <div className="landing-page" ref={pageRef}>
-      <LandingHeader onNotice={setNotice} />
+      <LandingHeader onNotice={setNotice} showUtilities={false} />
       <main>
         <LandingHero />
         <FeatureSection />

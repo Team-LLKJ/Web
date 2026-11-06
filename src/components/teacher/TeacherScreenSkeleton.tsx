@@ -12,6 +12,7 @@ import { StudentWorkspace } from "../student/StudentWorkspace";
 import { RichTextEditor } from "./RichTextEditor";
 import { TextInput } from "../ui/TextInput";
 import { Skeleton } from "../ui/Skeleton";
+import { AddClassCard } from "./AddClassCard";
 import type { LoadingLayout } from "../ui/loadingLayout";
 
 function Line({
@@ -22,6 +23,18 @@ function Line({
   height?: string;
 }) {
   return <Skeleton style={{ width, maxWidth: "100%", height }} />;
+}
+
+/** 뒤로가기 링크. 실제 화면과 같은 꺾쇠 아이콘·글자입니다. */
+function Back({ label }: { label: string }) {
+  return (
+    <span className="folder-back">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="m15 18-6-6 6-6" />
+      </svg>
+      {label}
+    </span>
+  );
 }
 
 function Title() {
@@ -37,7 +50,10 @@ function ClassCard() {
     <article className="teacher-card teacher-evaluation-item">
       <div className="evaluation-card-top">
         <Line width="68px" height="30px" />
-        <Line width="24px" height="24px" />
+        <span className="evaluation-card-actions">
+          <Line width="22px" height="22px" />
+          <Line width="22px" height="22px" />
+        </span>
       </div>
       <h2>
         <Line width="60%" />
@@ -60,14 +76,25 @@ function ClassCard() {
 function Folder() {
   return (
     <>
-      <div className="folder-back">
-        <a href="/teacher/folders">← 내 수행평가</a>
-      </div>
+      <Back label="내 수행평가" />
       <div className="teacher-list-title-row">
         <Title />
         <div className="folder-title-actions">
-          <Line width="70px" height="42px" />
-          <Line width="70px" height="42px" />
+          <span className="folder-action">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <circle cx="9.5" cy="8" r="3.5" />
+              <path d="M3 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6" />
+              <path d="M19 8v6M16 11h6" />
+            </svg>
+            공유
+          </span>
+          <span className="folder-action">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3Z" />
+              <path d="M14.5 7.5l3 3" />
+            </svg>
+            수정
+          </span>
         </div>
       </div>
       <section className="teacher-card folder-section">
@@ -130,6 +157,7 @@ function Folder() {
         <div className="teacher-evaluation-list class-evaluation-grid">
           <ClassCard />
           <ClassCard />
+          <AddClassCard onAddClass={() => {}} />
         </div>
       </section>
     </>
@@ -139,6 +167,7 @@ function Folder() {
 function Lobby() {
   return (
     <>
+      <Back label="수행평가로" />
       <h1 className="lobby-title">
         <Line width="12em" />
         <span>
@@ -183,6 +212,7 @@ function Lobby() {
 function Form() {
   return (
     <>
+      <Back label="내 수행평가" />
       <h1 className="screen-loading-title">수행평가 만들기</h1>
       <div className="teacher-create-card" inert>
         <div className="teacher-create-stepper" aria-label="평가 생성 단계">

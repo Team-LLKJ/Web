@@ -7,7 +7,12 @@ import "./assessment-edit-skeleton.css";
 export function AssessmentEditSkeleton() {
   return (
     <>
-      <span className="folder-back">← 수행평가로</span>
+      <span className="folder-back">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="m15 18-6-6 6-6" />
+        </svg>
+        수행평가로
+      </span>
       <h1 className="screen-loading-title">수행평가 수정</h1>
       <div
         className="teacher-create-card assessment-edit-skeleton"

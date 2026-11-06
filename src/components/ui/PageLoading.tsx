@@ -14,24 +14,18 @@ export function PageLoading({
       className={`page-loading teacher-page screen-loading--${layout}${layout === "grading" ? " grading-workspace" : ""}`}
       aria-busy="true"
     >
-      <header className="page-loading-header">
-        <a href="/teacher/evaluations" aria-label="내 수행평가로 이동">
-          <img src="/lit-logo.png" width="76" height="38" alt="LIT" />
+      {/* 실제 화면 헤더(TeacherHeader)와 같은 구조·클래스로 그려 크기가 바뀌지 않게 합니다. */}
+      <header className="header teacher-header page-loading-real-header">
+        <a href="/teacher/folders" className="lit-logo-link" aria-label="내 수행평가로 이동">
+          <img src="/lit-logo.png" width="100" height="50" alt="LIT" />
         </a>
         <nav aria-label="선생님 도구">
-          <a href="/notifications" aria-label="알림">
+          <span className="icon-button" aria-hidden="true">
             <Icon name="bell" />
-          </a>
-          <a href="/settings" aria-label="설정">
+          </span>
+          <span className="icon-button" aria-hidden="true">
             <Icon name="settings" />
-          </a>
-          {layout !== "list" &&
-            layout !== "edit" &&
-            layout !== "assessment-edit" && (
-              <a className="page-loading-exit" href="/teacher/evaluations">
-                나가기
-              </a>
-            )}
+          </span>
         </nav>
       </header>
       <SkeletonStatus

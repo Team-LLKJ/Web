@@ -1,9 +1,11 @@
+import { EmptyState } from "./EmptyState";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../auth/useAuth";
 import { paths } from "../../router/paths";
 import { Avatar } from "./Avatar";
 import { Icon } from "./Icon";
+import { Skeleton, SkeletonStatus } from "./Skeleton";
 import { IconButton } from "./IconButton";
 import {
   toNotificationRow,
@@ -14,6 +16,23 @@ import { playAlertSound, useNotifications } from "../../hooks/useNotifications";
 import { useUserSettings } from "../../hooks/useUserSettings";
 
 /** 알림 한 줄의 내용. 헤더 팝업과 알림 화면이 같은 모양을 씁니다. */
+/** 알림 목록을 불러오는 동안 보이는 자리 표시. 실제 알림 줄과 같은 모양입니다. */
+export function NotificationListSkeleton({ count = 3 }: { count?: number }) {
+  return (
+    <SkeletonStatus label="알림을 불러오는 중" className="notification-skeleton">
+      {Array.from({ length: count }, (_, index) => (
+        <div key={index} className="notification-item notification-skeleton-row">
+          <Skeleton className="notification-skeleton-icon" />
+          <span className="notification-item-text">
+            <Skeleton style={{ width: "45%", height: 18 }} />
+            <Skeleton style={{ width: "80%", height: 16 }} />
+          </span>
+        </div>
+      ))}
+    </SkeletonStatus>
+  );
+}
+
 export function NotificationRowContent({
   item,
   unread,
@@ -210,15 +229,13 @@ function NotificationsPopover() {
       }
     >
       {!enabled ? (
-        <p className="notification-empty">
-          선생님으로 로그인하면 평가 소식을 알림으로 받을 수 있어요.
-        </p>
+        <EmptyState size="inline" icon="bell" title="선생님으로 로그인하면 알림을 받을 수 있어요" />
       ) : loading ? (
-        <p className="notification-empty">알림을 불러오고 있어요.</p>
+        <NotificationListSkeleton count={3} />
       ) : error ? (
-        <p className="notification-empty">{error}</p>
+        <EmptyState size="inline" icon="alert" title="알림을 불러오지 못했어요" description={error} />
       ) : rows.length === 0 ? (
-        <p className="notification-empty">새 알림이 없습니다.</p>
+        <EmptyState size="inline" icon="bell" title="새 알림이 없어요" />
       ) : (
         <ul className="notification-list notification-list--popover">
           {rows.map((item) => (

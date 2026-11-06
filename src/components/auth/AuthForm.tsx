@@ -325,7 +325,7 @@ export function AuthForm({ mode, onSubmit }: Props) {
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => void sendCode()}
               >
-                {emailBusy === "send" && <span className="auth-inline-spinner" aria-hidden="true" />}
+                {emailBusy === "send" && <span className="auth-dots" aria-hidden="true"><span /><span /><span /></span>}
                 {emailVerified ? "인증 완료" : resendIn > 0 ? `재발송 ${resendIn}초` : codeSent ? "다시 보내기" : "인증하기"}
               </button>
             }
@@ -351,7 +351,7 @@ export function AuthForm({ mode, onSubmit }: Props) {
                   onMouseDown={(event) => event.preventDefault()}
                   onClick={() => void confirmCode()}
                 >
-                  {emailBusy === "confirm" && <span className="auth-inline-spinner" aria-hidden="true" />}
+                  {emailBusy === "confirm" && <span className="auth-dots" aria-hidden="true"><span /><span /><span /></span>}
                   확인
                 </button>
               }
@@ -377,24 +377,11 @@ export function AuthForm({ mode, onSubmit }: Props) {
             type="submit"
             size="large"
             className={isLogin ? "auth-login-button" : ""}
-            disabled={busy || consentMissing}
-            aria-busy={isLogin ? busy : undefined}
+            disabled={consentMissing}
+            loading={busy}
           >
-            {isLogin && busy && <span className="auth-loading-spinner" aria-hidden="true" />}
-            {isLogin ? "로그인" : busy ? "처리 중…" : "회원가입"}
+            {isLogin ? "로그인" : "회원가입"}
           </Button>
-          {isLogin && (
-            <Button
-              variant="ghost"
-              size="large"
-              className="auth-google-button"
-              disabled={busy}
-              icon={<img src="/auth-assets/google-logo.png" alt="" width="22" height="23" />}
-              onClick={() => setNotice("현재 API 명세에는 Google OAuth 로그인 경로가 없습니다.")}
-            >
-              Google로 시작하기
-            </Button>
-          )}
         </div>
         {notice && <p className="auth-notice" role="alert">{notice}</p>}
       </div>

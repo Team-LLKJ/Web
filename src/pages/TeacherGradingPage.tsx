@@ -1,6 +1,7 @@
 import { PageLoading } from "../components/ui/PageLoading";
 import { StudentWorkspace } from "../components/student/StudentWorkspace";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { EmptyState } from "../components/ui/EmptyState";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useState } from "react";
 import { apiErrorMessage } from "../api/client";
 import "../App.css";
@@ -85,11 +86,33 @@ function TeacherGradingPage() {
   if (!student && !showLoading) {
     return (
       <div className="app-shell grading-workspace">
-        <Header ended={ended} onDialog={setDialog} onExtend={() => { setExtendCustom(""); setExtendOpen(true); }} />
+        <Header
+          ended={ended}
+          showActions={!live.error}
+          onDialog={setDialog}
+          onExtend={() => { setExtendCustom(""); setExtendOpen(true); }}
+        />
         <div className="workspace teacher-workspace">
-          <p className="empty grading-empty">
-            {live.error || "참여한 학생이 아직 없습니다."}
-          </p>
+          {live.error ? (
+            <EmptyState
+              className="workspace-empty"
+              icon="alert"
+              title="평가를 불러오지 못했어요"
+              description={live.error}
+              action={
+                <Link className="button button--secondary neutral" to="/teacher/folders">
+                  내 수행평가로
+                </Link>
+              }
+            />
+          ) : (
+            <EmptyState
+              className="workspace-empty"
+              icon="users"
+              title="참여한 학생이 아직 없어요"
+              description="학생이 참여해 답안을 작성하면 여기에서 채점할 수 있어요."
+            />
+          )}
         </div>
       </div>
     );
@@ -245,7 +268,7 @@ function TeacherGradingPage() {
             <>
               {dialog === "평가를 종료하시겠습니까?" && (
                 <Button
-                  variant="danger"
+                  variant="white-danger"
                   onClick={() => {
                     endNow();
                     setDialog("");

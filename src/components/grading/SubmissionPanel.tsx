@@ -1,3 +1,5 @@
+import { Skeleton, SkeletonStatus } from "../ui/Skeleton";
+import { EmptyState } from "../ui/EmptyState";
 import { lazy, Suspense } from "react";
 import type { Answer, Question, Student } from "../../data/grading";
 import { Button } from "../ui/Button";
@@ -79,7 +81,15 @@ export function SubmissionPanel({
             <section className="question-box teacher-question">
               <p>{currentQuestion.content}</p>
             </section>
-            <Suspense fallback={<p className="empty">답안을 불러오는 중입니다.</p>}>
+            <Suspense
+              fallback={
+                <SkeletonStatus label="답안을 불러오는 중" className="answer-skeleton">
+                  <Skeleton style={{ width: "100%", height: 18 }} />
+                  <Skeleton style={{ width: "92%", height: 18 }} />
+                  <Skeleton style={{ width: "70%", height: 18 }} />
+                </SkeletonStatus>
+              }
+            >
               <RichAnswerField
                 key={`${student.name}-${currentQuestion.id}-${answerContent.length}-${answerContent.slice(-40)}`}
                 questionId={String(currentQuestion.id)}
@@ -94,7 +104,7 @@ export function SubmissionPanel({
             </Suspense>
           </>
         ) : (
-          <p className="empty">등록된 문항이 없습니다.</p>
+          <EmptyState size="inline" icon="doc" title="등록된 문항이 없어요" />
         )}
       </section>
     </main>

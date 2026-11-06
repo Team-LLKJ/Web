@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { EmptyState } from "../components/ui/EmptyState";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { TeacherHeader } from "../components/teacher/TeacherHeader";
 import { Toast } from "../components/teacher/Toast";
@@ -6,10 +7,11 @@ import { Button } from "../components/ui/Button";
 import { Modal } from "../components/ui/Modal";
 import { Tabs } from "../components/ui/Tabs";
 import { apiErrorMessage } from "../api/client";
-import { FolderListSkeleton } from "../components/teacher/FolderListSkeleton";
+import { FolderGridSkeleton } from "../components/teacher/FolderListSkeleton";
 import { deleteFolder, listFolders, type EvaluationFolder } from "../lib/evaluationFolders";
 import "../components/teacher/teacher.css";
 import "../components/teacher/folder-card.css";
+import { ShareDialog } from "../components/teacher/ShareDialog";
 
 function FolderIcon() {
   return (
@@ -52,12 +54,13 @@ export function TeacherFoldersPage() {
   const shown = tab === "shared" ? shared : mine;
   const tabItems = useMemo(
     () => [
-      { value: "mine" as const, label: `내 수행평가 ${mine.length}` },
-      { value: "shared" as const, label: `공유된 수행평가 ${shared.length}` },
+      { value: "mine" as const, label: folders ? `내 수행평가 ${mine.length}` : "내 수행평가" },
+      { value: "shared" as const, label: folders ? `공유된 수행평가 ${shared.length}` : "공유된 수행평가" },
     ],
-    [mine.length, shared.length],
+    [folders, mine.length, shared.length],
   );
   const [notice, setNotice] = useState("");
+  const [shareTarget, setShareTarget] = useState<EvaluationFolder | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
 
   return (
@@ -65,16 +68,12 @@ export function TeacherFoldersPage() {
       <TeacherHeader />
       <div className="teacher-page-content">
         <Toast message={notice} tone="info" onClose={() => setNotice("")} />
-        {folders === null ? (
-          <FolderListSkeleton />
-        ) : (
-        <>
         <div className="teacher-list-title-row">
           <div>
             <h1>내 수행평가</h1>
           </div>
         </div>
-        <div className="folder-toolbar">
+        <div className="tab-toolbar folder-toolbar">
           <Tabs
             variant="segment"
             label="수행평가 구분"
@@ -86,7 +85,9 @@ export function TeacherFoldersPage() {
             수행평가 만들기
           </Link>
         </div>
-        {shown.length ? (
+        {folders === null ? (
+          <FolderGridSkeleton />
+        ) : shown.length ? (
           <div className="folder-grid">
             {shown.map((folder) => {
               return (
@@ -106,7 +107,7 @@ export function TeacherFoldersPage() {
                       className="folder-share-action"
                       aria-label={`${folder.title} 공유`}
                       title="공유"
-                      onClick={() => navigate(`/teacher/folders/${encodeURIComponent(folder.id)}?share=1`)}
+                      onClick={() => setShareTarget(folder)}
                     >
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                         <circle cx="9.5" cy="8" r="3.5" />
@@ -146,16 +147,32 @@ export function TeacherFoldersPage() {
             })}
           </div>
         ) : (
-          <p className="teacher-list-state">
-            {loadError
-              ? loadError
-              : tab === "shared"
-                ? "공유된 수행평가가 없습니다."
-                : "아직 수행평가가 없습니다. 수행평가를 만들어 보세요."}
-          </p>
+          loadError ? (
+            <EmptyState
+              icon="alert"
+              title="수행평가를 불러오지 못했어요"
+              description={loadError}
+            />
+          ) : tab === "shared" ? (
+            <EmptyState
+              icon="sharedFolder"
+              title="공유받은 수행평가가 없어요"
+              description="다른 선생님이 수행평가를 공유하면 여기에 보여요."
+            />
+          ) : (
+            <EmptyState
+              icon="folder"
+              title="아직 만든 수행평가가 없어요"
+              description="수행평가를 만들고 반을 추가해 평가를 시작해 보세요."
+              action={
+                <Link className="button button--primary primary" to="/teacher/folders/new">
+                  수행평가 만들기
+                </Link>
+              }
+            />
+          )
         )}
-        </>
-        )}
+
       </div>
       {deleteTarget && (
         <Modal
@@ -190,6 +207,23 @@ export function TeacherFoldersPage() {
         >
           <p>“{deleteTarget.title}” 수행평가와 모든 반별 기록이 삭제되며 되돌릴 수 없습니다.</p>
         </Modal>
+      )}
+      {shareTarget && (
+        <ShareDialog
+          folder={shareTarget}
+          onClose={() => setShareTarget(null)}
+          onCountChange={(count) =>
+            setFolders((current) =>
+              (current ?? []).map((item) =>
+                item.id === shareTarget.id ? { ...item, collaboratorCount: count } : item,
+              ),
+            )
+          }
+          onLeft={() => {
+            setFolders((current) => (current ?? []).filter((item) => item.id !== shareTarget.id));
+            setShareTarget(null);
+          }}
+        />
       )}
     </main>
   );

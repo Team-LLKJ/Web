@@ -1,7 +1,8 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { updateMyName } from "../api/auth";
 import { apiErrorMessage } from "../api/client";
+import { EmptyState } from "../components/ui/EmptyState";
 import { useAuth } from "../auth/useAuth";
 import { LegalDocument } from "../components/info/LegalDocument";
 import {
@@ -12,10 +13,10 @@ import { LandingFooter } from "../components/landing/LandingFooter";
 import { LandingHeader } from "../components/landing/LandingHeader";
 import { Avatar } from "../components/ui/Avatar";
 import { Button } from "../components/ui/Button";
+import { LogoutButton } from "../components/ui/LogoutButton";
 import {
   NotificationRowContent,
-  SwitchRow,
-} from "../components/ui/HeaderDialogs";
+  SwitchRow, NotificationListSkeleton } from "../components/ui/HeaderDialogs";
 import { TextInput } from "../components/ui/TextInput";
 import { Skeleton, SkeletonStatus } from "../components/ui/Skeleton";
 import { Tabs } from "../components/ui/Tabs";
@@ -212,10 +213,8 @@ function NameRow({ name }: { name: string }) {
 }
 
 export function SettingsPage() {
-  const { user, loading, logout } = useAuth();
-  const navigate = useNavigate();
+  const { user, loading } = useAuth();
   const { notify, error: settingsError, setNotify } = useUserSettings();
-  const [loggingOut, setLoggingOut] = useState(false);
 
   return (
     <InfoLayout
@@ -310,20 +309,7 @@ export function SettingsPage() {
         </SettingsGroup>
 
         {user && (
-          <Button
-            variant="white-danger"
-            size="small"
-            className="settings-logout"
-            loading={loggingOut}
-            onClick={() => {
-              setLoggingOut(true);
-              void logout()
-                .then(() => navigate(paths.home))
-                .finally(() => setLoggingOut(false));
-            }}
-          >
-            로그아웃
-          </Button>
+          <LogoutButton variant="white-danger" size="small" className="settings-logout" />
         )}
       </div>
     </InfoLayout>
@@ -364,6 +350,21 @@ export function NotificationsPage() {
               : "새 알림을 모두 확인했습니다."}
           </p>
         </div>
+      </header>
+      <div className="tab-toolbar">
+        <Tabs
+          label="알림 거르기"
+          variant="segment"
+          value={filter}
+          items={[
+            { value: "all", label: "전체" },
+            {
+              value: "unread",
+              label: unreadCount > 0 ? `안 읽음 ${unreadCount}` : "안 읽음",
+            },
+          ]}
+          onChange={setFilter}
+        />
         <button
           type="button"
           className="notifications-read-all"
@@ -372,43 +373,21 @@ export function NotificationsPage() {
         >
           모두 읽음
         </button>
-      </header>
-      <Tabs
-        label="알림 거르기"
-        variant="segment"
-        value={filter}
-        items={[
-          { value: "all", label: "전체" },
-          {
-            value: "unread",
-            label: unreadCount > 0 ? `안 읽음 ${unreadCount}` : "안 읽음",
-          },
-        ]}
-        onChange={setFilter}
-      />
+      </div>
       <section className="notifications-card" aria-label="알림 목록">
         {!enabled ? (
-          <div className="notifications-empty">
-            <strong>선생님으로 로그인하면 알림을 받을 수 있어요</strong>
-            <p>평가 진행 소식이 이곳에 표시됩니다.</p>
-          </div>
+          <EmptyState size="panel" icon="bell" title="선생님으로 로그인하면 알림을 받을 수 있어요" description="평가 진행 소식이 이곳에 표시돼요." />
         ) : loading ? (
-          <div className="notifications-empty">
-            <p>알림을 불러오고 있어요.</p>
-          </div>
+          <NotificationListSkeleton count={5} />
         ) : error ? (
-          <div className="notifications-empty">
-            <p>{error}</p>
-          </div>
+          <EmptyState size="panel" icon="alert" title="알림을 불러오지 못했어요" description={error} />
         ) : visible.length === 0 ? (
-          <div className="notifications-empty">
-            <strong>
-              {filter === "unread"
-                ? "읽지 않은 알림이 없습니다"
-                : "알림이 없습니다"}
-            </strong>
-            <p>새 소식이 오면 이곳에 표시됩니다.</p>
-          </div>
+          <EmptyState
+            size="panel"
+            icon="bell"
+            title={filter === "unread" ? "읽지 않은 알림이 없어요" : "아직 알림이 없어요"}
+            description="새 소식이 오면 이곳에 표시돼요."
+          />
         ) : (
           <ul className="notification-list">
             {visible.map((item) => {

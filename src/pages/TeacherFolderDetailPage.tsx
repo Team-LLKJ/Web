@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { EmptyState } from "../components/ui/EmptyState";
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { apiErrorMessage } from "../api/client";
-import { useAuth } from "../auth/useAuth";
 import { PageLoading } from "../components/ui/PageLoading";
 import { AddClassCard } from "../components/teacher/AddClassCard";
 import { TeacherHeader } from "../components/teacher/TeacherHeader";
@@ -13,13 +13,9 @@ import {
   addSession,
   deleteFolder,
   getFolder,
-  listCollaborators,
   removeSession,
   renameSession,
-  shareFolder,
-  unshareFolder,
   type EvaluationFolder,
-  type FolderCollaborator,
   type FolderSession,
   type SessionState,
 } from "../lib/evaluationFolders";
@@ -29,6 +25,7 @@ import "../components/teacher/teacher.css";
 import "../components/teacher/class-card-actions.css";
 import "../components/teacher/folder-detail-text.css";
 import "../components/teacher/folder-share.css";
+import { ShareDialog } from "../components/teacher/ShareDialog";
 
 const POLICY_INFO = {
   DISABLED: {
@@ -84,26 +81,10 @@ export function TeacherFolderDetailPage() {
     setNoticeTone("error");
     setNotice(message);
   }
-  const { user } = useAuth();
   const [shareOpen, setShareOpen] = useState(false);
-  const [collaborators, setCollaborators] = useState<FolderCollaborator[] | null>(null);
-  const [shareEmail, setShareEmail] = useState("");
-  const [shareError, setShareError] = useState("");
   const [searchParams, setSearchParams] = useSearchParams();
-  // 목록 카드의 공유 아이콘으로 들어오면(?share=1) 공유 창을 바로 엽니다.
+  // 예전 링크(?share=1)로 들어오면 공유 창을 바로 엽니다.
   const shareRequested = useRef(searchParams.get("share") === "1");
-  async function loadShare(id: string) {
-    setShareOpen(true);
-    setShareEmail("");
-    setShareError("");
-    setCollaborators(null);
-    try {
-      setCollaborators(await listCollaborators(id));
-    } catch (caught) {
-      setShareError(apiErrorMessage(caught, "공유 목록을 불러오지 못했습니다."));
-      setCollaborators([]);
-    }
-  }
   const refresh = async () => {
     try {
       setFolder(await getFolder(folderId));
@@ -124,7 +105,7 @@ export function TeacherFolderDetailPage() {
         if (shareRequested.current) {
           shareRequested.current = false;
           setSearchParams({}, { replace: true });
-          void loadShare(next.id);
+          setShareOpen(true);
         }
       })
       .catch((error) => {
@@ -144,13 +125,16 @@ export function TeacherFolderDetailPage() {
       <main className="teacher-page">
         <TeacherHeader />
         <div className="teacher-page-content">
-          <p className="teacher-list-state">수행평가를 찾을 수 없습니다.</p>
-          <Link
-            className="button button--secondary neutral"
-            to="/teacher/folders"
-          >
-            내 수행평가로
-          </Link>
+          <EmptyState
+            icon="search"
+            title="수행평가를 찾을 수 없어요"
+            description="삭제됐거나 공유가 해제된 수행평가일 수 있어요."
+            action={
+              <Link className="button button--secondary neutral" to="/teacher/folders">
+                내 수행평가로
+              </Link>
+            }
+          />
         </div>
       </main>
     );
@@ -159,57 +143,10 @@ export function TeacherFolderDetailPage() {
   const visibleSessions = folder.sessions.filter(
     (session) => filter === "ALL" || session.state === filter,
   );
+  // 반 추가 카드는 "전체" 보기에서만 둡니다. 상태별 보기에서 비어 있으면 안내만 보여 줍니다.
+  const canAddHere = filter === "ALL";
 
   const isOwner = folder.role !== "EDITOR";
-
-  async function openShare() {
-    await loadShare(folder!.id);
-  }
-
-  async function submitShare(event: FormEvent) {
-    event.preventDefault();
-    const email = shareEmail.trim();
-    if (!email) {
-      setShareError("공유할 선생님의 이메일을 입력해주세요.");
-      return;
-    }
-    setBusy(true);
-    try {
-      const added = await shareFolder(folder!.id, email);
-      setCollaborators((current) => [...(current ?? []), added]);
-      setShareEmail("");
-      setShareError("");
-      setFolder((current) =>
-        current ? { ...current, collaboratorCount: (current.collaboratorCount ?? 0) + 1 } : current,
-      );
-    } catch (caught) {
-      setShareError(apiErrorMessage(caught, "공유하지 못했습니다."));
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function removeShare(target: FolderCollaborator) {
-    const leaving = target.teacherId === user?.id;
-    setBusy(true);
-    try {
-      await unshareFolder(folder!.id, target.teacherId);
-      if (leaving) {
-        navigate("/teacher/folders?tab=shared", { replace: true });
-        return;
-      }
-      setCollaborators((current) => (current ?? []).filter((item) => item.teacherId !== target.teacherId));
-      setFolder((current) =>
-        current
-          ? { ...current, collaboratorCount: Math.max(0, (current.collaboratorCount ?? 1) - 1) }
-          : current,
-      );
-    } catch (caught) {
-      setShareError(apiErrorMessage(caught, "공유를 해제하지 못했습니다."));
-    } finally {
-      setBusy(false);
-    }
-  }
 
   async function submitClass(event: FormEvent) {
     event.preventDefault();
@@ -288,7 +225,8 @@ export function TeacherFolderDetailPage() {
       <div className="teacher-page-content">
         <Toast message={notice} tone={noticeTone} onClose={() => setNotice("")} />
         <Link className="folder-back" to="/teacher/folders">
-          ← 내 수행평가
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+          내 수행평가
         </Link>
         <div className="teacher-list-title-row">
           <div>
@@ -300,7 +238,7 @@ export function TeacherFolderDetailPage() {
             )}
           </div>
           <div className="folder-title-actions">
-            <button type="button" className="folder-action" onClick={() => void openShare()}>
+            <button type="button" className="folder-action" onClick={() => setShareOpen(true)}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="9.5" cy="8" r="3.5" /><path d="M3 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6" /><path d="M19 8v6M16 11h6" /></svg>
               {isOwner ? "공유" : "공유 멤버"}
               {isOwner && Boolean(folder.collaboratorCount) && (
@@ -349,7 +287,9 @@ export function TeacherFolderDetailPage() {
                 </li>
               ))
             ) : (
-              <li className="folder-empty">아직 문항이 없습니다.</li>
+              <li className="folder-empty-item">
+                <EmptyState size="inline" icon="doc" title="아직 문항이 없어요" />
+              </li>
             )}
           </ol>
         </section>
@@ -433,8 +373,26 @@ export function TeacherFolderDetailPage() {
               );
             })}
           </div>
-          {folder.sessions.length > 0 && visibleSessions.length === 0 && (
-            <p className="folder-empty">해당 상태의 반이 없습니다.</p>
+          {/* 고른 상태의 반이 없을 때(반이 시작·종료되거나 삭제된 경우 포함) */}
+          {visibleSessions.length === 0 && filter !== "ALL" && (
+            <EmptyState
+              size="panel"
+              icon="class"
+              title={
+                filter === "READY"
+                  ? "시작 전인 반이 없어요"
+                  : filter === "IN_PROGRESS"
+                    ? "진행 중인 반이 없어요"
+                    : "종료된 반이 없어요"
+              }
+              description={
+                filter === "READY"
+                  ? "새 반은 '전체'에서 추가할 수 있어요."
+                  : filter === "IN_PROGRESS"
+                    ? "시작 전인 반에서 평가를 시작해 보세요."
+                    : "평가를 종료한 반이 여기에 모여요."
+              }
+            />
           )}
           <div className="teacher-evaluation-list class-evaluation-grid">
             {visibleSessions.map((session) => {
@@ -526,7 +484,7 @@ export function TeacherFolderDetailPage() {
                 </article>
               );
             })}
-            <AddClassCard onAddClass={() => setAdding(true)} />
+            {canAddHere && <AddClassCard onAddClass={() => setAdding(true)} />}
           </div>
         </section>
       </div>
@@ -555,65 +513,14 @@ export function TeacherFolderDetailPage() {
         </Modal>
       )}
       {shareOpen && (
-        <Modal title={isOwner ? "수행평가 공유" : "공유 멤버"} onClose={() => setShareOpen(false)}>
-          <div className="folder-share">
-            {isOwner && (
-              <form className="folder-create-form" onSubmit={submitShare}>
-                <TextInput
-                  label="선생님 이메일"
-                  type="email"
-                  value={shareEmail}
-                  placeholder="teacher@example.com"
-                  error={shareError}
-                  onChange={(event) => {
-                    setShareEmail(event.target.value);
-                    setShareError("");
-                  }}
-                />
-                <div className="folder-modal-actions">
-                  <Button type="submit" loading={busy}>공유하기</Button>
-                </div>
-              </form>
-            )}
-            {!isOwner && shareError && <p className="input-error">{shareError}</p>}
-            <ul className="folder-share-list">
-              {collaborators === null ? (
-                <li className="folder-share-empty">불러오는 중…</li>
-              ) : (
-                <>
-                  {folder.owner && (
-                    <li>
-                      <span>
-                        <strong>{folder.owner}</strong>
-                        <small>만든 선생님</small>
-                      </span>
-                    </li>
-                  )}
-                  {collaborators.length === 0 && !folder.owner && (
-                    <li className="folder-share-empty">아직 공유한 선생님이 없어요.</li>
-                  )}
-                  {collaborators.map((item) => (
-                    <li key={item.teacherId}>
-                      <span>
-                        <strong>{item.name}</strong>
-                        <small>{item.email} · 공동 편집</small>
-                      </span>
-                      {(isOwner || item.teacherId === user?.id) && (
-                        <button
-                          type="button"
-                          disabled={busy}
-                          onClick={() => void removeShare(item)}
-                        >
-                          {item.teacherId === user?.id ? "나가기" : "해제"}
-                        </button>
-                      )}
-                    </li>
-                  ))}
-                </>
-              )}
-            </ul>
-          </div>
-        </Modal>
+        <ShareDialog
+          folder={folder}
+          onClose={() => setShareOpen(false)}
+          onCountChange={(count) =>
+            setFolder((current) => (current ? { ...current, collaboratorCount: count } : current))
+          }
+          onLeft={() => navigate("/teacher/folders?tab=shared", { replace: true })}
+        />
       )}
       {renameTarget && (
         <Modal title="반 이름 수정" onClose={() => setRenameTarget(null)}>

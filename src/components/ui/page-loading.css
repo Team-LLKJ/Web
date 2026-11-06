@@ -5,6 +5,13 @@
 @import "../student/student.css";
 @import "../teacher/teacher.css";
 @import "./skeleton.css";
+@import "../../header-icons.css";
+@import "../teacher/folder-card.css";
+@import "../teacher/folder-share.css";
+@import "../teacher/class-card-actions.css";
+@import "../teacher/class-add-card.css";
+@import "../teacher/folder-detail-text.css";
+@import "./empty-state.css";
 @import "../teacher/assessment-edit-skeleton.css";
 
 body {
@@ -143,4 +150,9 @@ body {
 }
 .page-loading .teacher-step-number {
   flex-shrink: 0;
+}
+
+/* 실제 헤더와 같은 모양(앱 시작 전 정적 화면에서도 같은 위치·크기) */
+.page-loading-real-header .icon-button {
+  pointer-events: none;
 }
