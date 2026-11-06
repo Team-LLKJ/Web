@@ -9,7 +9,6 @@ import {
   addCollaborator,
   getAssessments,
   getCollaborators,
-  openAssessmentClass,
   removeCollaborator,
   renameAssessmentClass,
   startAssessmentClass,
@@ -20,6 +19,8 @@ import {
 } from "../api/assessments";
 import type { AiPolicy, QuestionInput } from "../api/types";
 import { htmlToPlainText } from "./guidelinesText";
+import { isSharedFolderId, rememberShared } from "./sharedFolders";
+export { isSharedFolderId };
 
 export type SessionState = "READY" | "IN_PROGRESS" | "ENDED";
 
@@ -90,13 +91,31 @@ function toFolder(item: AssessmentSummary | Assessment): EvaluationFolder {
   };
 }
 
+// 화면을 오갈 때마다 스켈레톤이 다시 뜨지 않도록 마지막으로 받은 목록·상세를 기억해 두고,
+// 화면은 먼저 기억한 내용을 보여 준 뒤 새 데이터로 바꿉니다(새로고침하면 비워집니다).
+let listCache: EvaluationFolder[] | null = null;
+const folderCache = new Map<string, EvaluationFolder>();
+
+export const getCachedFolders = () => listCache;
+export const getCachedFolder = (id: string) => folderCache.get(id) ?? null;
+
+export function forgetFolder(id: string) {
+  folderCache.delete(id);
+  if (listCache) listCache = listCache.filter((item) => item.id !== id);
+}
+
 export async function listFolders(): Promise<EvaluationFolder[]> {
   const page = await getAssessments();
-  return page.items.map(toFolder);
+  listCache = page.items.map(toFolder);
+  rememberShared(listCache);
+  return listCache;
 }
 
 export async function getFolder(id: string): Promise<EvaluationFolder> {
-  return toFolder(await getAssessment(id));
+  const folder = toFolder(await getAssessment(id));
+  folderCache.set(id, folder);
+  rememberShared([folder]);
+  return folder;
 }
 
 export type NewFolderInput = {
@@ -110,10 +129,14 @@ export type NewFolderInput = {
 };
 
 export async function createFolder(input: NewFolderInput): Promise<EvaluationFolder> {
+  listCache = null;
   return toFolder(await createAssessment(input));
 }
 
-export const deleteFolder = (id: string) => deleteAssessment(id);
+export async function deleteFolder(id: string) {
+  await deleteAssessment(id);
+  forgetFolder(id);
+}
 
 export async function addSession(folderId: string, className: string) {
   return toSession(await createAssessmentClass(folderId, className));
@@ -125,10 +148,6 @@ export async function renameSession(folderId: string, sessionId: string, classNa
 
 export const removeSession = (folderId: string, sessionId: string) =>
   deleteAssessmentClass(folderId, sessionId);
-
-export async function openSession(folderId: string, sessionId: string) {
-  return toSession(await openAssessmentClass(folderId, sessionId));
-}
 
 export async function startSession(folderId: string, sessionId: string, expiresInMinutes: number) {
   return toSession(await startAssessmentClass(folderId, sessionId, expiresInMinutes));

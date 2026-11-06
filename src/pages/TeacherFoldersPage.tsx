@@ -8,27 +8,17 @@ import { Modal } from "../components/ui/Modal";
 import { Tabs } from "../components/ui/Tabs";
 import { apiErrorMessage } from "../api/client";
 import { FolderGridSkeleton } from "../components/teacher/FolderListSkeleton";
-import { deleteFolder, listFolders, type EvaluationFolder } from "../lib/evaluationFolders";
+import { deleteFolder, getCachedFolders, listFolders, type EvaluationFolder } from "../lib/evaluationFolders";
 import "../components/teacher/teacher.css";
 import "../components/teacher/folder-card.css";
 import { ShareDialog } from "../components/teacher/ShareDialog";
-
-function FolderIcon() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M3 7.5A2.5 2.5 0 0 1 5.5 5h3.6c.5 0 .97.2 1.3.55L11.6 7H18.5A2.5 2.5 0 0 1 21 9.5v8A2.5 2.5 0 0 1 18.5 20h-13A2.5 2.5 0 0 1 3 17.5v-10Z"
-        fill="currentColor"
-      />
-    </svg>
-  );
-}
+import { EditIcon, FolderIcon, ShareIcon, TrashIcon } from "../components/teacher/folderIcons";
 
 export function TeacherFoldersPage() {
   const [params, setParams] = useSearchParams();
   const tab: "mine" | "shared" = params.get("tab") === "shared" ? "shared" : "mine";
   const navigate = useNavigate();
-  const [folders, setFolders] = useState<EvaluationFolder[] | null>(null);
+  const [folders, setFolders] = useState<EvaluationFolder[] | null>(() => getCachedFolders());
   const [loadError, setLoadError] = useState("");
   const [deleting, setDeleting] = useState(false);
 
@@ -109,11 +99,7 @@ export function TeacherFoldersPage() {
                       title="공유"
                       onClick={() => setShareTarget(folder)}
                     >
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <circle cx="9.5" cy="8" r="3.5" />
-                        <path d="M3 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6" />
-                        <path d="M19 8v6M16 11h6" />
-                      </svg>
+                      <ShareIcon />
                     </button>
                     <button
                       type="button"
@@ -121,10 +107,7 @@ export function TeacherFoldersPage() {
                       title="수정"
                       onClick={() => navigate(`/teacher/folders/${encodeURIComponent(folder.id)}/edit`)}
                     >
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3Z" />
-                        <path d="M14.5 7.5l3 3" />
-                      </svg>
+                      <EditIcon />
                     </button>
                     {!folder.owner && (
                     <button
@@ -133,12 +116,7 @@ export function TeacherFoldersPage() {
                       title="삭제"
                       onClick={() => setDeleteTarget({ id: folder.id, title: folder.title })}
                     >
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <path d="M4 7h16" />
-                        <path d="M10 11v6M14 11v6" />
-                        <path d="M6 7l1 13h10l1-13" />
-                        <path d="M9 7V4h6v3" />
-                      </svg>
+                      <TrashIcon />
                     </button>
                     )}
                   </span>

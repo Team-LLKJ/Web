@@ -420,8 +420,8 @@
   display: flex;
   justify-content: center;
   gap: 5px;
-  font-size: var(--font-text-md);
-  line-height: var(--line-text-md);
+  font-size: var(--font-text-sm);
+  line-height: var(--line-text-sm);
 }
 .auth-footer a {
   color: var(--color-primary);

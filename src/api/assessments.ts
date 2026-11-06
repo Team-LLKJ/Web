@@ -120,14 +120,7 @@ export const deleteAssessmentClass = (assessmentId: string, classId: string) =>
     method: "DELETE",
   });
 
-// PIN 먼저 발급(대기실 열기). 학생은 PIN으로 들어와 기다리고, 시작은 startAssessmentClass로 따로 합니다.
-// 백엔드에 아직 없는 API입니다: POST /classes/{classId}/open → PIN이 채워진 ClassView(state READY).
-export const openAssessmentClass = (assessmentId: string, classId: string) =>
-  apiRequest<AssessmentClass>(
-    `${base}/${idPath(assessmentId)}/classes/${idPath(classId)}/open`,
-    { method: "POST" },
-  );
-
+// 시작할 때 6자리 PIN과 QR이 발급됩니다. 참여자가 0명이어도 시작할 수 있고, 시작 후 늦게 입장해도 됩니다.
 export const startAssessmentClass = (
   assessmentId: string,
   classId: string,

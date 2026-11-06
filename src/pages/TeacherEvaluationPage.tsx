@@ -47,7 +47,7 @@ import { TextInput } from "../components/ui/TextInput";
 import { evaluationCriteria } from "../data/landing";
 import "../components/teacher/teacher.css";
 import { avatarColor } from "../lib/avatarColor";
-import { createFolder } from "../lib/evaluationFolders";
+import { createFolder, forgetFolder } from "../lib/evaluationFolders";
 import { getAssessment, updateAssessment } from "../api/assessments";
 import { Toast } from "../components/teacher/Toast";
 
@@ -413,6 +413,7 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
         };
         if (editFolderId) {
           await updateAssessment(editFolderId, { ...payload, revision });
+          forgetFolder(editFolderId);
           navigate(`/teacher/folders/${encodeURIComponent(editFolderId)}`, {
             replace: true,
             state: { notice: "수행평가를 수정했어요. 아직 시작하지 않은 반부터 적용돼요." },

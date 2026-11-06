@@ -14,3 +14,16 @@
 .folder-card .folder-card-link {
   min-width: 0;
 }
+
+/* 스켈레톤 카드: 아이콘은 실제와 같은 색으로 고정, 눌리지 않게 */
+.folder-card--skeleton {
+  pointer-events: none;
+}
+.folder-card--skeleton .evaluation-card-actions > button:disabled {
+  opacity: 1;
+}
+
+.teacher-evaluation-item .evaluation-card-actions > button:disabled {
+  opacity: 1;
+  pointer-events: none;
+}

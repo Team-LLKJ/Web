@@ -21,6 +21,8 @@ type Props = {
   onQuestion: (id: number) => void;
   /** 지정하면 브라우저 인쇄 대신 서버 PDF를 내려받습니다. */
   onSavePdf?: () => void;
+  /** 지정하면 HWP 저장 버튼이 나타납니다. */
+  onSaveHwp?: () => void;
 };
 export function SubmissionPanel({
   student,
@@ -29,6 +31,7 @@ export function SubmissionPanel({
   question,
   onQuestion,
   onSavePdf,
+  onSaveHwp,
 }: Props) {
   // 인쇄 창의 기본 파일 이름과 제목이 보고서 이름이 되도록 잠시 문서 제목을 바꾼다.
   const savePdf = () => {
@@ -58,9 +61,16 @@ export function SubmissionPanel({
             </p>
           </div>
         </div>
-        <Button variant="primary" onClick={savePdf}>
-          PDF로 저장하기
-        </Button>
+        <div className="student-summary-actions">
+          {onSaveHwp && (
+            <Button variant="secondary" onClick={onSaveHwp}>
+              HWP로 저장하기
+            </Button>
+          )}
+          <Button variant="primary" onClick={savePdf}>
+            PDF로 저장하기
+          </Button>
+        </div>
       </section>
       <section className="answer-card teacher-submission">
         <h2>{student.submittedAt ? "제출 답안" : "작성 중인 답안"}</h2>

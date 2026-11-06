@@ -187,7 +187,8 @@ function TeacherGradingPage() {
                 answers={current.answers}
                 question={question}
                 onQuestion={setQuestion}
-                onSavePdf={isLive ? () => void live.downloadReport() : undefined}
+                onSavePdf={isLive ? () => void live.downloadReport("pdf") : undefined}
+                onSaveHwp={isLive ? () => void live.downloadReport("hwp") : undefined}
               />
             )
           }

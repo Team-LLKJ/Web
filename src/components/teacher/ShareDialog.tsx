@@ -155,7 +155,7 @@ export function ShareDialog({
           ) : (
             collaborators.map((item) => {
               const me = item.teacherId === user?.id;
-              const canEdit = isOwner || me;
+              const canEdit = isOwner;
               return (
                 <li key={item.teacherId}>
                   <Avatar name={item.name || item.email} size="large" />

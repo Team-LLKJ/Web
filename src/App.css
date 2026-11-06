@@ -740,3 +740,13 @@ h3 {
   font-size: calc(var(--font-text-md) * 0.85);
   line-height: calc(var(--line-text-md) * 0.85);
 }
+
+.student-summary-actions {
+  display: flex;
+  gap: 8px;
+}
+@media print {
+  .student-summary-actions {
+    display: none;
+  }
+}

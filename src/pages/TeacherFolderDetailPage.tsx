@@ -12,6 +12,7 @@ import { TextInput } from "../components/ui/TextInput";
 import {
   addSession,
   deleteFolder,
+  getCachedFolder,
   getFolder,
   removeSession,
   renameSession,
@@ -63,8 +64,10 @@ export function TeacherFolderDetailPage() {
   const { folderId = "" } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const [folder, setFolder] = useState<EvaluationFolder | null>(null);
-  const [loadState, setLoadState] = useState<"loading" | "ready" | "missing">("loading");
+  const [folder, setFolder] = useState<EvaluationFolder | null>(() => getCachedFolder(folderId));
+  const [loadState, setLoadState] = useState<"loading" | "ready" | "missing">(() =>
+    getCachedFolder(folderId) ? "ready" : "loading",
+  );
   const [busy, setBusy] = useState(false);
   const [adding, setAdding] = useState(false);
   const [className, setClassName] = useState("");

@@ -1,30 +1,38 @@
 import { Skeleton } from "../ui/Skeleton";
+import { EditIcon, FolderIcon, ShareIcon, TrashIcon } from "./folderIcons";
 
-/** 수행평가 카드 자리 표시. 실제 카드(folder-card)와 같은 구조·크기입니다. */
-export function FolderGridSkeleton({ count = 4 }: { count?: number }) {
+/**
+ * 수행평가 카드 자리 표시. 실제 카드와 같은 마크업·아이콘을 쓰고,
+ * 데이터가 들어가는 제목과 문항·반 개수만 스켈레톤으로 둡니다.
+ */
+export function FolderGridSkeleton({ count = 3 }: { count?: number }) {
   return (
     <div className="folder-grid" aria-hidden="true">
       {Array.from({ length: count }, (_, index) => (
-        <div className="folder-card" key={index}>
-          <div className="folder-card-link">
-            <Skeleton className="folder-card-icon" />
-            <strong>
-              <Skeleton className="folder-list-name-placeholder" />
-            </strong>
-            <span className="folder-card-meta folder-list-meta-placeholder">
-              <Skeleton style={{ width: "4.2em", height: "1lh" }} />
-              <span>·</span>
-              <Skeleton style={{ width: "3em", height: "1lh" }} />
+        <article className="folder-card folder-card--skeleton" key={index}>
+          <span className="folder-card-link">
+            <span className="folder-card-icon">
+              <FolderIcon />
             </span>
-          </div>
-          <span className="evaluation-card-actions folder-card-actions folder-list-actions-placeholder">
-            {[0, 1, 2].map((action) => (
-              <span key={action}>
-                <Skeleton style={{ width: 22, height: 22, borderRadius: 6 }} />
-              </span>
-            ))}
+            <strong>
+              <Skeleton style={{ width: "70%", height: "1lh" }} />
+            </strong>
+            <span className="folder-card-meta">
+              <Skeleton style={{ width: "8.5em", height: "1lh" }} />
+            </span>
           </span>
-        </div>
+          <span className="evaluation-card-actions folder-card-actions">
+            <button type="button" tabIndex={-1} disabled>
+              <ShareIcon />
+            </button>
+            <button type="button" tabIndex={-1} disabled>
+              <EditIcon />
+            </button>
+            <button type="button" tabIndex={-1} disabled>
+              <TrashIcon />
+            </button>
+          </span>
+        </article>
       ))}
     </div>
   );
@@ -35,6 +43,8 @@ export function FolderGridSkeleton({ count = 4 }: { count?: number }) {
  * 데이터가 들어갈 카드만 스켈레톤으로 보여 줍니다.
  */
 export function FolderListSkeleton() {
+  const shared =
+    typeof window !== "undefined" && new URLSearchParams(window.location.search).get("tab") === "shared";
   return (
     <div aria-hidden="true">
       <div className="teacher-list-title-row">
@@ -44,10 +54,10 @@ export function FolderListSkeleton() {
       </div>
       <div className="tab-toolbar folder-toolbar">
         <div className="segment-tabs is-static" role="presentation">
-          <button type="button" className="active" tabIndex={-1}>
+          <button type="button" className={shared ? undefined : "active"} tabIndex={-1}>
             내 수행평가
           </button>
-          <button type="button" tabIndex={-1}>
+          <button type="button" className={shared ? "active" : undefined} tabIndex={-1}>
             공유된 수행평가
           </button>
         </div>

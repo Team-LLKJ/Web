@@ -12,8 +12,19 @@ import { StudentWorkspace } from "../student/StudentWorkspace";
 import { RichTextEditor } from "./RichTextEditor";
 import { TextInput } from "../ui/TextInput";
 import { Skeleton } from "../ui/Skeleton";
-import { AddClassCard } from "./AddClassCard";
+import { EditIcon, TrashIcon } from "./folderIcons";
+import { isSharedFolderId } from "../../lib/sharedFolders";
+import { evaluationCriteria } from "../../data/landing";
 import type { LoadingLayout } from "../ui/loadingLayout";
+
+/** 실제 글자와 같은 크기를 차지하되 글자만 보이지 않게 한 스켈레톤 */
+function InkSkeleton({ children }: { children: string }) {
+  return (
+    <span className="skeleton skeleton-ink" aria-hidden="true">
+      {children}
+    </span>
+  );
+}
 
 function Line({
   width = "100%",
@@ -51,8 +62,12 @@ function ClassCard() {
       <div className="evaluation-card-top">
         <Line width="68px" height="30px" />
         <span className="evaluation-card-actions">
-          <Line width="22px" height="22px" />
-          <Line width="22px" height="22px" />
+          <button type="button" tabIndex={-1} disabled aria-hidden="true">
+            <EditIcon />
+          </button>
+          <button type="button" tabIndex={-1} disabled aria-hidden="true">
+            <TrashIcon />
+          </button>
         </span>
       </div>
       <h2>
@@ -74,6 +89,12 @@ function ClassCard() {
 }
 
 function Folder() {
+  // 공유받은 수행평가로 알려진 주소면 삭제 버튼을 두지 않습니다(소유자만 삭제할 수 있어요).
+  const folderId =
+    typeof window === "undefined"
+      ? ""
+      : window.location.pathname.match(/^\/teacher\/(?:folders|evaluations)\/([^/]+)\/?$/)?.[1] ?? "";
+  const hideDelete = folderId !== "" && isSharedFolderId(decodeURIComponent(folderId));
   return (
     <>
       <Back label="내 수행평가" />
@@ -95,6 +116,17 @@ function Folder() {
             </svg>
             수정
           </span>
+          {!hideDelete && (
+          <span className="folder-action folder-action--danger folder-skeleton-delete">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M4 7h16" />
+              <path d="M10 11v6M14 11v6" />
+              <path d="M6 7l1 13h10l1-13" />
+              <path d="M9 7V4h6v3" />
+            </svg>
+            삭제
+          </span>
+          )}
         </div>
       </div>
       <section className="teacher-card folder-section">
@@ -105,7 +137,7 @@ function Folder() {
           <Line width="75%" />
         </p>
         <ol className="folder-questions">
-          {[1, 2].map((n) => (
+          {[1].map((n) => (
             <li key={n}>
               <b>문항 {n}</b>
               <Line width="65%" />
@@ -118,26 +150,43 @@ function Folder() {
           <h2>평가 설정</h2>
         </header>
         <dl className="folder-settings">
-          {["AI 사용 정책", "평가 항목", "부정행위 방지"].map(
-            (label, index) => (
-              <div key={label}>
-                <dt>{label}</dt>
-                <dd>
-                  {index === 1 ? (
-                    <ul className="folder-chips">
-                      {[0, 1, 2, 3, 4].map((i) => (
-                        <li key={i}>
-                          <Line width="7em" />
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <Line width={index === 0 ? "55%" : "6em"} />
-                  )}
-                </dd>
-              </div>
-            ),
-          )}
+          <div>
+            <dt>AI 사용 정책</dt>
+            <dd>
+              <span className="folder-policy">
+                <strong>
+                  <InkSkeleton>힌트만 허용</InkSkeleton>
+                </strong>
+                <small>
+                  <InkSkeleton>(답을 알려주지 않고 생각을 이끄는 힌트만 줘요.)</InkSkeleton>
+                </small>
+              </span>
+            </dd>
+          </div>
+          <div>
+            <dt>평가 항목</dt>
+            <dd>
+              <ul className="folder-chips">
+                {evaluationCriteria.map((item) => (
+                  <li className="skeleton skeleton-ink" key={item.title}>
+                    {item.title}
+                  </li>
+                ))}
+              </ul>
+            </dd>
+          </div>
+          <div>
+            <dt>부정행위 방지</dt>
+            <dd>
+              <ul className="folder-chips">
+                {["창/탭 이탈 감지", "프린트 금지"].map((label) => (
+                  <li className="skeleton skeleton-ink" key={label}>
+                    {label}
+                  </li>
+                ))}
+              </ul>
+            </dd>
+          </div>
         </dl>
       </section>
       <section className="folder-section folder-section--plain">
@@ -145,19 +194,17 @@ function Folder() {
           <h2>반별 평가</h2>
         </header>
         <div className="teacher-filter-chips folder-filter">
-          {["전체", "시작 전", "진행 중", "종료됨"].map((label) => (
+          {["전체", "시작 전", "진행 중", "종료됨"].map((label, index) => (
             <span
-              className="teacher-filter-chip screen-loading-filter"
+              className={`teacher-filter-chip screen-loading-filter${index === 0 ? " is-active" : ""}`}
               key={label}
             >
-              {label} <Line width="1em" />
+              {label}
             </span>
           ))}
         </div>
         <div className="teacher-evaluation-list class-evaluation-grid">
           <ClassCard />
-          <ClassCard />
-          <AddClassCard onAddClass={() => {}} />
         </div>
       </section>
     </>
