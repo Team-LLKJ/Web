@@ -98,13 +98,6 @@ export function EvaluationEditSkeleton() {
         inert
         aria-hidden="true"
       >
-        <div className="teacher-select-label">
-          <span>AI 사용 정책</span>
-          <div className="evaluation-edit-select">
-            <Skeleton style={{ width: "65%", height: 20 }} />
-            <span>⌄</span>
-          </div>
-        </div>
         <div className="tq-list">
           <fieldset className="tq-card" disabled>
             <legend className="sr-only">문항을 불러오는 중</legend>

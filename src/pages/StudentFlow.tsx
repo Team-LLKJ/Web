@@ -998,7 +998,8 @@ export function StudentFlow({ route }: { route: string }) {
             <AnswerEditor
               title={session.evaluationTitle}
               guidelines={workspace?.guidelines ?? ""}
-              aiPolicy={workspace?.aiPolicy ?? null}
+              criteria={workspace?.criteria ?? []}
+              antiCheat={workspace?.antiCheat ?? []}
               questions={questions}
               questionId={questionId}
               answers={answers}

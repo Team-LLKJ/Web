@@ -11,12 +11,15 @@ export function LogoutButton({
   size = "medium",
   className = "",
   onDone,
+  asRow = false,
 }: {
   variant?: ButtonVariant;
   size?: "small" | "medium" | "large";
   className?: string;
   /** 로그아웃 뒤 할 일. 없으면 처음 화면으로 이동합니다. */
   onDone?: () => void;
+  /** 설정 목록의 한 줄(화살표가 있는 행) 모양으로 보여줍니다. */
+  asRow?: boolean;
 }) {
   const { logout } = useAuth();
   const navigate = useNavigate();
@@ -37,9 +40,18 @@ export function LogoutButton({
 
   return (
     <>
-      <Button variant={variant} size={size} className={className} onClick={() => setConfirming(true)}>
-        로그아웃
-      </Button>
+      {asRow ? (
+        <button type="button" className="settings-link-row settings-link-button settings-link-button--danger" onClick={() => setConfirming(true)}>
+          <span>로그아웃</span>
+          <svg className="info-chevron" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+            <path d="m9 6 6 6-6 6" />
+          </svg>
+        </button>
+      ) : (
+        <Button variant={variant} size={size} className={className} onClick={() => setConfirming(true)}>
+          로그아웃
+        </Button>
+      )}
       {confirming && (
         <Modal
           title="로그아웃할까요?"

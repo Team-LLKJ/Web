@@ -19,6 +19,7 @@ import type {
   PageResponse,
   QuestionAnswer,
   Review,
+  RubricScores,
   SaveAnswerRequest,
   Submission,
   Turn,
@@ -354,6 +355,39 @@ export function getReviewHistory(
   );
 }
 
+// 기준별 점수: AI 추천(ai)과 교사 점수(teacher)를 함께 다룹니다. id는 반 회차입니다.
+const rubricScorePath = (evaluationId: string, participantId: string) =>
+  `/api/teacher/evaluations/${idPath(evaluationId)}/participants/${idPath(participantId)}/rubric-scores`;
+
+export function getRubricScores(evaluationId: string, participantId: string) {
+  return apiRequest<RubricScores>(rubricScorePath(evaluationId, participantId));
+}
+
+/** level 0~4(0 매우 못함 ~ 4 매우 잘함). level·feedback을 모두 생략하면 그 기준의 교사 점수를 지웁니다. */
+export function saveRubricScore(
+  evaluationId: string,
+  participantId: string,
+  criterionId: number,
+  body: { level?: number; feedback?: string },
+) {
+  return apiRequest<RubricScores>(
+    `${rubricScorePath(evaluationId, participantId)}/${criterionId}`,
+    { method: "PUT", body },
+  );
+}
+
+/** 모든 기준에 교사 값이 있어야 확정됩니다(부족하면 409 GRADING_INCOMPLETE). */
+export function confirmGrade(
+  evaluationId: string,
+  participantId: string,
+  acceptAiForMissing = false,
+) {
+  return apiRequest<RubricScores>(
+    `/api/teacher/evaluations/${idPath(evaluationId)}/participants/${idPath(participantId)}/grade/confirm`,
+    { method: "POST", body: { acceptAiForMissing } },
+  );
+}
+
 /** 제출 후 사용 가능(미제출 409). 토큰은 헤더로 전송되므로 Blob으로 받습니다. */
 export function getGradingReportPdf(
   evaluationId: string,
@@ -365,7 +399,7 @@ export function getGradingReportPdf(
   });
   return apiRequest<Blob>(
     `${studentPath(evaluationId, participantId)}/report.pdf?${query}`,
-    { responseType: "blob" },
+    { responseType: "blob", accept: "application/pdf, */*" },
   );
 }
 
@@ -381,7 +415,7 @@ export function getGradingReportHwp(
   if (options.version) query.set("version", String(options.version));
   return apiRequest<Blob>(
     `${studentPath(evaluationId, participantId)}/report/hwp?${query}`,
-    { responseType: "blob" },
+    { responseType: "blob", accept: "application/x-hwp, */*" },
   );
 }
 

@@ -38,21 +38,6 @@ import "../components/teacher/folder-detail-text.css";
 import "../components/teacher/folder-share.css";
 import { ShareDialog } from "../components/teacher/ShareDialog";
 
-const POLICY_INFO = {
-  DISABLED: {
-    label: "사용 안 함",
-    description: "학생이 AI에게 질문할 수 없어요.",
-  },
-  HINT_ONLY: {
-    label: "힌트만 허용",
-    description: "답을 알려주지 않고 생각을 이끄는 힌트만 줘요.",
-  },
-  FULL: {
-    label: "전체 응답 허용",
-    description: "질문 제한 없이 AI를 활용할 수 있어요.",
-  },
-} as const;
-
 const ANTI_CHEAT_LABEL: Record<string, string> = {
   TAB_LEAVE: "창/탭 이탈 감지",
   PRINT_BLOCK: "프린트 금지",
@@ -379,15 +364,6 @@ export function TeacherFolderDetailPage() {
             <h2>평가 설정</h2>
           </header>
           <dl className="folder-settings">
-            <div>
-              <dt>AI 사용 정책</dt>
-              <dd>
-                <span className="folder-policy">
-                  <strong>{POLICY_INFO[folder.aiPolicy].label}</strong>
-                  <small>({POLICY_INFO[folder.aiPolicy].description})</small>
-                </span>
-              </dd>
-            </div>
             <div>
               <dt>평가 항목</dt>
               <dd>

@@ -1,12 +1,10 @@
 import { EmptyState } from "../ui/EmptyState";
-import type {
-  AiPolicy,
-  ApiQuestion,
-} from "../../api/types";
+import type { ApiQuestion } from "../../api/types";
 import { Tabs } from "../ui/Tabs";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Skeleton, SkeletonStatus } from "../ui/Skeleton";
 import { guidelinesToSafeHtml } from "../../lib/guidelinesText";
+import "./overview-extra.css";
 
 const loadRichAnswerField = () => import("./RichAnswerField");
 const RichAnswerField = lazy(() =>
@@ -37,37 +35,28 @@ function EditorPlaceholder() {
 
 const OVERVIEW = "__overview__";
 
-const POLICY_COPY: Record<AiPolicy, { title: string; body: string }> = {
-  DISABLED: {
-    title: "AI 사용 불가",
-    body: "이 평가에서는 AI 도우미를 사용할 수 없습니다. 답안은 본인의 생각으로 작성해주세요.",
-  },
-  HINT_ONLY: {
-    title: "개념 이해를 위한 힌트만 허용",
-    body: "AI는 개념과 접근 방법을 묻는 힌트에만 사용하고, 완성된 답안을 대신 작성하게 하지 마세요.",
-  },
-  FULL: {
-    title: "AI 응답 사용 가능",
-    body: "AI 응답을 참고할 수 있지만 내용을 그대로 옮기기 전에 정확성을 확인하고 본인의 판단과 설명을 답안에 담아주세요.",
-  },
+const ANTI_CHEAT_COPY: Record<string, string> = {
+  TAB_LEAVE: "창이나 탭을 벗어나면 이탈로 기록됩니다.",
+  PRINT_BLOCK: "인쇄(프린트)는 사용할 수 없습니다.",
 };
 
 function OverviewPanel({
   title,
   guidelines,
   questions,
-  aiPolicy,
+  criteria,
+  antiCheat,
   readOnly,
   onStart,
 }: {
   title: string;
   guidelines: string;
   questions: ApiQuestion[];
-  aiPolicy: AiPolicy | null;
+  criteria: string[];
+  antiCheat: string[];
   readOnly: boolean;
   onStart: (id: string) => void;
 }) {
-  const policy = aiPolicy ? POLICY_COPY[aiPolicy] : null;
   return (
     <section className="assessment-overview" aria-label="수행평가 안내">
       <h2>{title || "수행평가"}</h2>
@@ -99,13 +88,27 @@ function OverviewPanel({
           ))}
         </ol>
       </div>
-      {policy && (
+      {criteria.length > 0 && (
         <div className="assessment-overview-block">
-          <h3>AI 사용 안내</h3>
-          <p>
-            <strong>{policy.title}</strong>
-          </p>
-          <p>{policy.body}</p>
+          <h3>AI 평가 안내</h3>
+          <p className="overview-lead">AI를 활용한 과정이 아래 항목으로 분석되고, 교사가 확인해 최종 점수를 정합니다.</p>
+          <ul className="overview-check-list">
+            {criteria.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+          <p className="overview-note">AI 분석은 참고 자료이며, 점수는 교사가 최종 판단합니다.</p>
+        </div>
+      )}
+      {antiCheat.length > 0 && (
+        <div className="assessment-overview-block">
+          <h3>부정행위 방지 안내</h3>
+          <ul className="overview-check-list">
+            {antiCheat.map((code) => (
+              <li key={code}>{ANTI_CHEAT_COPY[code] ?? code}</li>
+            ))}
+          </ul>
+          <p className="overview-note">감지 기록은 교사에게 전달되며, 기록만으로 부정행위가 확정되지는 않습니다.</p>
         </div>
       )}
       <div className="assessment-overview-block">
@@ -125,7 +128,8 @@ function OverviewPanel({
 export function AnswerEditor({
   title,
   guidelines = "",
-  aiPolicy,
+  criteria = [],
+  antiCheat = [],
   questions,
   questionId,
   answers,
@@ -138,7 +142,8 @@ export function AnswerEditor({
 }: {
   title: string;
   guidelines?: string;
-  aiPolicy: AiPolicy | null;
+  criteria?: string[];
+  antiCheat?: string[];
   questions: ApiQuestion[];
   questionId: string;
   answers: Record<string, string>;
@@ -188,7 +193,8 @@ export function AnswerEditor({
           title={title}
           guidelines={guidelines}
           questions={questions}
-          aiPolicy={aiPolicy}
+          criteria={criteria}
+          antiCheat={antiCheat}
           readOnly={readOnly}
           onStart={(id) => {
             setOverview(false);

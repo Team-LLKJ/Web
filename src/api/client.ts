@@ -35,6 +35,8 @@ type RequestOptions = Omit<RequestInit, "body"> & {
   body?: unknown;
   auth?: boolean;
   responseType?: "json" | "blob";
+  /** blob 응답의 Accept 값. 없으면 QR 이미지용 image/png입니다. */
+  accept?: string;
   retryOnUnauthorized?: boolean;
   participant?: boolean;
   participantEvaluationId?: string;
@@ -165,7 +167,9 @@ async function send(
   const headers = new Headers(options.headers);
   headers.set(
     "Accept",
-    options.responseType === "blob" ? "image/png" : "application/json",
+    options.responseType === "blob"
+      ? (options.accept ?? "image/png")
+      : "application/json",
   );
   if (options.body !== undefined)
     headers.set("Content-Type", "application/json");

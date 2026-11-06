@@ -285,7 +285,6 @@ export function SettingsPage() {
         )}
 
         {user?.role === "TEACHER" && <AccountSettings />}
-        {user && <ConsentHistory />}
 
         <SettingsGroup title="알림">
           <SwitchRow
@@ -315,12 +314,15 @@ export function SettingsPage() {
             <span>개인정보 처리방침</span>
             <Chevron />
           </Link>
+          {user && <ConsentHistory />}
         </SettingsGroup>
 
         {user && (
-          <LogoutButton variant="white-danger" size="small" className="settings-logout" />
+          <SettingsGroup title="계정">
+            <LogoutButton asRow />
+            <DeleteAccount />
+          </SettingsGroup>
         )}
-        {user && <DeleteAccount />}
       </div>
     </InfoLayout>
   );

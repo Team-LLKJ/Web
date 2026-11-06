@@ -77,3 +77,26 @@
   color: var(--color-grey-50);
   font-size: var(--font-caption);
 }
+
+/* 회원 탈퇴: 서비스 정보 목록의 한 줄(버튼) */
+.settings-link-button {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* 로그아웃·회원 탈퇴처럼 되돌리기 어려운 행은 빨간 글씨로 구분 */
+.settings-link-button--danger,
+.settings-link-button--danger span {
+  color: var(--color-danger);
+}
+.settings-link-button--danger .info-chevron {
+  stroke: var(--color-danger);
+  opacity: 0.6;
+}
+.settings-link-row.settings-link-button--danger:hover .info-chevron {
+  stroke: var(--color-danger);
+  opacity: 1;
+}

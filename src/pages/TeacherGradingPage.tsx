@@ -202,6 +202,8 @@ function TeacherGradingPage() {
                 key={current.id}
                 review={review}
                 onScore={onScore}
+                onLevel={isLive ? (id, level) => void live.setLevel(id, level) : undefined}
+                onConfirm={isLive ? () => void live.confirmGrading() : undefined}
                 lockedNotice={lockedNotice}
                 tab={tab}
                 onTab={setTab}

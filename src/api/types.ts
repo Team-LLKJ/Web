@@ -161,6 +161,10 @@ export type Workspace = {
   /** 교사가 작성한 일반 텍스트 안내(줄바꿈 유지). */
   guidelines?: string;
   evaluationContent?: string;
+  /** 교사가 고른 평가 항목 제목. */
+  criteria?: string[];
+  /** 켜진 부정행위 방지 설정 코드(TAB_LEAVE, PRINT_BLOCK 등). */
+  antiCheat?: string[];
   questions: QuestionAnswer[];
 };
 
@@ -309,6 +313,43 @@ export type GradingReview = {
   criteria: RubricCriterion[];
   analysis: RubricCriterion[];
   adjustments: RubricAdjustment[];
+};
+
+// 기준별 점수(AI 추천 + 교사 점수) — /rubric-scores
+export type RubricScoreAi = {
+  level: number;
+  score: number;
+  reason: string;
+  evidence: { conversationId?: number }[];
+};
+export type RubricScoreTeacher = {
+  level: number;
+  score: number;
+  feedback: string;
+  updatedAt?: string;
+};
+export type RubricScoreCriterion = {
+  criterionId: number;
+  name: string;
+  maxScore: number;
+  indicator: string;
+  ai: RubricScoreAi | null;
+  teacher: RubricScoreTeacher | null;
+  adjusted: boolean;
+};
+export type RubricScores = {
+  criteria: RubricScoreCriterion[];
+  totalAi: number | null;
+  totalTeacher: number | null;
+  totalCurrent: number | null;
+  status: "DRAFT" | "CONFIRMED";
+  confirmedTotal: number | null;
+  confirmedAt: string | null;
+  analysisStatus?: string;
+  compliance?: { ai: string | null; decision: string | null; note: string | null };
+  participantId?: string;
+  recommendedMaxScore: number | null;
+  missingAiCriteria: string[];
 };
 
 export type ApiMessage = { message: string };
