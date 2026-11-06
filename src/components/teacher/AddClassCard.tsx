@@ -3,9 +3,10 @@ import "./class-add-card.css";
 
 type Props = {
   onAddClass: () => void;
+  disabled?: boolean;
 };
 
-export function AddClassCard({ onAddClass }: Props) {
+export function AddClassCard({ onAddClass, disabled = false }: Props) {
   const descriptionId = useId();
 
   return (
@@ -13,6 +14,7 @@ export function AddClassCard({ onAddClass }: Props) {
       type="button"
       className="class-add-card"
       onClick={onAddClass}
+      disabled={disabled}
       aria-label="반 추가하기"
       aria-describedby={descriptionId}
     >
