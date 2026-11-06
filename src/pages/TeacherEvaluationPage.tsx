@@ -4,6 +4,7 @@ import {
   useState,
   type FormEvent,
 } from "react";
+import { EmptyState } from "../components/ui/EmptyState";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   configureEvaluation,
@@ -46,7 +47,7 @@ import { TextInput } from "../components/ui/TextInput";
 import { evaluationCriteria } from "../data/landing";
 import "../components/teacher/teacher.css";
 import { avatarColor } from "../lib/avatarColor";
-import { createFolder } from "../lib/evaluationFolders";
+import { createFolder, forgetFolder } from "../lib/evaluationFolders";
 import { getAssessment, updateAssessment } from "../api/assessments";
 import { Toast } from "../components/teacher/Toast";
 
@@ -412,6 +413,7 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
         };
         if (editFolderId) {
           await updateAssessment(editFolderId, { ...payload, revision });
+          forgetFolder(editFolderId);
           navigate(`/teacher/folders/${encodeURIComponent(editFolderId)}`, {
             replace: true,
             state: { notice: "수행평가를 수정했어요. 아직 시작하지 않은 반부터 적용돼요." },
@@ -561,7 +563,8 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
             className="folder-back"
             to={editFolderId ? `/teacher/folders/${encodeURIComponent(editFolderId)}` : "/teacher/folders"}
           >
-            ← {editFolderId ? "수행평가로" : "내 수행평가"}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+          {editFolderId ? "수행평가로" : "내 수행평가"}
           </Link>
         )}
         <h1>{evaluation ? evaluation.title : editFolderId ? "수행평가 수정" : "수행평가 만들기"}</h1>
@@ -984,15 +987,16 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
                   ))}
                 </ul>
               ) : (
-                <div className="teacher-lobby-empty">
-                  <EmptyParticipantsIcon />
-                  <p>참여자를 기다리고 있습니다.</p>
-                  {evaluation.state === "WAITING" && (
-                    <small>
-                      연결된 학생이 1명 이상이어야 평가를 시작할 수 있습니다.
-                    </small>
-                  )}
-                </div>
+                <EmptyState
+                  size="panel"
+                  icon="users"
+                  title="참여자를 기다리고 있어요"
+                  description={
+                    evaluation.state === "WAITING"
+                      ? "연결된 학생이 1명 이상이어야 평가를 시작할 수 있어요."
+                      : undefined
+                  }
+                />
               )}
             </section>
           </div>

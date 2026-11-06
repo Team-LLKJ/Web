@@ -118,3 +118,141 @@
   background: var(--color-primary-soft);
   color: var(--color-primary);
 }
+
+/* ───── 공유 모달(구글 드라이브 공유 창 느낌) ───── */
+.modal.share-modal {
+  width: min(560px, calc(100vw - 40px));
+  max-width: calc(100vw - 40px);
+}
+.share-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+/* 이메일 입력칸과 추가 버튼을 나란히(버튼은 칸 밖) */
+.share-add {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+.share-add-field {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  min-width: 0;
+  height: 52px;
+  padding: 0 16px;
+  border: 1px solid var(--color-grey-20);
+  border-radius: 10px;
+  background: var(--color-white);
+  transition: border-color 0.15s ease;
+}
+.share-add-field:focus-within {
+  border-color: var(--color-primary);
+}
+.share-add-field:has(.share-add-input[aria-invalid="true"]) {
+  border-color: var(--color-danger);
+}
+.share-add-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: var(--font-text-sm);
+  outline: 0;
+}
+.share-add-input:focus-visible {
+  outline: none;
+}
+.share-add .button {
+  flex: none;
+  height: 52px;
+}
+.share-error {
+  margin: -4px 2px 0;
+}
+.share-section-title {
+  margin: 12px 0 0;
+  font-size: var(--font-text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--color-grey-80);
+}
+.share-people {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 280px;
+  overflow-y: auto;
+}
+.share-people > li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+.share-person {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.share-person strong {
+  overflow: hidden;
+  font-weight: var(--weight-medium);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.share-person small {
+  overflow: hidden;
+  color: var(--color-grey-50);
+  font-size: var(--font-caption);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.share-role {
+  flex: none;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-grey-70);
+  font: inherit;
+  font-size: var(--font-caption);
+  cursor: pointer;
+}
+select.share-role:hover:not(:disabled) {
+  background: var(--color-grey-10);
+}
+.share-role--fixed,
+.share-role--fixed:hover {
+  background: transparent;
+  color: var(--color-grey-40);
+  cursor: default;
+}
+.share-people-empty {
+  color: var(--color-grey-40);
+}
+.share-note {
+  margin: 4px 0 0;
+  color: var(--color-grey-50);
+  font-size: var(--font-caption);
+}
+.share-people-skeleton {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+.share-skeleton-avatar {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+}

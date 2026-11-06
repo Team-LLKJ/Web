@@ -6,3 +6,19 @@
 .evaluation-card-actions > button:first-child:hover {
   color: var(--color-primary);
 }
+
+/* 반 대기실: PIN을 만드는 동안 자리 표시 */
+.teacher-lobby-pin--loading {
+  color: var(--color-grey-20);
+  animation: lobby-pin-pulse 1.2s ease-in-out infinite;
+}
+@keyframes lobby-pin-pulse {
+  50% {
+    opacity: 0.4;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .teacher-lobby-pin--loading {
+    animation: none;
+  }
+}

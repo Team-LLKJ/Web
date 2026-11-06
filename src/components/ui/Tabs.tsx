@@ -73,8 +73,15 @@ export function Tabs<T extends string | number>({
     const list = listRef.current;
     if (!list) return;
     const update = () => {
-      const prev = list.scrollLeft > 1;
-      const next = list.scrollLeft + list.clientWidth < list.scrollWidth - 1;
+      // 스크롤 길이가 아니라 탭 위치로 판단합니다. 끝에 빈 공간을 두므로 scrollWidth는 쓰지 않아요.
+      const tabs = list.querySelectorAll<HTMLElement>('[role="tab"]');
+      const first = tabs[0];
+      const last = tabs[tabs.length - 1];
+      if (!first || !last) return;
+      // 화면에 실제로 그려진 위치로 비교합니다(offsetParent 차이에 영향받지 않아요).
+      const box = list.getBoundingClientRect();
+      const prev = first.getBoundingClientRect().left < box.left - 4;
+      const next = last.getBoundingClientRect().right > box.right + 4;
       setOverflow((current) =>
         current.prev === prev && current.next === next
           ? current
@@ -97,17 +104,44 @@ export function Tabs<T extends string | number>({
     const list = listRef.current;
     const active = list?.querySelector<HTMLElement>('[aria-selected="true"]');
     if (!list || !active) return;
-    const left = active.offsetLeft - 8;
-    const right = active.offsetLeft + active.offsetWidth + 8;
-    if (left < list.scrollLeft) list.scrollTo({ left, behavior: "smooth" });
-    else if (right > list.scrollLeft + list.clientWidth)
-      list.scrollTo({ left: right - list.clientWidth, behavior: "smooth" });
+    // 가려진 탭은 그 탭이 맨 앞에 오도록 맞춰서, 다른 탭이 반쯤 잘려 보이지 않게 합니다.
+    const hiddenLeft = active.offsetLeft < list.scrollLeft;
+    const hiddenRight = active.offsetLeft + active.offsetWidth > list.scrollLeft + list.clientWidth;
+    if (hiddenLeft || hiddenRight)
+      list.scrollTo({
+        left: active.offsetLeft < 8 ? 0 : Math.min(active.offsetLeft, maxStart(list)),
+        behavior: "smooth",
+      });
   }, [segment, value]);
 
+  // 마지막 탭까지 한 화면에 다 들어오는 가장 앞쪽 탭의 위치. 이보다 더 넘기면 빈 화면만 늘어나요.
+  const maxStart = (list: HTMLElement) => {
+    const tabs = [...list.querySelectorAll<HTMLElement>('[role="tab"]')];
+    const last = tabs[tabs.length - 1];
+    if (!last) return 0;
+    const end = last.offsetLeft + last.offsetWidth;
+    const first = tabs.find((tab) => end - tab.offsetLeft <= list.clientWidth);
+    return first ? first.offsetLeft : 0;
+  };
+
+  // 탭이 중간에 잘린 채로 멈추지 않도록, 한 번에 보이는 만큼을 탭 단위로 넘깁니다.
   const scrollTabs = (direction: -1 | 1) => {
     const list = listRef.current;
-    if (list)
-      list.scrollBy({ left: direction * list.clientWidth * 0.7, behavior: "smooth" });
+    if (!list) return;
+    const tabs = [...list.querySelectorAll<HTMLElement>('[role="tab"]')];
+    let left: number;
+    if (direction === 1) {
+      const edge = list.scrollLeft + list.clientWidth;
+      const first = tabs.find((tab) => tab.offsetLeft + tab.offsetWidth > edge + 1);
+      left = first ? first.offsetLeft : list.scrollWidth;
+    } else {
+      const hidden = [...tabs].reverse().find((tab) => tab.offsetLeft < list.scrollLeft - 1);
+      left = hidden ? hidden.offsetLeft + hidden.offsetWidth - list.clientWidth : 0;
+      // 화면에 처음 들어오는 탭이 잘리지 않게, 그 탭의 시작에 맞춥니다.
+      const aligned = tabs.find((tab) => tab.offsetLeft >= left - 1);
+      if (aligned) left = aligned.offsetLeft;
+    }
+    list.scrollTo({ left: left < 8 ? 0 : Math.min(left, maxStart(list)), behavior: "smooth" });
   };
 
   const tablist = (
@@ -152,13 +186,14 @@ export function Tabs<T extends string | number>({
   if (!segment) return tablist;
   const showArrows = overflow.prev || overflow.next;
   return (
-    <div className="segment-tabs-wrap">
+    <div className={`segment-tabs-wrap${showArrows ? " has-arrows" : ""}${overflow.prev ? " can-prev" : ""}${overflow.next ? " can-next" : ""}`}>
       {showArrows && (
         <button
           type="button"
-          className="segment-tabs-arrow"
+          className={`segment-tabs-arrow${overflow.prev ? "" : " is-hidden"}`}
           aria-label="이전 탭 보기"
-          disabled={!overflow.prev}
+          aria-hidden={!overflow.prev}
+          tabIndex={overflow.prev ? 0 : -1}
           onClick={() => scrollTabs(-1)}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -170,9 +205,10 @@ export function Tabs<T extends string | number>({
       {showArrows && (
         <button
           type="button"
-          className="segment-tabs-arrow"
+          className={`segment-tabs-arrow${overflow.next ? "" : " is-hidden"}`}
           aria-label="다음 탭 보기"
-          disabled={!overflow.next}
+          aria-hidden={!overflow.next}
+          tabIndex={overflow.next ? 0 : -1}
           onClick={() => scrollTabs(1)}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

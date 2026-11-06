@@ -1,7 +1,8 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { updateMyName } from "../api/auth";
 import { apiErrorMessage } from "../api/client";
+import { EmptyState } from "../components/ui/EmptyState";
 import { useAuth } from "../auth/useAuth";
 import { LegalDocument } from "../components/info/LegalDocument";
 import {
@@ -11,16 +12,18 @@ import {
 import { LandingFooter } from "../components/landing/LandingFooter";
 import { LandingHeader } from "../components/landing/LandingHeader";
 import { Avatar } from "../components/ui/Avatar";
+import { Modal } from "../components/ui/Modal";
 import { Button } from "../components/ui/Button";
+import { LogoutButton } from "../components/ui/LogoutButton";
 import {
   NotificationRowContent,
-  SwitchRow,
-} from "../components/ui/HeaderDialogs";
+  SwitchRow, NotificationListSkeleton } from "../components/ui/HeaderDialogs";
 import { TextInput } from "../components/ui/TextInput";
 import { Skeleton, SkeletonStatus } from "../components/ui/Skeleton";
 import { Tabs } from "../components/ui/Tabs";
 import { toNotificationRow } from "../components/ui/headerSettings";
 import { AccountSettings } from "../components/info/AccountSettings";
+import { ConsentHistory, DeleteAccount, EmailChangeRow } from "../components/info/AccountExtras";
 import { useNotifications } from "../hooks/useNotifications";
 import { useUserSettings } from "../hooks/useUserSettings";
 import "../components/info/account-settings.css";
@@ -118,13 +121,19 @@ function ProfileSkeleton() {
   );
 }
 
-/** 계정 정보의 이름 줄. '수정'을 누르면 그 자리에서 입력칸으로 바뀝니다. */
+/** 계정 정보의 이름 줄. 연필 아이콘을 누르면 이름 수정 창이 열립니다. */
 function NameRow({ name }: { name: string }) {
   const { reloadUser } = useAuth();
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(name);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+
+  function close() {
+    if (saving) return;
+    setEditing(false);
+    setError("");
+  }
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -150,72 +159,69 @@ function NameRow({ name }: { name: string }) {
     }
   }
 
-  if (!editing) {
-    return (
-      <div>
-        <dt>이름</dt>
-        <dd className="settings-name-value">
-          {name}
-          <button
-            type="button"
-            className="settings-text-button"
-            onClick={() => {
-              setValue(name);
-              setError("");
-              setEditing(true);
-            }}
-          >
-            수정
-          </button>
-        </dd>
-      </div>
-    );
-  }
-
   return (
-    <div className="settings-name-edit">
-      <dt>
-        <label htmlFor="settings-name">이름</label>
-      </dt>
-      <dd>
-        <form onSubmit={(event) => void submit(event)} noValidate>
-          <TextInput
-            id="settings-name"
-            value={value}
-            maxLength={50}
-            autoComplete="name"
-            autoFocus
-            disabled={saving}
-            error={error || undefined}
-            onChange={(event) => {
-              setValue(event.target.value);
-              setError("");
-            }}
-          />
-          <div className="settings-name-actions">
-            <Button
-              size="small"
-              variant="secondary"
-              disabled={saving}
-              onClick={() => setEditing(false)}
-            >
-              취소
-            </Button>
-            <Button size="small" type="submit" loading={saving}>
-              저장
-            </Button>
-          </div>
-        </form>
+    <div>
+      <dt>이름</dt>
+      <dd className="settings-name-value">
+        {name}
+        <button
+          type="button"
+          className="settings-icon-button"
+          aria-label="이름 수정"
+          title="이름 수정"
+          onClick={() => {
+            setValue(name);
+            setError("");
+            setEditing(true);
+          }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3Z" />
+            <path d="M14.5 7.5l3 3" />
+          </svg>
+        </button>
       </dd>
+      {editing && (
+        <Modal
+          title="이름 수정"
+          onClose={close}
+          dismissOnBackdrop={false}
+          actions={
+            <>
+              <Button type="submit" form="settings-name-form" loading={saving}>
+                저장
+              </Button>
+              <Button variant="secondary" onClick={close}>
+                취소
+              </Button>
+            </>
+          }
+        >
+          <form id="settings-name-form" onSubmit={(event) => void submit(event)} noValidate>
+            <TextInput
+              id="settings-name"
+              label="이름"
+              value={value}
+              maxLength={50}
+              autoComplete="name"
+              autoFocus
+              disabled={saving}
+              error={error || undefined}
+              onChange={(event) => {
+                setValue(event.target.value);
+                setError("");
+              }}
+            />
+          </form>
+        </Modal>
+      )}
     </div>
   );
 }
 
 export function SettingsPage() {
-  const { user, loading, logout } = useAuth();
-  const navigate = useNavigate();
+  const { user, loading } = useAuth();
   const { notify, error: settingsError, setNotify } = useUserSettings();
-  const [loggingOut, setLoggingOut] = useState(false);
 
   return (
     <InfoLayout
@@ -265,6 +271,7 @@ export function SettingsPage() {
                 <dd>{user.username}</dd>
               </div>
               <NameRow key={user.name} name={user.name} />
+              {user.email && <EmailChangeRow key={user.email} email={user.email} />}
               {user.role === "STUDENT" && user.grade !== null && (
                 <div>
                   <dt>학년·반·번호</dt>
@@ -278,6 +285,7 @@ export function SettingsPage() {
         )}
 
         {user?.role === "TEACHER" && <AccountSettings />}
+        {user && <ConsentHistory />}
 
         <SettingsGroup title="알림">
           <SwitchRow
@@ -310,21 +318,9 @@ export function SettingsPage() {
         </SettingsGroup>
 
         {user && (
-          <Button
-            variant="white-danger"
-            size="small"
-            className="settings-logout"
-            loading={loggingOut}
-            onClick={() => {
-              setLoggingOut(true);
-              void logout()
-                .then(() => navigate(paths.home))
-                .finally(() => setLoggingOut(false));
-            }}
-          >
-            로그아웃
-          </Button>
+          <LogoutButton variant="white-danger" size="small" className="settings-logout" />
         )}
+        {user && <DeleteAccount />}
       </div>
     </InfoLayout>
   );
@@ -364,6 +360,21 @@ export function NotificationsPage() {
               : "새 알림을 모두 확인했습니다."}
           </p>
         </div>
+      </header>
+      <div className="tab-toolbar">
+        <Tabs
+          label="알림 거르기"
+          variant="segment"
+          value={filter}
+          items={[
+            { value: "all", label: "전체" },
+            {
+              value: "unread",
+              label: unreadCount > 0 ? `안 읽음 ${unreadCount}` : "안 읽음",
+            },
+          ]}
+          onChange={setFilter}
+        />
         <button
           type="button"
           className="notifications-read-all"
@@ -372,43 +383,21 @@ export function NotificationsPage() {
         >
           모두 읽음
         </button>
-      </header>
-      <Tabs
-        label="알림 거르기"
-        variant="segment"
-        value={filter}
-        items={[
-          { value: "all", label: "전체" },
-          {
-            value: "unread",
-            label: unreadCount > 0 ? `안 읽음 ${unreadCount}` : "안 읽음",
-          },
-        ]}
-        onChange={setFilter}
-      />
+      </div>
       <section className="notifications-card" aria-label="알림 목록">
         {!enabled ? (
-          <div className="notifications-empty">
-            <strong>선생님으로 로그인하면 알림을 받을 수 있어요</strong>
-            <p>평가 진행 소식이 이곳에 표시됩니다.</p>
-          </div>
+          <EmptyState size="panel" icon="bell" title="선생님으로 로그인하면 알림을 받을 수 있어요" description="평가 진행 소식이 이곳에 표시돼요." />
         ) : loading ? (
-          <div className="notifications-empty">
-            <p>알림을 불러오고 있어요.</p>
-          </div>
+          <NotificationListSkeleton count={5} />
         ) : error ? (
-          <div className="notifications-empty">
-            <p>{error}</p>
-          </div>
+          <EmptyState size="panel" icon="alert" title="알림을 불러오지 못했어요" description={error} />
         ) : visible.length === 0 ? (
-          <div className="notifications-empty">
-            <strong>
-              {filter === "unread"
-                ? "읽지 않은 알림이 없습니다"
-                : "알림이 없습니다"}
-            </strong>
-            <p>새 소식이 오면 이곳에 표시됩니다.</p>
-          </div>
+          <EmptyState
+            size="panel"
+            icon="bell"
+            title={filter === "unread" ? "읽지 않은 알림이 없어요" : "아직 알림이 없어요"}
+            description="새 소식이 오면 이곳에 표시돼요."
+          />
         ) : (
           <ul className="notification-list">
             {visible.map((item) => {

@@ -1,3 +1,4 @@
+import { EmptyState } from "../ui/EmptyState";
 import type { Student } from "../../data/grading";
 import { Icon } from "../ui/Icon";
 import { TextInput } from "../ui/TextInput";
@@ -48,7 +49,7 @@ export function StudentSidebar({
             />
           ))}
         {!students.some((s) => s.name.includes(query.trim())) && (
-          <p className="empty">검색 결과가 없습니다.</p>
+          <EmptyState size="inline" icon="search" title="검색 결과가 없어요" />
         )}
       </div>
     </aside>

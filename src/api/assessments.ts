@@ -120,6 +120,7 @@ export const deleteAssessmentClass = (assessmentId: string, classId: string) =>
     method: "DELETE",
   });
 
+// 시작할 때 6자리 PIN과 QR이 발급됩니다. 참여자가 0명이어도 시작할 수 있고, 시작 후 늦게 입장해도 됩니다.
 export const startAssessmentClass = (
   assessmentId: string,
   classId: string,

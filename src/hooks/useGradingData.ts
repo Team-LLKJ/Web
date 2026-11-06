@@ -7,6 +7,7 @@ import {
   getGradingActivity,
   getGradingAnswers,
   getGradingConversations,
+  getGradingReportHwp,
   getGradingReportPdf,
   getGradingReview,
   getGradingStudents,
@@ -310,22 +311,27 @@ export function useGradingData(evaluationId: string | undefined) {
     [evaluationId],
   );
 
-  const downloadReport = useCallback(async () => {
+  const downloadReport = useCallback(async (format: "pdf" | "hwp" = "pdf") => {
     if (!evaluationId || !selectedId) return;
     try {
-      const blob = await getGradingReportPdf(evaluationId, selectedId);
+      const blob =
+        format === "hwp"
+          ? await getGradingReportHwp(evaluationId, selectedId)
+          : await getGradingReportPdf(evaluationId, selectedId);
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       const name = list.find((s) => s.participantId === selectedId)?.nickname ?? "학생";
       link.href = url;
-      link.download = `${name} 학습 보고서.pdf`;
+      link.download = `${name} 학습 보고서.${format}`;
       link.click();
       window.setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch (e) {
       setError(
         e instanceof ApiError && e.code === "SUBMISSION_REQUIRED"
-          ? "제출 후에 PDF를 저장할 수 있어요."
-          : apiErrorMessage(e, "PDF를 저장하지 못했습니다."),
+          ? "제출 후에 보고서를 저장할 수 있어요."
+          : e instanceof ApiError && e.status === 404 && format === "hwp"
+            ? "저장된 보고서가 없어요. 먼저 PDF 보고서를 만들어주세요."
+            : apiErrorMessage(e, "보고서를 저장하지 못했습니다."),
       );
     }
   }, [evaluationId, selectedId, list]);

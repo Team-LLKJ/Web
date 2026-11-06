@@ -1,0 +1,12 @@
+/* 여러 줄을 입력해도 보내기 버튼은 항상 입력창 맨 위에 둡니다. */
+:root .student-chat-composer > div,
+:root .student-chat.is-expanded .student-chat-composer > div {
+  align-items: flex-start;
+}
+:root .student-chat-composer button {
+  align-self: flex-start;
+}
+/* 한 줄일 때 글자 줄이 버튼 가운데에 맞도록 살짝 내립니다(버튼 30px, 글줄 높이에 맞춘 값). */
+:root .student-chat-composer textarea {
+  margin-top: 3px;
+}

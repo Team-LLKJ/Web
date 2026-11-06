@@ -3,14 +3,77 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 20px;
+  padding: 8px 0 0;
+}
+.settings-password-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+}
+.settings-password-row > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.settings-password-row strong {
+  font-size: var(--font-text-sm);
+  font-weight: var(--weight-semibold);
+}
+.settings-password-row small {
+  color: var(--color-grey-50);
+  font-size: var(--font-caption);
+  line-height: var(--line-caption);
 }
 .settings-password-done {
   color: var(--color-primary);
   font-size: var(--font-caption);
 }
-@media (max-width: 600px) {
-  .settings-password-form {
-    padding: 16px;
-  }
+
+
+/* 설정 화면의 아이콘 버튼(수정) */
+.settings-icon-button {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-grey-50);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+.settings-icon-button:hover {
+  background: var(--color-grey-10);
+  color: var(--color-primary);
+}
+.settings-name-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.consent-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.consent-history-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.consent-history-list span {
+  color: var(--color-grey-50);
+  font-size: var(--font-caption);
 }

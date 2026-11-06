@@ -1,3 +1,4 @@
+import { EmptyState } from "../ui/EmptyState";
 import { useState } from "react";
 import "../student/student.css";
 import type { StudentReview } from "../../data/review";
@@ -57,7 +58,7 @@ export function ReviewPanel({
                 />
               ))
             ) : (
-              <p className="empty">기록된 AI 대화가 없습니다.</p>
+              <EmptyState size="inline" icon="chat" title="기록된 AI 대화가 없어요" />
             )}
           </div>
         ) : lockedNotice && tab === "활동" ? (
@@ -69,10 +70,7 @@ export function ReviewPanel({
             <ActivityAnalysis review={review} warningsOnly />
           </>
         ) : lockedNotice ? (
-          <div className="review-locked" role="status">
-            <strong>{tab} 정보는 아직 볼 수 없어요</strong>
-            <p>{lockedNotice}</p>
-          </div>
+          <EmptyState size="inline" icon="lock" title={`${tab} 정보는 아직 볼 수 없어요`} description={lockedNotice} />
         ) : tab === "활동" ? (
           <ActivityAnalysis review={review} />
         ) : (

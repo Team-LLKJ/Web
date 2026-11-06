@@ -56,3 +56,81 @@
     animation: none;
   }
 }
+
+/* 회원가입 단계 표시와 이전 버튼 */
+.auth-steps {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: -32px 0 0;
+  padding: 0;
+  list-style: none;
+}
+/* 입력칸의 밑줄 스타일과 어울리도록 얇은 막대 + 글자만 씁니다. */
+.auth-steps li {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--color-grey-40);
+  font-size: var(--font-text-sm);
+}
+.auth-steps li::before {
+  content: "";
+  height: 4px;
+  border-radius: 999px;
+  background: var(--color-grey-20);
+}
+.auth-steps li.is-current {
+  color: var(--color-primary);
+  font-weight: var(--weight-semibold);
+}
+.auth-steps li.is-current::before,
+.auth-steps li.is-done::before {
+  background: var(--color-primary);
+}
+.auth-steps li.is-done {
+  color: var(--color-grey-60);
+}
+.auth-step-back {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 2px;
+  margin-bottom: -34px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-grey-60);
+  font: inherit;
+  font-size: var(--font-text-sm);
+  cursor: pointer;
+}
+.auth-step-back:hover {
+  color: var(--color-primary);
+}
+
+/* 오류 문구를 입력칸 안의 글자(라벨·값)와 같은 줄에 맞추고, 밑줄과 살짝 떨어뜨립니다. */
+.auth-form .text-input-field > .input-error {
+  display: block;
+  padding: 0 10px;
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+/* 입력칸에 오류가 있을 때: 안쪽 버튼은 회색, 라벨은 오류 색 */
+.auth-form .text-input[data-error="true"] .auth-inline-action:not(.is-verified),
+.auth-form .text-input[data-error="true"] .auth-inline-action:disabled {
+  color: var(--color-grey-40);
+}
+.auth-form .text-input[data-error="true"] .auth-inline-action:hover:not(:disabled) {
+  background: var(--color-grey-10);
+}
+:root .auth-form .text-input-field:has(.text-input[data-error="true"]) > label,
+:root .auth-form .text-input-field--floating:focus-within:has(.text-input[data-error="true"]) > label {
+  color: var(--color-danger);
+}
+
+/* 포커스 시 밑줄이 2px로 굵어져도 입력 글자 위치가 움직이지 않도록 아래 여백을 1px 줄입니다. */
+:root .auth-form .text-input-field--floating .text-input--under-bar:focus-within {
+  padding-bottom: 1px;
+}

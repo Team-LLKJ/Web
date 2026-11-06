@@ -1,3 +1,4 @@
+import { EmptyState } from "../ui/EmptyState";
 import type { StudentReview } from "../../data/review";
 import { Button } from "../ui/Button";
 const levels = ["매우 못함", "못함", "보통", "잘함", "매우 잘함"];
@@ -53,7 +54,7 @@ export function RubricAssessment({
               </div>
             ))
           ) : (
-            <p className="empty">등록된 루브릭이 없습니다.</p>
+            <EmptyState size="inline" icon="doc" title="등록된 루브릭이 없어요" />
           )}
         </div>
         <Button

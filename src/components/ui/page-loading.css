@@ -5,6 +5,13 @@
 @import "../student/student.css";
 @import "../teacher/teacher.css";
 @import "./skeleton.css";
+@import "../../header-icons.css";
+@import "../teacher/folder-card.css";
+@import "../teacher/folder-share.css";
+@import "../teacher/class-card-actions.css";
+@import "../teacher/class-add-card.css";
+@import "../teacher/folder-detail-text.css";
+@import "./empty-state.css";
 @import "../teacher/assessment-edit-skeleton.css";
 
 body {
@@ -143,4 +150,36 @@ body {
 }
 .page-loading .teacher-step-number {
   flex-shrink: 0;
+}
+
+/* 실제 헤더와 같은 모양(앱 시작 전 정적 화면에서도 같은 위치·크기) */
+.page-loading-real-header .icon-button {
+  pointer-events: none;
+}
+
+/* 글자 크기를 그대로 차지하는 스켈레톤: 실제 화면과 높이가 어긋나지 않도록 */
+.skeleton.skeleton-ink {
+  display: inline;
+  color: transparent;
+  user-select: none;
+  pointer-events: none;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+li.skeleton.skeleton-ink {
+  display: list-item;
+  border-radius: 999px;
+}
+
+/* 태그(칩) 스켈레톤: 파란 태그 배경이 아니라 스켈레톤 배경이 태그 전체에 깔리도록 */
+.folder-chips li.skeleton.skeleton-ink {
+  background: linear-gradient(
+    100deg,
+    var(--color-grey-10) 25%,
+    var(--color-primary-background) 43%,
+    var(--color-grey-10) 61%
+  );
+  background-size: 220% 100%;
+  animation: skeleton-shimmer 1.45s ease-in-out infinite;
+  color: transparent;
 }

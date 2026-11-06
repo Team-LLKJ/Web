@@ -5,13 +5,13 @@ import { HeaderUtilities } from "../ui/HeaderDialogs";
 export function StudentHeader({
   submitted,
   disabledSubmit = false,
-  onLeave,
   onSubmit,
   onPolicy,
 }: {
   submitted: boolean;
   disabledSubmit?: boolean;
-  onLeave: () => void;
+  /** 예전 나가기 버튼용. 제출하면 자동으로 나가므로 지금은 쓰지 않습니다. */
+  onLeave?: () => void;
   onSubmit: () => void;
   onPolicy: () => void;
 }) {
@@ -27,9 +27,6 @@ export function StudentHeader({
       </Link>
       <nav aria-label="학생 평가 도구">
         <HeaderUtilities onSettings={onPolicy} />
-        <Button variant="secondary" onClick={onLeave}>
-          나가기
-        </Button>
         <Button onClick={onSubmit} disabled={submitted || disabledSubmit}>
           {submitted ? "제출 완료" : "제출하기"}
         </Button>

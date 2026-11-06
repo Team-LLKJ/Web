@@ -1,3 +1,4 @@
+import "./chat-composer-top.css";
 import { useLayoutEffect, useRef } from "react";
 export function ChatComposer({
   disabled,

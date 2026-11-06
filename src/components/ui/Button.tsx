@@ -35,10 +35,27 @@ export function Button({
       aria-busy={loading || undefined}
       {...props}
     >
-      {loading && <span className="button-spinner" aria-hidden="true" />}
-      {iconPosition === "left" && icon}
-      {children}
-      {iconPosition === "right" && icon}
+      {loading ? (
+        <>
+          {/* 처리 중에는 글자 자리를 그대로 두고 그 위에 점 세 개(…)만 보여 줍니다. */}
+          <span className="button-label is-hidden">
+            {iconPosition === "left" && icon}
+            {children}
+            {iconPosition === "right" && icon}
+          </span>
+          <span className="button-dots" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+          </span>
+        </>
+      ) : (
+        <>
+          {iconPosition === "left" && icon}
+          {children}
+          {iconPosition === "right" && icon}
+        </>
+      )}
     </button>
   );
 }

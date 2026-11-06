@@ -921,7 +921,7 @@
 }
 .grading-workspace .detail-tabs button {
   width: 75px;
-  padding: 9px 0;
+  padding: 12px 0;
   border-radius: 8px;
   font-size: calc(var(--font-text-sm) * 0.75);
   line-height: calc(var(--line-text-sm) * 0.75);
@@ -977,7 +977,7 @@
   gap: 4px;
 }
 :root .grading-workspace .detail-tabs > button {
-  padding: 9px 0;
+  padding: 12px 0;
   border-radius: 7.5px;
   font-size: calc(var(--font-test-lg) * 0.75);
   line-height: calc(var(--line-test-lg) * 0.75);
@@ -1251,4 +1251,125 @@
   top: 4px;
   bottom: 4px;
   border-radius: 9px;
+}
+
+/* 버튼 처리 중: 빙글빙글 대신 AI 답변 대기처럼 점 세 개가 물결치듯 움직임 */
+.button[aria-busy="true"] {
+  position: relative;
+}
+.button-label.is-hidden {
+  display: inline-flex;
+  align-items: center;
+  gap: inherit;
+  visibility: hidden;
+}
+.button-dots {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+.button-dots > span,
+.auth-dots > span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: button-dot-wave 1s ease-in-out infinite;
+}
+.button-dots > span:nth-child(2),
+.auth-dots > span:nth-child(2) {
+  animation-delay: 0.14s;
+}
+.button-dots > span:nth-child(3),
+.auth-dots > span:nth-child(3) {
+  animation-delay: 0.28s;
+}
+@keyframes button-dot-wave {
+  0%,
+  60%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .button-dots > span,
+  .auth-dots > span {
+    animation: none;
+    opacity: 0.7;
+  }
+}
+.auth-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.auth-dots > span {
+  width: 4px;
+  height: 4px;
+}
+
+/* 탭바와 그 옆 버튼을 한 줄에: 탭은 왼쪽, 버튼은 오른쪽 */
+.tab-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+:root .tab-toolbar .segment-tabs,
+:root .tab-toolbar .segment-tabs-wrap {
+  margin-bottom: 0;
+}
+.tab-toolbar > :last-child:not(:first-child) {
+  flex-shrink: 0;
+}
+
+/* 알림·답안·PIN 로딩 스켈레톤 */
+.notification-skeleton {
+  display: flex;
+  flex-direction: column;
+}
+.notification-skeleton-row {
+  pointer-events: none;
+}
+.notification-skeleton-row .notification-item-text {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.notification-skeleton-icon {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+}
+.answer-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 4px;
+}
+.lobby-pin-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+/* 앱이 뜨기 전 정적 화면용 세그먼트 탭(움직이는 표시 없이 선택된 탭만 흰 배경) */
+.segment-tabs.is-static button.active {
+  border: 1px solid #e8e8ea;
+  border-radius: 9px;
+  background: var(--color-white);
+  color: var(--color-primary);
 }

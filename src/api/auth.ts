@@ -80,7 +80,7 @@ export function confirmPasswordReset(token: string, newPassword: string) {
 
 // 내 정보. 이름 수정과 비밀번호 변경(다른 기기의 로그인은 서버가 해제합니다).
 export function updateMyName(name: string) {
-  return apiRequest<User>("/api/users/me", { method: "PATCH", body: { name } });
+  return apiRequest<User>("/api/users/me/nickname", { method: "PATCH", body: { nickname: name } });
 }
 
 export function changeMyPassword(currentPassword: string, newPassword: string) {
@@ -124,4 +124,33 @@ export function acceptConsents(termsVersion: string, privacyVersion: string) {
     method: "POST",
     body: { termsVersion, termsAccepted: true, privacyVersion, privacyAccepted: true },
   });
+}
+
+// 이메일 변경: 새 주소로 인증번호를 보낸 뒤(현재 비밀번호 필요) 번호로 확인합니다.
+export function sendEmailChangeVerification(email: string, currentPassword: string) {
+  return apiRequest<EmailVerificationSent>("/api/users/me/email/verifications", {
+    method: "POST",
+    body: { email, currentPassword },
+  });
+}
+
+export function confirmEmailChange(email: string, currentPassword: string, code: string) {
+  return apiRequest<User>("/api/users/me/email/confirm", {
+    method: "POST",
+    body: { email, currentPassword, code },
+  });
+}
+
+// 회원 탈퇴: 본인 소유 수행평가·학생 기록이 영구 삭제됩니다. 진행 중인 평가가 있으면 409입니다.
+export function deleteMyAccount(currentPassword: string) {
+  return apiRequest<ApiMessage>("/api/users/me", {
+    method: "DELETE",
+    body: { currentPassword, deleteOwnedData: true },
+  });
+}
+
+export type ConsentHistoryItem = { policyType: string; version: string; acceptedAt: string };
+
+export function getConsentHistory() {
+  return apiRequest<{ items: ConsentHistoryItem[] }>("/api/users/me/consents/history");
 }

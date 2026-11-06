@@ -1,0 +1,112 @@
+/* 탭이 많을 때: 스크롤 대신 좌우 < > 버튼으로만 넘깁니다. 화살표가 영역 밖으로 밀리지 않게 탭 목록이 줄어들게 합니다. */
+.segment-tabs-wrap {
+  min-width: 0;
+}
+.segment-tabs-wrap > .segment-tabs,
+.student-editor .segment-tabs-wrap > .segment-tabs {
+  flex: 0 1 auto;
+  min-width: 0;
+  margin-bottom: 0;
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
+}
+.student-editor .segment-tabs-wrap {
+  margin-bottom: 24px;
+}
+
+/* 넘칠 때: 화살표를 탭 바(회색 영역) 안쪽 양 끝에 둡니다. */
+.segment-tabs-wrap.has-arrows,
+.student-editor .segment-tabs-wrap.has-arrows {
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+  background: #e5e5ea;
+}
+.segment-tabs-wrap.has-arrows > .segment-tabs,
+.student-editor .segment-tabs-wrap.has-arrows > .segment-tabs {
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+}
+.segment-tabs-wrap.has-arrows .segment-thumb {
+  top: 0;
+  bottom: 0;
+}
+.segment-tabs-wrap.has-arrows .segment-tabs-arrow {
+  align-self: stretch;
+  width: 32px;
+  height: auto;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+}
+.segment-tabs-wrap.has-arrows .segment-tabs-arrow:hover:not(:disabled) {
+  background: #fff;
+}
+
+/* 화살표는 자리를 유지한 채 부드럽게 나타나고 사라져서 탭 목록이 출렁이지 않습니다. */
+.segment-tabs-wrap.has-arrows .segment-tabs-arrow {
+  transition:
+    opacity 0.2s ease,
+    background-color 0.15s ease;
+}
+.segment-tabs-wrap.has-arrows .segment-tabs-arrow.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+/* 탭은 항상 한 칸 단위로 멈추고, 잘리는 가장자리는 살짝 흐려집니다. */
+.segment-tabs-wrap.has-arrows > .segment-tabs {
+  scroll-snap-type: x mandatory;
+}
+.segment-tabs-wrap.has-arrows > .segment-tabs > [role="tab"] {
+  scroll-snap-align: start;
+}
+.segment-tabs-wrap.has-arrows.can-next > .segment-tabs {
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 20px), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 20px), transparent);
+}
+.segment-tabs-wrap.has-arrows.can-prev > .segment-tabs {
+  -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 20px), transparent);
+  mask-image: linear-gradient(to left, #000 calc(100% - 20px), transparent);
+}
+.segment-tabs-wrap.has-arrows.can-prev.can-next > .segment-tabs {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 20px, #000 calc(100% - 20px), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 20px, #000 calc(100% - 20px), transparent);
+}
+
+/* 마지막 탭도 맨 앞으로 올 수 있게 끝에 빈 공간을 둡니다. 그래서 어느 페이지에서도 탭이 반쯤 잘려 시작하지 않아요. */
+.segment-tabs-wrap.has-arrows > .segment-tabs::after {
+  content: "";
+  flex: 0 0 calc(100% - 96px);
+}
+
+/* 맨 앞에서는 숨은 < 자리를 접어서 앞쪽 빈칸이 생기지 않게 합니다(부드럽게 접히고 펼쳐져요). */
+.segment-tabs-wrap.has-arrows .segment-tabs-arrow:first-child {
+  transition:
+    width 0.2s ease,
+    margin 0.2s ease,
+    opacity 0.2s ease,
+    background-color 0.15s ease;
+}
+.segment-tabs-wrap.has-arrows .segment-tabs-arrow:first-child.is-hidden {
+  width: 0;
+  margin-right: -4px;
+  overflow: hidden;
+}
+
+/* 화살표 버튼 높이를 탭(흰 알약)과 비슷하게: 위아래를 줄입니다. */
+.segment-tabs-wrap.has-arrows .segment-tabs-arrow {
+  margin-block: 5px;
+}
+
+/* 화살표가 있을 때는 바 안쪽 여백을 바깥 틀(wrap)이 가지므로, 탭 목록 자신의 여백·배경은 없앱니다(다른 규칙보다 우선). */
+:root:root:root:root:root .segment-tabs-wrap.has-arrows > .segment-tabs {
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+}
+
+/* 학생 풀이 화면의 문항 탭: 버튼 안쪽 위아래 여백을 조금 늘립니다. */
+:root:root:root:root:root .student-editor .segment-tabs button {
+  padding-block: 11px;
+}

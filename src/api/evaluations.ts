@@ -368,3 +368,89 @@ export function getGradingReportPdf(
     { responseType: "blob" },
   );
 }
+
+/** 저장된 리포트의 HWP 파일. 리포트가 없으면 404이니 먼저 리포트를 만들어야 합니다. */
+export function getGradingReportHwp(
+  evaluationId: string,
+  participantId: string,
+  options: { version?: number; includeConversations?: boolean } = {},
+) {
+  const query = new URLSearchParams({
+    includeConversations: String(options.includeConversations ?? false),
+  });
+  if (options.version) query.set("version", String(options.version));
+  return apiRequest<Blob>(
+    `${studentPath(evaluationId, participantId)}/report/hwp?${query}`,
+    { responseType: "blob" },
+  );
+}
+
+// 과정 평가(프로세스 채점) API. 기존 키워드 채점·PDF/HWP와는 별도입니다. id는 반 회차(classId)입니다.
+const processPath = (evaluationId: string) =>
+  `/api/teacher/evaluations/${idPath(evaluationId)}/process-grading`;
+const processRunPath = (evaluationId: string, participantId: string) =>
+  `${processPath(evaluationId)}/participants/${idPath(participantId)}/runs`;
+
+export type ProcessJobStatus = "PENDING" | "RUNNING" | "DONE" | "HOLD" | "NOT_APPLICABLE" | "FAILED";
+export type ProcessComplianceDecision = "CONFIRMED_OK" | "HOLD" | "CONFIRMED_VIOLATION";
+export type ProcessNoAiPolicy = "HOLD" | "NOT_APPLICABLE" | "USE_RECORDED_EVIDENCE";
+
+export const getProcessRubric = (evaluationId: string) =>
+  apiRequest<{
+    rubricVersion: string;
+    provisional: boolean;
+    criteria: unknown[];
+    criteriaMarkdown: string;
+  }>(`${processPath(evaluationId)}/rubric`);
+
+export const getProcessPolicy = (evaluationId: string) =>
+  apiRequest<Record<string, unknown>>(`${processPath(evaluationId)}/policy`);
+
+export const saveProcessPolicy = (evaluationId: string, body: Record<string, unknown>) =>
+  apiRequest<Record<string, unknown>>(`${processPath(evaluationId)}/policy`, { method: "PUT", body });
+
+export const listProcessRuns = (evaluationId: string, participantId: string) =>
+  apiRequest<Record<string, unknown>[]>(processRunPath(evaluationId, participantId));
+
+export const startProcessRun = (evaluationId: string, participantId: string) =>
+  apiRequest<Record<string, unknown>>(processRunPath(evaluationId, participantId), { method: "POST" });
+
+export const getProcessRun = (evaluationId: string, participantId: string, jobId: string) =>
+  apiRequest<Record<string, unknown>>(`${processRunPath(evaluationId, participantId)}/${idPath(jobId)}`);
+
+export const getProcessEvidence = (evaluationId: string, participantId: string, jobId: string) =>
+  apiRequest<Record<string, unknown>>(
+    `${processRunPath(evaluationId, participantId)}/${idPath(jobId)}/evidence`,
+  );
+
+export const getProcessReview = (evaluationId: string, participantId: string, jobId: string) =>
+  apiRequest<Record<string, unknown>>(
+    `${processRunPath(evaluationId, participantId)}/${idPath(jobId)}/review`,
+  );
+
+export const saveProcessReview = (
+  evaluationId: string,
+  participantId: string,
+  jobId: string,
+  body: Record<string, unknown>,
+) =>
+  apiRequest<Record<string, unknown>>(
+    `${processRunPath(evaluationId, participantId)}/${idPath(jobId)}/review`,
+    { method: "PUT", body },
+  );
+
+export const getProcessReviewHistory = (evaluationId: string, participantId: string, jobId: string) =>
+  apiRequest<Record<string, unknown>[]>(
+    `${processRunPath(evaluationId, participantId)}/${idPath(jobId)}/review/history`,
+  );
+
+export const confirmProcessReview = (
+  evaluationId: string,
+  participantId: string,
+  jobId: string,
+  expectedRevision: number,
+) =>
+  apiRequest<Record<string, unknown>>(
+    `${processRunPath(evaluationId, participantId)}/${idPath(jobId)}/confirm`,
+    { method: "POST", body: { expectedRevision } },
+  );

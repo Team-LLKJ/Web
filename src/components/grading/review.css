@@ -776,3 +776,11 @@
 .extend-actions > * {
   flex: 1;
 }
+
+/* 채점 화면: 오른쪽 패널(AI 대화창 등) 폭을 바꾸면 가운데 답안 영역도 남는 폭에 맞춰 늘고 줄어듭니다. */
+.grading-workspace .teacher-content .student-summary,
+.grading-workspace .teacher-content .answer-card {
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
+}

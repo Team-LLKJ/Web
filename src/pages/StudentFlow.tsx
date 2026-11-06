@@ -731,11 +731,17 @@ export function StudentFlow({ route }: { route: string }) {
     setDialogError("");
     try {
       await confirmSubmission(session.evaluationId, preview.reviewToken);
-      setWorkspace((current) =>
-        current ? { ...current, status: "SUBMITTED", readOnly: true } : current,
-      );
-      setDialog("submitted");
       setPreview(null);
+      // 제출하면 평가에서 자동으로 나가 처음 화면으로 돌아갑니다.
+      try {
+        await leaveEvaluation(session.evaluationId);
+      } catch {
+        /* 이미 제출됐으므로 나가기 기록 실패는 무시합니다. */
+      }
+      clearSession();
+      setSession(emptySession);
+      setDialog("");
+      navigate("/", { replace: true, state: { notice: "답안을 제출했어요. 수고했어요!" } });
     } catch (error) {
       if (error instanceof ApiError && error.code === "REVIEW_CHANGED") {
         try {
@@ -766,7 +772,7 @@ export function StudentFlow({ route }: { route: string }) {
       if (session.evaluationId) await leaveEvaluation(session.evaluationId);
       clearSession();
       setSession(emptySession);
-      navigate("/student/join", { replace: true });
+      navigate("/", { replace: true });
     } catch (error) {
       setNotice(apiErrorMessage(error, "평가에서 나가지 못했습니다."));
       setDialog("notice");
