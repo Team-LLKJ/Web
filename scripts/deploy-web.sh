@@ -34,7 +34,7 @@ sudo python3 scripts/configure-web-nginx.py "$config"
 sudo nginx -t
 sudo systemctl reload nginx
 probe=$(mktemp)
-curl --fail --silent --show-error --retry 3 --connect-timeout 5 --max-time 15 https://3.25.143.224/ -o "$probe"
+curl --fail --silent --show-error --retry 5 --retry-all-errors --retry-delay 1 --connect-timeout 5 --max-time 15 https://3.25.143.224/ -o "$probe"
 cmp "$release/index.html" "$probe"
 curl --fail --silent --show-error --connect-timeout 5 --max-time 15 https://3.25.143.224/__lit_spa_probe -o "$probe"
 cmp "$release/index.html" "$probe"
