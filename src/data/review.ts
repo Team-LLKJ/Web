@@ -1,3 +1,4 @@
+import type { RubricScores } from "../api/types";
 export type UsageMetric = {
   label: string;
   percent: number;
@@ -25,6 +26,8 @@ export type StudentReview = {
   summary: string;
   criteria: Assessment[];
   analysis: Assessment[];
+  /** 기준별 점수(AI 추천 + 교사 점수). 서버에서 받았을 때만 있습니다. */
+  rubric?: RubricScores | null;
 };
 const analysis: Assessment[] = [
   {

@@ -13,6 +13,9 @@ type Props = {
   messages: Message[];
   review: StudentReview;
   onScore: (id: string, score: number) => void;
+  /** 기준별 점수(AI 추천 + 교사 점수)가 있을 때 쓰는 저장·확정 동작입니다. */
+  onLevel?: (criterionId: number, level: number | null) => void;
+  onConfirm?: () => void;
   tab: string;
   onTab: (tab: string) => void;
   /** 지정하면 활동·루브릭 탭 대신 이 안내를 보여줍니다(평가 중에는 열람 불가). */
@@ -23,6 +26,8 @@ export function ReviewPanel({
   messages,
   review,
   onScore,
+  onLevel,
+  onConfirm,
   tab,
   onTab,
   lockedNotice,
@@ -77,6 +82,8 @@ export function ReviewPanel({
           <RubricAssessment
             review={review}
             onScore={onScore}
+            onLevel={onLevel}
+            onConfirm={onConfirm}
             onAnalysis={() => setAnalysisOpen(true)}
           />
         )}

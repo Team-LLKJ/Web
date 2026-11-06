@@ -131,7 +131,7 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
   );
   const expiresInMinutes =
     Number(expiresHours || 0) * 60 + Number(expiresMinutes || 0);
-  const [aiPolicy, setAiPolicy] = useState<AiPolicy | "">("");
+  const [aiPolicy, setAiPolicy] = useState<AiPolicy>("HINT_ONLY");
   const [questions, setQuestions] = useState<DraftQuestion[]>([
     freshQuestion(1),
   ]);
@@ -326,10 +326,6 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
   function continueToQuestions() {
     setNotice("");
     window.scrollTo({ top: 0, behavior: "smooth" });
-    if (!aiPolicy) {
-      setNotice("AI 사용 정책을 선택해주세요.");
-      return;
-    }
     if (!criteria.length) {
       setNotice("평가 항목을 1개 이상 선택해주세요.");
       return;
@@ -346,11 +342,6 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
       return;
     }
     setTitleError("");
-    if (!aiPolicy) {
-      setNotice("AI 사용 정책을 선택해주세요.");
-      setCreateStep("settings");
-      return;
-    }
     if (!criteria.length) {
       setNotice("평가 항목을 1개 이상 선택해주세요.");
       setCreateStep("settings");
@@ -752,38 +743,7 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
                 <section className="teacher-card teacher-create-section">
                   <header className="teacher-create-section-head">
                     <h2>
-                      <span className="teacher-section-num">3</span>AI 사용 정책
-                    </h2>
-                  </header>
-                  <fieldset className="teacher-policy-options" disabled={busy}>
-                    <legend className="sr-only">AI 사용 정책</legend>
-                    {(
-                      [
-                        ["DISABLED", "사용 안 함", "학생이 AI에게 질문할 수 없어요."],
-                        ["HINT_ONLY", "힌트만 허용", "답을 알려주지 않고 생각을 이끄는 힌트만 줘요."],
-                        ["FULL", "전체 응답 허용", "질문 제한 없이 AI를 활용할 수 있어요."],
-                      ] as const
-                    ).map(([id, name, description]) => (
-                      <label key={id} className="teacher-option-card">
-                        <input
-                          type="radio"
-                          name="ai-policy"
-                          value={id}
-                          checked={aiPolicy === id}
-                          onChange={() => setAiPolicy(id)}
-                        />
-                        <span>
-                          <strong>{name}</strong>
-                          <small>{description}</small>
-                        </span>
-                      </label>
-                    ))}
-                  </fieldset>
-                </section>
-                <section className="teacher-card teacher-create-section">
-                  <header className="teacher-create-section-head">
-                    <h2>
-                      <span className="teacher-section-num">4</span>평가 항목
+                      <span className="teacher-section-num">3</span>평가 항목
                       <small>
                         {evaluationCriteria.length}개 중 {criteria.length}개 선택
                       </small>
@@ -834,7 +794,7 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
                 <section className="teacher-card teacher-create-section">
                   <header className="teacher-create-section-head">
                     <h2>
-                      <span className="teacher-section-num">5</span>부정행위 방지
+                      <span className="teacher-section-num">4</span>부정행위 방지
                     </h2>
                   </header>
                   <fieldset className="teacher-check-group" disabled={busy}>

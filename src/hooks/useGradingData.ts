@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ApiError, apiErrorMessage } from "../api/client";
 import {
+  confirmGrade,
   endEvaluation,
   extendEvaluation,
   getEvaluation,
@@ -11,7 +12,9 @@ import {
   getGradingReportPdf,
   getGradingReview,
   getGradingStudents,
+  getRubricScores,
   saveCriterionScore,
+  saveRubricScore,
 } from "../api/evaluations";
 import type {
   GradingActivity,
@@ -19,6 +22,7 @@ import type {
   GradingMessage,
   GradingReview,
   GradingStudent,
+  RubricScores,
 } from "../api/types";
 import type { Question, Student, StudentStatus } from "../data/grading";
 import type { Assessment, StudentReview } from "../data/review";
@@ -65,8 +69,10 @@ function toAssessment(item: GradingReview["criteria"][number]): Assessment {
 function toReview(
   review: GradingReview | null,
   activity: GradingActivity | null,
+  rubric: RubricScores | null = null,
 ): StudentReview {
   return {
+    rubric,
     studentContribution: activity?.studentContribution ?? null,
     usage: (activity?.usage ?? []).map((item, index) => ({
       label: item.name,
@@ -136,6 +142,7 @@ export function useGradingData(evaluationId: string | undefined) {
     messages: GradingMessage[];
     activity: GradingActivity;
     review: GradingReview;
+    rubric: RubricScores | null;
   } | null>(null);
   const [loadingList, setLoadingList] = useState(Boolean(evaluationId));
   const [loadingDetail, setLoadingDetail] = useState(false);
@@ -202,14 +209,16 @@ export function useGradingData(evaluationId: string | undefined) {
       if (!evaluationId || !participantId) return;
       if (!silent) setLoadingDetail(true);
       try {
-        const [answers, messages, activity, review] = await Promise.all([
+        const [answers, messages, activity, review, rubric] = await Promise.all([
           getGradingAnswers(evaluationId, participantId),
           getGradingConversations(evaluationId, participantId),
           getGradingActivity(evaluationId, participantId),
           getGradingReview(evaluationId, participantId),
+          // 기준별 점수는 실패해도 기존 루브릭 화면으로 대신 보여줍니다.
+          getRubricScores(evaluationId, participantId).catch(() => null),
         ]);
         if (selectedRef.current !== participantId) return;
-        setDetail({ id: participantId, answers, messages, activity, review });
+        setDetail({ id: participantId, answers, messages, activity, review, rubric });
         setError("");
       } catch (e) {
         setError(apiErrorMessage(e, "학생 자료를 불러오지 못했습니다."));
@@ -253,7 +262,7 @@ export function useGradingData(evaluationId: string | undefined) {
     title: q.title || `문항 ${q.position}`,
     content: q.content,
   }));
-  const review = toReview(current?.review ?? null, current?.activity ?? null);
+  const review = toReview(current?.review ?? null, current?.activity ?? null, current?.rubric ?? null);
 
   const setScore = useCallback(
     async (criterionId: string, score: number | null) => {
@@ -289,6 +298,74 @@ export function useGradingData(evaluationId: string | undefined) {
       }
     },
     [evaluationId, selectedId, current, loadDetail],
+  );
+
+  // 기준 하나의 교사 점수(level 0~4)를 저장합니다. null이면 그 기준의 교사 점수를 지웁니다.
+  const setLevel = useCallback(
+    async (criterionId: number, level: number | null) => {
+      if (!evaluationId || !selectedId || !current?.rubric) return;
+      const previous = current.rubric;
+      setDetail({
+        ...current,
+        rubric: {
+          ...previous,
+          criteria: previous.criteria.map((c) =>
+            c.criterionId === criterionId
+              ? {
+                  ...c,
+                  teacher:
+                    level === null
+                      ? null
+                      : {
+                          level,
+                          score: (c.maxScore * level) / 4,
+                          feedback: c.teacher?.feedback ?? "",
+                        },
+                }
+              : c,
+          ),
+        },
+      });
+      try {
+        const saved = await saveRubricScore(
+          evaluationId,
+          selectedId,
+          criterionId,
+          level === null ? {} : { level },
+        );
+        setDetail((now) => (now && now.id === selectedId ? { ...now, rubric: saved } : now));
+        setError("");
+      } catch (e) {
+        setDetail((now) => (now && now.id === selectedId ? { ...now, rubric: previous } : now));
+        setError(
+          e instanceof ApiError && e.code === "SUBMISSION_REQUIRED"
+            ? "제출한 학생만 채점할 수 있어요."
+            : apiErrorMessage(e, "점수를 저장하지 못했습니다."),
+        );
+      }
+    },
+    [evaluationId, selectedId, current],
+  );
+
+  // 모든 기준에 교사 값이 있을 때 채점을 확정합니다. acceptAiForMissing이면 비어 있는 기준에 AI 추천을 채웁니다.
+  const confirmGrading = useCallback(
+    async (acceptAiForMissing = false) => {
+      if (!evaluationId || !selectedId) return;
+      try {
+        const saved = await confirmGrade(evaluationId, selectedId, acceptAiForMissing);
+        setDetail((now) => (now && now.id === selectedId ? { ...now, rubric: saved } : now));
+        setError("");
+      } catch (e) {
+        setError(
+          e instanceof ApiError && e.code === "GRADING_INCOMPLETE"
+            ? "아직 점수가 없는 기준이 있어요. 모든 기준에 점수를 입력한 뒤 확정해주세요."
+            : e instanceof ApiError && e.code === "SUBMISSION_REQUIRED"
+              ? "제출한 학생만 채점할 수 있어요."
+              : apiErrorMessage(e, "채점을 확정하지 못했습니다."),
+        );
+      }
+    },
+    [evaluationId, selectedId],
   );
 
   const finishEvaluation = useCallback(async () => {
@@ -351,6 +428,8 @@ export function useGradingData(evaluationId: string | undefined) {
       setEvents((queue) => queue.filter((event) => event.key !== key)),
     ended,
     setScore,
+    setLevel,
+    confirmGrading,
     finishEvaluation,
     extendTime,
     downloadReport,

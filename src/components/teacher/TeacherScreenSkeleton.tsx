@@ -18,14 +18,6 @@ import { evaluationCriteria } from "../../data/landing";
 import type { LoadingLayout } from "../ui/loadingLayout";
 
 /** 실제 글자와 같은 크기를 차지하되 글자만 보이지 않게 한 스켈레톤 */
-function InkSkeleton({ children }: { children: string }) {
-  return (
-    <span className="skeleton skeleton-ink" aria-hidden="true">
-      {children}
-    </span>
-  );
-}
-
 function Line({
   width = "100%",
   height = "1lh",
@@ -150,19 +142,6 @@ function Folder() {
           <h2>평가 설정</h2>
         </header>
         <dl className="folder-settings">
-          <div>
-            <dt>AI 사용 정책</dt>
-            <dd>
-              <span className="folder-policy">
-                <strong>
-                  <InkSkeleton>힌트만 허용</InkSkeleton>
-                </strong>
-                <small>
-                  <InkSkeleton>(답을 알려주지 않고 생각을 이끄는 힌트만 줘요.)</InkSkeleton>
-                </small>
-              </span>
-            </dd>
-          </div>
           <div>
             <dt>평가 항목</dt>
             <dd>

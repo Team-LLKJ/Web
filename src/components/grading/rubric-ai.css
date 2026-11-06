@@ -1,0 +1,101 @@
+/* AI 추천 점수가 있는 루브릭 */
+.rubric-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.rubric-status {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--color-grey-10);
+  color: var(--color-grey-50);
+  font-size: var(--font-caption);
+  line-height: var(--line-caption);
+}
+.rubric-status.is-confirmed {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+:root .review-card .rating-options button.ai-recommended:not(.selected) {
+  outline: 1px dashed var(--color-primary);
+  outline-offset: -1px;
+  color: var(--color-primary);
+}
+.rubric-ai-note {
+  margin: 8px 0 0;
+  color: var(--color-grey-50);
+  font-size: var(--font-caption);
+  line-height: var(--line-caption);
+}
+.rubric-ai-note strong {
+  color: var(--color-primary);
+  font-weight: var(--weight-semibold);
+}
+.rubric-ai-note.is-empty {
+  color: var(--color-grey-40);
+}
+.rubric-total {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-grey-10);
+}
+.rubric-total strong {
+  font-weight: var(--weight-semibold);
+}
+.rubric-total small {
+  color: var(--color-grey-50);
+  font-size: var(--font-caption);
+  line-height: var(--line-caption);
+}
+.rubric-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* 좁은 패널에서도 5단계 버튼이 겹치거나 넘치지 않도록 줄바꿈과 글자 크기를 조절합니다. */
+:root .review-card .rating-options button {
+  min-width: 0;
+  padding: 6px 2px;
+  font-size: clamp(11px, 0.85vw, 13px);
+  line-height: 1.25;
+  text-align: center;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+:root .review-card .rating-options button.ai-recommended:not(.selected) {
+  outline-offset: -2px;
+}
+
+/* 평가 근거 및 상세 분석 창: 가로를 넓혀 긴 이유 문장이 덜 접히게 합니다. */
+:root .modal.analysis-modal {
+  width: min(960px, calc(100vw - 40px));
+}
+
+/* 상세 분석 창 글자 크기를 한 단계씩 줄여 답답해 보이지 않게 합니다. */
+:root .modal.analysis-modal .modal-heading h2 {
+  font-size: calc(18px + var(--font-bump, 0px));
+  line-height: 26px;
+}
+:root .modal.analysis-modal .analysis-card > h3 {
+  font-size: var(--font-text-md);
+  line-height: var(--line-text-md);
+}
+:root .modal.analysis-modal .analysis-body h4 {
+  font-size: var(--font-text-sm);
+  line-height: var(--line-text-sm);
+}
+:root .modal.analysis-modal .analysis-body p {
+  font-size: var(--font-text-sm);
+  line-height: var(--line-text-sm);
+}
+:root .modal.analysis-modal .analysis-body .evidence h4 {
+  font-size: var(--font-caption);
+  line-height: var(--line-caption);
+}

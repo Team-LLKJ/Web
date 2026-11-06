@@ -29,7 +29,7 @@ export function TeacherEvaluationEditPage() {
   const { evaluationId = "" } = useParams();
   const navigate = useNavigate();
   const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
-  const [aiPolicy, setAiPolicy] = useState<AiPolicy | "">("");
+  const [aiPolicy, setAiPolicy] = useState<AiPolicy>("HINT_ONLY");
   const [questions, setQuestions] = useState<DraftQuestion[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -69,10 +69,6 @@ export function TeacherEvaluationEditPage() {
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (locked || busy) return;
-    if (!aiPolicy) {
-      setNotice("AI 사용 정책을 선택해주세요.");
-      return;
-    }
     if (
       questions.length < 1 ||
       questions.length > 100 ||
@@ -136,21 +132,6 @@ export function TeacherEvaluationEditPage() {
                 이미 시작했거나 종료된 평가는 문항을 수정할 수 없습니다.
               </p>
             )}
-            <label className="teacher-select-label">
-              <span>AI 사용 정책</span>
-              <select
-                value={aiPolicy}
-                disabled={busy || locked}
-                onChange={(event) =>
-                  setAiPolicy(event.target.value as AiPolicy | "")
-                }
-              >
-                <option value="">정책을 선택해주세요</option>
-                <option value="DISABLED">사용 안 함</option>
-                <option value="HINT_ONLY">힌트만 허용</option>
-                <option value="FULL">전체 응답 허용</option>
-              </select>
-            </label>
             <QuestionFields
               questions={questions}
               disabled={busy || locked}

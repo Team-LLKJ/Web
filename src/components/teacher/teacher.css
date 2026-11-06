@@ -2711,3 +2711,18 @@
 .evaluation-card-actions > button:first-child:hover {
   color: var(--color-primary);
 }
+
+/* 평가 내용 편집기: 안쪽 스크롤 영역이 둥근 모서리로 잘리며 아래쪽 테두리가 끊겨 보이지 않도록,
+   바깥을 자르지 않고 안쪽 위·아래 모서리를 직접 둥글게 맞춘다. */
+:root .teacher-rich-editor {
+  overflow: visible;
+  box-sizing: border-box;
+}
+:root .teacher-rich-editor .answer-ribbon,
+:root .teacher-rich-editor .answer-ribbon--compact {
+  border-radius: 11px 11px 0 0;
+}
+:root .teacher-rich-editor > .answer-document-viewport,
+:root .teacher-rich-editor > .answer-document-viewport:first-child {
+  border-radius: 0 0 11px 11px;
+}

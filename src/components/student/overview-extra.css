@@ -1,0 +1,38 @@
+/* 학생 안내 화면의 AI 평가·부정행위 방지 안내를 읽기 쉽게 정리합니다. */
+:root .assessment-overview-block .overview-lead {
+  margin: 0 0 10px;
+  color: var(--color-grey-70, var(--color-grey-60));
+  line-height: 1.6;
+}
+:root .assessment-overview-block ul.overview-check-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+:root .assessment-overview-block ul.overview-check-list li {
+  position: relative;
+  padding: 10px 14px 10px 36px;
+  border-radius: 10px;
+  background: var(--color-grey-10);
+  line-height: 1.5;
+}
+:root .assessment-overview-block ul.overview-check-list li::before {
+  content: "";
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  transform: translateY(-50%);
+}
+:root .assessment-overview-block .overview-note {
+  margin: 12px 0 0;
+  color: var(--color-grey-50);
+  font-size: var(--font-caption);
+  line-height: 1.6;
+}

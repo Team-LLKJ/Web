@@ -187,17 +187,13 @@ export function ConsentHistory() {
         : type;
 
   return (
-    <section className="settings-group" aria-label="동의 이력">
-      <h2>동의 이력</h2>
-      <div className="settings-group-card settings-password-row">
-        <div>
-          <strong>약관·개인정보 동의 내역</strong>
-          <small>동의한 약관 버전과 일시를 확인할 수 있어요.</small>
-        </div>
-        <Button size="small" variant="secondary" onClick={() => setOpen(true)}>
-          보기
-        </Button>
-      </div>
+    <>
+      <button type="button" className="settings-link-row settings-link-button" onClick={() => setOpen(true)}>
+        <span>동의 이력</span>
+        <svg className="info-chevron" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+          <path d="m9 6 6 6-6 6" />
+        </svg>
+      </button>
       {open && (
         <Modal
           title="동의 이력"
@@ -224,7 +220,7 @@ export function ConsentHistory() {
           )}
         </Modal>
       )}
-    </section>
+    </>
   );
 }
 
@@ -262,17 +258,13 @@ export function DeleteAccount() {
   }
 
   return (
-    <section className="settings-group" aria-label="회원 탈퇴">
-      <h2>회원 탈퇴</h2>
-      <div className="settings-group-card settings-password-row">
-        <div>
-          <strong>계정 삭제</strong>
-          <small>내 수행평가와 학생 기록이 모두 삭제되며 되돌릴 수 없어요.</small>
-        </div>
-        <Button size="small" variant="secondary" onClick={() => setOpen(true)}>
-          탈퇴
-        </Button>
-      </div>
+    <>
+      <button type="button" className="settings-link-row settings-link-button settings-link-button--danger" onClick={() => setOpen(true)}>
+        <span>회원 탈퇴</span>
+        <svg className="info-chevron" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+          <path d="m9 6 6 6-6 6" />
+        </svg>
+      </button>
       {open && (
         <Modal
           title="회원 탈퇴"
@@ -280,7 +272,7 @@ export function DeleteAccount() {
           dismissOnBackdrop={false}
           actions={
             <>
-              <Button type="submit" form="delete-account-form" loading={busy}>
+              <Button type="submit" variant="white-danger" form="delete-account-form" loading={busy}>
                 탈퇴하기
               </Button>
               <Button variant="secondary" onClick={close}>
@@ -306,6 +298,6 @@ export function DeleteAccount() {
           </form>
         </Modal>
       )}
-    </section>
+    </>
   );
 }
