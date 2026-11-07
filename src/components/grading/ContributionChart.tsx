@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+
 export function ContributionChart({ value }: { value: number | null }) {
   const percent = value === null ? null : Math.max(0, Math.min(100, value));
   return (
@@ -10,22 +12,10 @@ export function ContributionChart({ value }: { value: number | null }) {
           : `학생 답변 ${percent}%`
       }
     >
-      {percent === 100 ? (
-        <div className="donut-assets" aria-hidden="true">
-          <img src="/review-assets/donut-track.svg" alt="" />
-          <img src="/review-assets/donut-value.svg" alt="" />
-        </div>
-      ) : (
-        <div
-          className="dynamic-donut"
-          style={{
-            background:
-              percent === null
-                ? "#f4f4f4"
-                : `conic-gradient(#007bff ${percent}%, #52a6ff 0)`,
-          }}
-        />
-      )}
+      <div
+        className={`dynamic-donut ${percent === null ? "is-empty" : ""}`}
+        style={{ "--donut-value": `${percent ?? 0}%` } as CSSProperties}
+      />
       <div className="donut-label">
         <strong>{percent === null ? "—" : `${percent}%`}</strong>
         <span>학생 답변</span>

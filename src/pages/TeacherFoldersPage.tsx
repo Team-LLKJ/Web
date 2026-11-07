@@ -12,7 +12,11 @@ import { deleteFolder, getCachedFolders, listFolders, type EvaluationFolder } fr
 import "../components/teacher/teacher.css";
 import "../components/teacher/folder-card.css";
 import { ShareDialog } from "../components/teacher/ShareDialog";
-import { EditIcon, FolderIcon, ShareIcon, TrashIcon } from "../components/teacher/folderIcons";
+import { FolderIcon } from "../components/teacher/folderIcons";
+import { MoreMenu } from "../components/teacher/MoreMenu";
+import { BulkReportDialog } from "../components/grading/BulkReportDialog";
+import { downloadFolderReports } from "../lib/classReports";
+import "../components/teacher/more-menu.css";
 
 export function TeacherFoldersPage() {
   const [params, setParams] = useSearchParams();
@@ -51,6 +55,7 @@ export function TeacherFoldersPage() {
   );
   const [notice, setNotice] = useState("");
   const [shareTarget, setShareTarget] = useState<EvaluationFolder | null>(null);
+  const [bulkFolder, setBulkFolder] = useState<EvaluationFolder | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
 
   return (
@@ -92,33 +97,27 @@ export function TeacherFoldersPage() {
                     </span>
                   </Link>
                   <span className="evaluation-card-actions folder-card-actions">
-                    <button
-                      type="button"
-                      className="folder-share-action"
-                      aria-label={`${folder.title} 공유`}
-                      title="공유"
-                      onClick={() => setShareTarget(folder)}
-                    >
-                      <ShareIcon />
-                    </button>
-                    <button
-                      type="button"
-                      aria-label={`${folder.title} 수정`}
-                      title="수정"
-                      onClick={() => navigate(`/teacher/folders/${encodeURIComponent(folder.id)}/edit`)}
-                    >
-                      <EditIcon />
-                    </button>
-                    {!folder.owner && (
-                    <button
-                      type="button"
-                      aria-label={`${folder.title} 삭제`}
-                      title="삭제"
-                      onClick={() => setDeleteTarget({ id: folder.id, title: folder.title })}
-                    >
-                      <TrashIcon />
-                    </button>
-                    )}
+                    <MoreMenu
+                      label={`${folder.title} 더보기`}
+                      items={[
+                        { label: "공유하기", onClick: () => setShareTarget(folder) },
+                        {
+                          label: "수정하기",
+                          onClick: () => navigate(`/teacher/folders/${encodeURIComponent(folder.id)}/edit`),
+                        },
+                        {
+                          label: "폴더 전체 저장",
+                          onClick: () => setBulkFolder(folder),
+                          hidden: !folder.sessions.some((session) => session.state === "ENDED"),
+                        },
+                        {
+                          label: "삭제하기",
+                          onClick: () => setDeleteTarget({ id: folder.id, title: folder.title }),
+                          danger: true,
+                          hidden: Boolean(folder.owner),
+                        },
+                      ]}
+                    />
                   </span>
                 </article>
               );
@@ -185,6 +184,26 @@ export function TeacherFoldersPage() {
         >
           <p>“{deleteTarget.title}” 수행평가와 모든 반별 기록이 삭제되며 되돌릴 수 없습니다.</p>
         </Modal>
+      )}
+      {bulkFolder && (
+        <BulkReportDialog
+          title={`${bulkFolder.title} 전체 보고서 저장`}
+          submitted={bulkFolder.sessions
+            .filter((session) => session.state === "ENDED")
+            .reduce((sum, session) => sum + session.submitted, 0)}
+          hwp
+          onSaveAll={(format, onProgress) =>
+            downloadFolderReports(
+              bulkFolder.title,
+              bulkFolder.sessions
+                .filter((session) => session.state === "ENDED")
+                .map((session) => ({ id: session.id, name: session.className })),
+              format,
+              onProgress,
+            )
+          }
+          onClose={() => setBulkFolder(null)}
+        />
       )}
       {shareTarget && (
         <ShareDialog

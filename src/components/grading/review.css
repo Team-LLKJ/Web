@@ -12,9 +12,9 @@
   background: var(--color-white);
 }
 .review-card h3 {
-  font-size: calc(var(--font-test-lg) * 0.75);
+  font-size: calc(var(--font-test-lg) * var(--ui-scale, 0.75));
   font-weight: var(--weight-medium);
-  line-height: calc(var(--line-test-lg) * 0.75);
+  line-height: calc(var(--line-test-lg) * var(--ui-scale, 0.75));
 }
 .contribution-card {
   height: 115.5px;
@@ -60,16 +60,16 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  line-height: calc(var(--line-title-sm) * 0.75);
+  line-height: calc(var(--line-title-sm) * var(--ui-scale, 0.75));
 }
 .donut-label strong {
-  font-size: calc(var(--font-test-lg) * 0.75);
+  font-size: calc(var(--font-test-lg) * var(--ui-scale, 0.75));
   font-weight: var(--weight-semibold);
   color: var(--color-grey-90);
 }
 .donut-label span {
-  font-size: calc(var(--font-text-sm) * 0.75);
-  line-height: calc(var(--line-text-sm) * 0.75);
+  font-size: calc(var(--font-text-sm) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-text-sm) * var(--ui-scale, 0.75));
   color: var(--color-grey-50);
 }
 .contribution-legend h3 {
@@ -80,8 +80,8 @@
   display: flex;
   align-items: center;
   gap: 7.5px;
-  font-size: calc(var(--font-text-sm) * 0.75);
-  line-height: calc(var(--line-text-sm) * 0.75);
+  font-size: calc(var(--font-text-sm) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-text-sm) * var(--ui-scale, 0.75));
   color: var(--color-grey-60);
   white-space: nowrap;
 }
@@ -108,8 +108,8 @@
 .usage-row {
   display: flex;
   align-items: center;
-  font-size: calc(var(--font-text-sm) * 0.75);
-  line-height: calc(var(--line-text-sm) * 0.75);
+  font-size: calc(var(--font-text-sm) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-text-sm) * var(--ui-scale, 0.75));
 }
 .usage-row > span:first-child {
   width: 67.5px;
@@ -149,8 +149,8 @@
   display: flex;
   align-items: center;
   gap: 7.5px;
-  font-size: calc(var(--font-text-md) * 0.75);
-  line-height: calc(var(--line-text-md) * 0.75);
+  font-size: calc(var(--font-text-md) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-text-md) * var(--ui-scale, 0.75));
 }
 .warning-icon img,
 .warning-icon svg {
@@ -164,8 +164,8 @@
   background: var(--color-danger-soft);
 }
 .warning-row time {
-  font-size: calc(var(--font-caption) * 0.75);
-  line-height: calc(var(--line-caption) * 0.75);
+  font-size: calc(var(--font-caption) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-caption) * var(--ui-scale, 0.75));
   color: var(--color-grey-40);
 }
 .asset-divider {
@@ -182,7 +182,7 @@
   margin-bottom: 15px;
 }
 .summary-card p {
-  font-size: calc(var(--font-text-md) * 0.75);
+  font-size: calc(var(--font-text-md) * var(--ui-scale, 0.75));
   line-height: 1.5;
 }
 .rubric-card {
@@ -205,8 +205,8 @@
   min-width: 0;
 }
 .criterion legend {
-  font-size: calc(var(--font-text-md) * 0.75);
-  line-height: calc(var(--line-text-md) * 0.75);
+  font-size: calc(var(--font-text-md) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-text-md) * var(--ui-scale, 0.75));
   margin-bottom: 7.5px;
   padding: 0;
 }
@@ -218,7 +218,7 @@
 }
 .rating-options button {
   padding: 5.5px 7.5px;
-  font-size: calc(var(--font-text-sm) * 0.75);
+  font-size: calc(var(--font-text-sm) * var(--ui-scale, 0.75));
   color: var(--color-grey-40);
   border-radius: 7.5px;
   white-space: nowrap;
@@ -308,14 +308,14 @@
     gap: 11px;
   }
   .contribution-legend h3 {
-    font-size: calc(var(--font-text-sm) * 0.75);
+    font-size: calc(var(--font-text-sm) * var(--ui-scale, 0.75));
   }
   .contribution-legend p {
-    font-size: calc(var(--font-caption) * 0.75);
+    font-size: calc(var(--font-caption) * var(--ui-scale, 0.75));
   }
   .rating-options button {
     padding: 5.5px 3px;
-    font-size: calc(var(--font-caption) * 0.75);
+    font-size: calc(var(--font-caption) * var(--ui-scale, 0.75));
   }
 }
 @media print {
@@ -400,105 +400,109 @@
   }
   .print-report {
     display: block;
-    color: #000;
-    font-size: 11pt;
-    line-height: 1.6;
   }
-  .print-report-header {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding-bottom: 12px;
-    margin-bottom: 18px;
-    border-bottom: 2px solid #007bff;
-  }
-  .print-report-header h1 {
-    font-size: 20pt;
-    font-weight: 600;
-    line-height: 1.3;
-  }
-  .print-report-header p {
-    color: #636366;
-    font-size: 10pt;
-  }
-  .print-report h2 {
-    margin: 22px 0 8px;
-    padding-bottom: 4px;
-    border-bottom: 1px solid #c6c6c6;
-    font-size: 13pt;
-    font-weight: 600;
-    line-height: 1.4;
-    break-after: avoid;
-  }
-  .print-report h3 {
-    margin: 14px 0 4px;
-    font-size: 11.5pt;
-    font-weight: 600;
-    break-after: avoid;
-  }
-  .print-report p {
-    margin: 0 0 6px;
-    white-space: pre-wrap;
-  }
-  .print-report table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 10.5pt;
-  }
-  .print-report th,
-  .print-report td {
-    padding: 6px 10px;
-    border: 1px solid #c6c6c6;
-    text-align: left;
-    vertical-align: top;
-  }
-  .print-report th {
-    background: #f6faff;
-    font-weight: 600;
-    white-space: nowrap;
-  }
-  .print-report-info {
-    margin-bottom: 4px;
-  }
-  .print-report tr,
-  .print-report-message,
-  .print-report-question {
-    break-inside: avoid;
-  }
-  .print-report .print-report-score {
-    width: 80px;
-    text-align: center;
-    white-space: nowrap;
-  }
-  .print-report-list {
-    margin: 0;
-    padding-left: 18px;
-  }
-  .print-report-list time {
-    margin-right: 6px;
-    color: #636366;
-  }
-  .print-report-prompt {
-    padding: 8px 12px;
-    border: 1px solid #007bff;
-    border-radius: 6px;
-    background: #f6faff;
-  }
-  .print-report-answer {
-    padding: 8px 12px;
-    border: 1px solid #c6c6c6;
-    border-radius: 6px;
-  }
-  .print-report-appendix {
-    break-before: page;
-  }
-  .print-report-message {
-    margin-bottom: 8px;
-  }
-  .print-report-message strong {
-    font-size: 10pt;
-    color: #48484a;
-  }
+}
+
+/* 보고서 본문 스타일: 인쇄와 저장 창 미리보기가 같이 씁니다. */
+.print-report {
+  color: #000;
+  font-size: 11pt;
+  line-height: 1.6;
+}
+.print-report-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 12px;
+  margin-bottom: 18px;
+  border-bottom: 2px solid #007bff;
+}
+.print-report-header h1 {
+  font-size: 20pt;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.print-report-header p {
+  color: #636366;
+  font-size: 10pt;
+}
+.print-report h2 {
+  margin: 22px 0 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #c6c6c6;
+  font-size: 13pt;
+  font-weight: 600;
+  line-height: 1.4;
+  break-after: avoid;
+}
+.print-report h3 {
+  margin: 14px 0 4px;
+  font-size: 11.5pt;
+  font-weight: 600;
+  break-after: avoid;
+}
+.print-report p {
+  margin: 0 0 6px;
+  white-space: pre-wrap;
+}
+.print-report table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10.5pt;
+}
+.print-report th,
+.print-report td {
+  padding: 6px 10px;
+  border: 1px solid #c6c6c6;
+  text-align: left;
+  vertical-align: top;
+}
+.print-report th {
+  background: #f6faff;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.print-report-info {
+  margin-bottom: 4px;
+}
+.print-report tr,
+.print-report-message,
+.print-report-question {
+  break-inside: avoid;
+}
+.print-report .print-report-score {
+  width: 80px;
+  text-align: center;
+  white-space: nowrap;
+}
+.print-report-list {
+  margin: 0;
+  padding-left: 18px;
+}
+.print-report-list time {
+  margin-right: 6px;
+  color: #636366;
+}
+.print-report-prompt {
+  padding: 8px 12px;
+  border: 1px solid #007bff;
+  border-radius: 6px;
+  background: #f6faff;
+}
+.print-report-answer {
+  padding: 8px 12px;
+  border: 1px solid #c6c6c6;
+  border-radius: 6px;
+}
+.print-report-appendix {
+  break-before: page;
+}
+.print-report-message {
+  margin-bottom: 8px;
+}
+.print-report-message strong {
+  font-size: 10pt;
+  color: #48484a;
 }
 
 /* 평가표 선택: 5칸 세그먼트 컨트롤 */
@@ -512,13 +516,13 @@
 }
 :root .review-card .rating-options button {
   min-width: 0;
-  padding: 7px 0;
+  padding: 13px 0;
   border: 1px solid transparent;
   border-radius: 8px;
   background: transparent;
   color: var(--color-grey-50);
-  font-size: calc(12px + var(--font-bump));
-  line-height: 16px;
+  font-size: calc(14px + var(--font-bump));
+  line-height: 22px;
   text-align: center;
   transition:
     background-color 0.18s ease,
@@ -783,4 +787,12 @@
   width: 100%;
   max-width: none;
   margin-inline: 0;
+}
+
+/* 채점 화면 상단 저장하기 버튼 */
+:root .grading-workspace .student-summary-actions .button {
+  padding: 11px 26px;
+  border-radius: 10px;
+  font-size: calc(var(--font-text-md) * var(--ui-scale, 0.75) + 1px);
+  line-height: 1.4;
 }

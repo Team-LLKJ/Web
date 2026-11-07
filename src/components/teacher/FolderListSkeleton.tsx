@@ -1,5 +1,5 @@
 import { Skeleton } from "../ui/Skeleton";
-import { EditIcon, FolderIcon, ShareIcon, TrashIcon } from "./folderIcons";
+import { FolderIcon, MoreIcon } from "./folderIcons";
 
 /**
  * 수행평가 카드 자리 표시. 실제 카드와 같은 마크업·아이콘을 쓰고,
@@ -23,13 +23,7 @@ export function FolderGridSkeleton({ count = 3 }: { count?: number }) {
           </span>
           <span className="evaluation-card-actions folder-card-actions">
             <button type="button" tabIndex={-1} disabled>
-              <ShareIcon />
-            </button>
-            <button type="button" tabIndex={-1} disabled>
-              <EditIcon />
-            </button>
-            <button type="button" tabIndex={-1} disabled>
-              <TrashIcon />
+              <MoreIcon />
             </button>
           </span>
         </article>

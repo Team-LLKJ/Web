@@ -99,3 +99,75 @@
   font-size: var(--font-caption);
   line-height: var(--line-caption);
 }
+
+/* 확정할 때 AI도 채점하지 못한 기준만 직접 채점하도록 강조합니다. */
+.criterion--missing legend,
+.criterion--missing .rubric-ai-note.is-empty {
+  color: var(--color-danger);
+}
+.criterion--missing .rating-options {
+  outline: 1px solid var(--color-danger);
+  outline-offset: 2px;
+}
+
+/* 교사가 AI 추천을 바꾸거나 AI가 못 한 기준을 채점했을 때만 나오는 근거 입력칸 */
+.rubric-reason {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 56px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-grey-20);
+  border-radius: 8px;
+  color: var(--color-grey-90);
+  font-size: var(--font-caption);
+  line-height: 1.5;
+  resize: none;
+  overflow: hidden;
+}
+.rubric-reason:focus {
+  border-color: var(--color-primary);
+  outline: 0;
+}
+:root .rubric-reason {
+  overflow: hidden;
+  scrollbar-width: none;
+}
+.rubric-reason::-webkit-scrollbar {
+  display: none;
+}
+.rubric-reason.auto-grow {
+  field-sizing: fixed;
+  min-height: 56px;
+}
+
+/* 평가 근거: AI 대화 링크 */
+.evidence-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-primary);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.evidence-link:hover {
+  color: var(--primary);
+}
+.evidence-link:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+:root .student-chat .message.message--target > p,
+:root .student-chat .message.message--target > .message-content {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+  transition: background-color 300ms, border-color 300ms;
+}
+
+/* 루브릭 하단 버튼: 세로 패딩만 늘림 */
+:root .grading-workspace .rubric-actions .button {
+  padding-block: 14px;
+}

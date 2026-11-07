@@ -27,13 +27,13 @@
   font-size: calc(12px + var(--font-bump));
 }
 .student-answer-content.tiptap h1 {
-  font-size: calc(var(--font-title-sm) * 0.75);
+  font-size: calc(var(--font-title-sm) * var(--ui-scale, 0.75));
 }
 .student-answer-content.tiptap h2 {
-  font-size: calc(var(--font-test-lg) * 0.75);
+  font-size: calc(var(--font-test-lg) * var(--ui-scale, 0.75));
 }
 .student-answer-content.tiptap h3 {
-  font-size: calc(var(--font-text-md) * 0.75);
+  font-size: calc(var(--font-text-md) * var(--ui-scale, 0.75));
 }
 .student-answer-content.tiptap :is(h1, h2, h3) {
   color: #2c2c2e;

@@ -45,14 +45,20 @@ export function ChatMessage({
   role,
   content,
   pending = false,
+  messageId,
 }: {
   student: Student;
   role: "user" | "ai";
   content: string;
   pending?: boolean;
+  /** 평가 근거 링크가 이 말풍선으로 이동할 때 쓰는 대화 번호 */
+  messageId?: string;
 }) {
   return (
-    <div className={`message ${role === "user" ? "user" : "ai"}`}>
+    <div
+      className={`message ${role === "user" ? "user" : "ai"}`}
+      data-message-id={messageId}
+    >
       <div className="message-author">
         {role === "user" ? (
           <Avatar name={student.name} size="small" />

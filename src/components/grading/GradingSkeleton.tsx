@@ -1,4 +1,6 @@
 import { Skeleton, SkeletonStatus } from "../ui/Skeleton";
+import { Icon } from "../ui/Icon";
+import { TextInput } from "../ui/TextInput";
 import { ChatHistorySkeleton } from "./ChatHistorySkeleton";
 
 // 실제 채점 화면과 같은 컨테이너·크기를 써서 로딩 → 실제 화면 전환 시 레이아웃이 움직이지 않게 한다.
@@ -7,11 +9,18 @@ export function StudentSidebarSkeleton() {
     <aside className="students" aria-label="학생 목록">
       <SkeletonStatus label="학생 목록을 불러오고 있습니다.">
         <div className="student-filter" aria-hidden="true">
-          <Skeleton style={{ height: 45, borderRadius: 10 }} />
+          <TextInput
+            variant="search"
+            leadingIcon={<Icon name="search" />}
+            aria-label="학생 검색"
+            placeholder="아이디를 입력하세요"
+            disabled
+            readOnly
+          />
           <div className="counts">
-            <Skeleton style={{ width: 40, height: 20 }} />
-            <Skeleton style={{ width: 40, height: 20 }} />
-            <Skeleton style={{ width: 52, height: 20 }} />
+            <span>제출</span>
+            <span>경고</span>
+            <span>작성중</span>
           </div>
         </div>
         <div className="student-list" aria-hidden="true">

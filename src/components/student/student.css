@@ -363,9 +363,9 @@
   width: min(1080px, 100%);
 }
 .student-editor h1 {
-  font-size: calc(var(--font-title-sm) * 0.75);
+  font-size: calc(var(--font-title-sm) * var(--ui-scale, 0.75));
   font-weight: var(--weight-semibold);
-  line-height: calc(var(--line-title-sm) * 0.75);
+  line-height: calc(var(--line-title-sm) * var(--ui-scale, 0.75));
   margin-bottom: 11px;
 }
 .student-editor .question-box {
@@ -394,7 +394,7 @@
   background: white;
   font: inherit;
   font-family: Arial, sans-serif;
-  font-size: calc(var(--font-text-md) * 0.75);
+  font-size: calc(var(--font-text-md) * var(--ui-scale, 0.75));
   line-height: 1.15;
   overflow: auto;
   overflow-wrap: anywhere;
@@ -454,8 +454,8 @@
   gap: 9px;
   padding-top: 4px;
   color: #636366;
-  font-size: calc(var(--font-caption) * 0.75);
-  line-height: calc(var(--line-caption) * 0.75);
+  font-size: calc(var(--font-caption) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-caption) * var(--ui-scale, 0.75));
 }
 .student-chat {
   min-height: 0;
@@ -466,9 +466,9 @@
   flex-direction: column;
 }
 .student-chat > h2 {
-  font-size: calc(var(--font-test-lg) * 0.75);
+  font-size: calc(var(--font-test-lg) * var(--ui-scale, 0.75));
   font-weight: var(--weight-medium);
-  line-height: calc(var(--line-test-lg) * 0.75);
+  line-height: calc(var(--line-test-lg) * var(--ui-scale, 0.75));
   padding: 15px 26px;
   background: var(--color-primary-soft);
   color: var(--color-primary);
@@ -531,8 +531,8 @@
   border: 0;
   background: transparent;
   color: var(--color-black);
-  font-size: calc(var(--font-text-md) * 0.75);
-  line-height: calc(var(--line-text-md) * 0.75);
+  font-size: calc(var(--font-text-md) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-text-md) * var(--ui-scale, 0.75));
 }
 .student-chat-composer textarea::placeholder {
   color: var(--color-grey-40);
@@ -547,8 +547,8 @@
   cursor: default;
 }
 .chat-notice {
-  font-size: calc(var(--font-caption) * 0.75);
-  line-height: calc(var(--line-caption) * 0.75);
+  font-size: calc(var(--font-caption) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-caption) * var(--ui-scale, 0.75));
   color: var(--color-grey-40);
 }
 .student-modal > p {
@@ -563,8 +563,8 @@
   padding: 22.5px;
 }
 .view-index h1 {
-  font-size: calc(var(--font-title-sm) * 0.75);
-  line-height: calc(var(--line-title-sm) * 0.75);
+  font-size: calc(var(--font-title-sm) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-title-sm) * var(--ui-scale, 0.75));
   font-weight: var(--weight-semibold);
   margin: 22.5px 0;
 }
@@ -741,8 +741,8 @@
   border-radius: 6px;
   background: var(--color-primary-soft);
   color: var(--color-primary-dark);
-  font-size: calc(var(--font-caption) * 0.75);
-  line-height: calc(var(--line-caption) * 0.75);
+  font-size: calc(var(--font-caption) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-caption) * var(--ui-scale, 0.75));
 }
 .student-answer-content[contenteditable="false"] {
   color: #48484a;
@@ -753,8 +753,8 @@
   display: grid;
   gap: 9px;
   color: #48484a;
-  font-size: calc(var(--font-text-sm) * 0.75);
-  line-height: calc(var(--line-text-md) * 0.75);
+  font-size: calc(var(--font-text-sm) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-text-md) * var(--ui-scale, 0.75));
 }
 .student-policy-copy p {
   margin: 0;
@@ -943,8 +943,8 @@
   text-underline-offset: 3px;
 }
 .ribbon-tool-label {
-  font-size: calc(var(--font-caption) * 0.75);
-  line-height: calc(var(--line-caption) * 0.75);
+  font-size: calc(var(--font-caption) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-caption) * var(--ui-scale, 0.75));
   font-weight: var(--weight-regular);
   max-width: 48px;
   white-space: normal;
@@ -1000,7 +1000,7 @@
   background-color: #fff;
   color: #48484a;
   font-family: inherit;
-  font-size: calc(var(--font-caption) * 0.75);
+  font-size: calc(var(--font-caption) * var(--ui-scale, 0.75));
 }
 .answer-ribbon select:focus-visible {
   outline: 2px solid #52a6ff;
@@ -1073,7 +1073,7 @@
   width: 58.5px;
 }
 .student-solving .student-answer-content {
-  line-height: calc(var(--line-text-lg) * 0.75);
+  line-height: calc(var(--line-text-lg) * var(--ui-scale, 0.75));
   font-family: var(--font-family-base);
 }
 @media (max-width: 600px) {
@@ -1112,7 +1112,7 @@
 }
 .student-chat-heading h2 {
   margin: 0;
-  font-size: calc(var(--font-test-lg) * 0.75);
+  font-size: calc(var(--font-test-lg) * var(--ui-scale, 0.75));
   font-weight: var(--weight-medium);
 }
 .student-chat-expand {
@@ -1125,7 +1125,7 @@
   border-radius: 6px;
   background: #ffffffb3;
   color: #0059bc;
-  font-size: calc(var(--font-caption) * 0.75);
+  font-size: calc(var(--font-caption) * var(--ui-scale, 0.75));
   font-weight: var(--weight-medium);
 }
 .student-chat-expand:hover {
@@ -1140,7 +1140,7 @@
   margin: auto;
   padding: 18px 0;
   color: #8e8e93;
-  font-size: calc(var(--font-text-sm) * 0.75);
+  font-size: calc(var(--font-text-sm) * var(--ui-scale, 0.75));
   line-height: 1.6;
   text-align: center;
 }
@@ -2019,36 +2019,36 @@
 
 /* Figma type scale tokens only (title-sm / test-lg / text-md / text-sm / caption). */
 .assessment-overview h2 {
-  font-size: calc(var(--font-title-sm) * 0.75);
-  line-height: calc(var(--line-title-sm) * 0.75);
+  font-size: calc(var(--font-title-sm) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-title-sm) * var(--ui-scale, 0.75));
 }
 .assessment-overview-lead {
-  font-size: calc(var(--font-text-sm) * 0.75);
-  line-height: calc(var(--line-text-sm) * 0.75);
+  font-size: calc(var(--font-text-sm) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-text-sm) * var(--ui-scale, 0.75));
 }
 .assessment-overview-block h3 {
-  font-size: calc(var(--font-test-lg) * 0.75);
-  line-height: calc(var(--line-test-lg) * 0.75);
+  font-size: calc(var(--font-test-lg) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-test-lg) * var(--ui-scale, 0.75));
 }
 .assessment-overview-block p,
 .assessment-overview-block ul,
 .assessment-overview-block ol button span {
-  font-size: calc(var(--font-text-sm) * 0.75);
-  line-height: calc(var(--line-text-sm) * 0.75);
+  font-size: calc(var(--font-text-sm) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-text-sm) * var(--ui-scale, 0.75));
 }
 .assessment-overview-block p strong,
 .assessment-overview-block ol button strong {
-  font-size: calc(var(--font-text-md) * 0.75);
-  line-height: calc(var(--line-text-md) * 0.75);
+  font-size: calc(var(--font-text-md) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-text-md) * var(--ui-scale, 0.75));
 }
 .student-chat .student-chat-heading h2,
 .student-chat > h2 {
-  font-size: calc(var(--font-test-lg) * 0.75);
-  line-height: calc(var(--line-test-lg) * 0.75);
+  font-size: calc(var(--font-test-lg) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-test-lg) * var(--ui-scale, 0.75));
 }
 .student-editor .question-box p {
-  font-size: calc(var(--font-text-md) * 0.75);
-  line-height: calc(var(--line-text-md) * 0.75);
+  font-size: calc(var(--font-text-md) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-text-md) * var(--ui-scale, 0.75));
 }
 
 /* Default body text is text-md (18px). */
@@ -2056,45 +2056,45 @@
 .assessment-overview-block p,
 .assessment-overview-block ul,
 .assessment-overview-block ol button span {
-  font-size: calc(var(--font-text-md) * 0.75);
-  line-height: calc(var(--line-text-md) * 0.75);
+  font-size: calc(var(--font-text-md) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-text-md) * var(--ui-scale, 0.75));
 }
 
 /* Hierarchy around the 18px base: title 26 > heading 20 > body 18 > secondary 16 > caption 14. */
 .student-answer-content.tiptap {
-  font-size: calc(var(--font-text-md) * 0.75);
+  font-size: calc(var(--font-text-md) * var(--ui-scale, 0.75));
 }
 .assessment-overview-block ol button span {
-  font-size: calc(var(--font-text-sm) * 0.75);
-  line-height: calc(var(--line-text-sm) * 0.75);
+  font-size: calc(var(--font-text-sm) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-text-sm) * var(--ui-scale, 0.75));
 }
 .answer-rich-status {
-  font-size: calc(var(--font-caption) * 0.75);
+  font-size: calc(var(--font-caption) * var(--ui-scale, 0.75));
 }
 
 /* Body text is text-sm (16px): title 26 > heading 20 > emphasis 18 > body 16 > caption 14. */
 .student-answer-content,
 .student-answer-content.tiptap {
-  font-size: calc(var(--font-text-sm) * 0.75);
+  font-size: calc(var(--font-text-sm) * var(--ui-scale, 0.75));
 }
 .assessment-overview-lead,
 .assessment-overview-block p,
 .assessment-overview-block ul {
-  font-size: calc(var(--font-text-sm) * 0.75);
-  line-height: calc(var(--line-text-sm) * 0.75);
+  font-size: calc(var(--font-text-sm) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-text-sm) * var(--ui-scale, 0.75));
 }
 .assessment-overview-block ol button span {
-  font-size: calc(var(--font-caption) * 0.75);
-  line-height: calc(var(--line-caption) * 0.75);
+  font-size: calc(var(--font-caption) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-caption) * var(--ui-scale, 0.75));
 }
 .student-editor .question-box p {
-  font-size: calc(var(--font-text-sm) * 0.75);
-  line-height: calc(var(--line-text-sm) * 0.75);
+  font-size: calc(var(--font-text-sm) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-text-sm) * var(--ui-scale, 0.75));
 }
 .student-chat .message > p,
 .student-chat .message > .message-content {
-  font-size: calc(var(--font-text-sm) * 0.75);
-  line-height: calc(var(--line-text-sm) * 0.75);
+  font-size: calc(var(--font-text-sm) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-text-sm) * var(--ui-scale, 0.75));
 }
 
 /* The workspace is scaled to 75%, so on-screen body text uses text-md (18px) to stay readable. */
@@ -2104,30 +2104,30 @@
 .student-editor .question-box p,
 .student-chat .message > p,
 .student-chat .message > .message-content {
-  font-size: calc(var(--font-text-md) * 0.75);
-  line-height: calc(var(--line-text-md) * 0.75);
+  font-size: calc(var(--font-text-md) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-text-md) * var(--ui-scale, 0.75));
 }
 .assessment-overview-block ol button span {
-  font-size: calc(var(--font-text-sm) * 0.75);
-  line-height: calc(var(--line-text-sm) * 0.75);
+  font-size: calc(var(--font-text-sm) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-text-sm) * var(--ui-scale, 0.75));
 }
 .assessment-overview-block h3 {
-  font-size: calc(var(--font-title-sm) * 0.75);
-  line-height: calc(var(--line-title-sm) * 0.75);
+  font-size: calc(var(--font-title-sm) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-title-sm) * var(--ui-scale, 0.75));
 }
 .assessment-overview-block p strong,
 .assessment-overview-block ol button strong {
-  font-size: calc(var(--font-test-lg) * 0.75);
-  line-height: calc(var(--line-test-lg) * 0.75);
+  font-size: calc(var(--font-test-lg) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-test-lg) * var(--ui-scale, 0.75));
 }
 .assessment-overview h2 {
-  font-size: calc(var(--font-title-md) * 0.75);
-  line-height: calc(var(--line-title-md) * 0.75);
+  font-size: calc(var(--font-title-md) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-title-md) * var(--ui-scale, 0.75));
 }
 .student-chat .student-chat-heading h2,
 .student-chat > h2 {
-  font-size: calc(var(--font-title-sm) * 0.75);
-  line-height: calc(var(--line-title-sm) * 0.75);
+  font-size: calc(var(--font-title-sm) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-title-sm) * var(--ui-scale, 0.75));
 }
 
 /* Question list items: quiet by default, highlighted only on hover. */
@@ -2140,8 +2140,8 @@
   background: #f6faff;
 }
 .assessment-overview-block ol button strong {
-  font-size: calc(var(--font-text-md) * 0.75);
-  line-height: calc(var(--line-text-md) * 0.75);
+  font-size: calc(var(--font-text-md) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-text-md) * var(--ui-scale, 0.75));
 }
 
 .assessment-overview-block ol button {
@@ -2198,7 +2198,7 @@
 .ribbon-select-trigger {
   height: 30px;
   padding: 0 9px;
-  font-size: calc(var(--font-text-sm) * 0.75);
+  font-size: calc(var(--font-text-sm) * var(--ui-scale, 0.75));
 }
 .ribbon-style-trigger {
   width: 102px;
@@ -2207,7 +2207,7 @@
   height: 28.5px;
 }
 .ribbon-compact .ribbon-font-size input {
-  font-size: calc(var(--font-text-sm) * 0.75);
+  font-size: calc(var(--font-text-sm) * var(--ui-scale, 0.75));
 }
 .ribbon-compact .ribbon-font-size button {
   width: 22.5px;
@@ -2221,18 +2221,18 @@
 /* Question text is text-md. */
 .student-solving .student-editor .question-box,
 .student-solving .student-editor .question-box p {
-  font-size: calc(var(--font-text-md) * 0.75);
-  line-height: calc(var(--line-text-md) * 0.75);
+  font-size: calc(var(--font-text-md) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-text-md) * var(--ui-scale, 0.75));
 }
 
 /* Answer and question share the same size and typeface (text-md, base font). */
 .student-solving .student-answer-content,
 .student-solving .student-answer-content.tiptap {
   font-family: var(--font-family-base);
-  font-size: calc(var(--font-text-md) * 0.75);
+  font-size: calc(var(--font-text-md) * var(--ui-scale, 0.75));
 }
 .ribbon-compact .ribbon-font-size input {
-  font-size: calc(var(--font-text-sm) * 0.75);
+  font-size: calc(var(--font-text-sm) * var(--ui-scale, 0.75));
 }
 
 /* Align the text-color and highlight "A" buttons with the other toolbar glyphs. */
@@ -2302,21 +2302,21 @@
 }
 .assessment-overview-facts dt {
   color: #636366;
-  font-size: calc(var(--font-text-md) * 0.75);
-  line-height: calc(var(--line-text-md) * 0.75);
+  font-size: calc(var(--font-text-md) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-text-md) * var(--ui-scale, 0.75));
 }
 .assessment-overview-facts dd {
   margin: 0;
   color: #1c1c1e;
-  font-size: calc(var(--font-text-md) * 0.75);
+  font-size: calc(var(--font-text-md) * var(--ui-scale, 0.75));
   font-weight: 500;
-  line-height: calc(var(--line-text-md) * 0.75);
+  line-height: calc(var(--line-text-md) * var(--ui-scale, 0.75));
 }
 
 .assessment-overview-block .assessment-overview-guidelines {
   margin: 0;
   color: #1c1c1e;
-  font-size: calc(var(--font-text-md) * 0.75);
+  font-size: calc(var(--font-text-md) * var(--ui-scale, 0.75));
   line-height: 1.6;
   overflow-wrap: anywhere;
 }
@@ -2476,8 +2476,8 @@
 /* Chat prompt uses the app typeface (textarea defaulted to monospace). */
 .student-chat-composer textarea {
   font-family: var(--font-family-base);
-  font-size: calc(var(--font-text-md) * 0.75);
-  line-height: calc(var(--line-text-md) * 0.75);
+  font-size: calc(var(--font-text-md) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-text-md) * var(--ui-scale, 0.75));
 }
 .student-chat-composer textarea::placeholder {
   font-family: var(--font-family-base);
@@ -2706,4 +2706,13 @@
 .student-chat-composer button img {
   width: 30px;
   height: 30px;
+}
+
+/* AI 답변 말풍선: 흰 배경과 옅은 파란 배경이 구분되도록 보더를 또렷하게 */
+:root .student-chat .message.ai > p,
+:root .student-chat .message.ai > .message-content,
+:root .student-chat.is-expanded .message.ai > p,
+:root .student-chat.is-expanded .message.ai > .message-content {
+  border-color: var(--color-grey-20);
+  background: var(--color-grey-10);
 }

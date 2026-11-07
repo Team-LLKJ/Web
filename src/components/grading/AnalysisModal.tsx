@@ -3,9 +3,11 @@ import { Modal } from "../ui/Modal";
 export function AnalysisModal({
   review,
   onClose,
+  onOpenConversation,
 }: {
   review: StudentReview;
   onClose: () => void;
+  onOpenConversation?: (conversationId: number) => void;
 }) {
   const rubric = review.rubric;
   const levels = ["매우 못함", "못함", "보통", "잘함", "매우 잘함"];
@@ -43,9 +45,17 @@ export function AnalysisModal({
                   {item.ai?.evidence.length ? (
                     item.ai.evidence.map((entry, index) => (
                       <p key={index}>
-                        {entry.conversationId !== undefined
-                          ? `AI 대화 #${entry.conversationId}`
-                          : "관련 기록"}
+                        {entry.conversationId !== undefined ? (
+                          <button
+                            type="button"
+                            className="evidence-link"
+                            onClick={() => onOpenConversation?.(entry.conversationId as number)}
+                          >
+                            AI 대화 #{entry.conversationId}
+                          </button>
+                        ) : (
+                          "관련 기록"
+                        )}
                       </p>
                     ))
                   ) : (

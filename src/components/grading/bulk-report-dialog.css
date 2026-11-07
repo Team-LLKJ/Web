@@ -1,0 +1,33 @@
+.bulk-report-info {
+  margin: 14px 0 0;
+  color: var(--color-grey-60);
+}
+.bulk-report-progress {
+  margin-top: 16px;
+}
+.bulk-report-bar {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--color-grey-10);
+  overflow: hidden;
+}
+.bulk-report-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--color-primary);
+  transition: width 0.2s ease;
+}
+.bulk-report-progress small {
+  display: block;
+  margin-top: 6px;
+  color: var(--color-grey-50);
+}
+.bulk-report-result {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.bulk-report-result p {
+  margin: 0;
+  color: var(--color-danger);
+}

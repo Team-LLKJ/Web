@@ -1,6 +1,7 @@
 import { Skeleton, SkeletonStatus } from "../ui/Skeleton";
 import { EmptyState } from "../ui/EmptyState";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useState, type ReactNode } from "react";
+import { ReportSaveDialog } from "./ReportSaveDialog";
 import type { Answer, Question, Student } from "../../data/grading";
 import { Button } from "../ui/Button";
 import { Avatar } from "../ui/Avatar";
@@ -19,10 +20,12 @@ type Props = {
   answers: Answer[];
   question: number;
   onQuestion: (id: number) => void;
-  /** 지정하면 브라우저 인쇄 대신 서버 PDF를 내려받습니다. */
-  onSavePdf?: () => void;
-  /** 지정하면 HWP 저장 버튼이 나타납니다. */
-  onSaveHwp?: () => void;
+  /** 지정하면 서버 보고서(PDF·HWP)를 내려받습니다. 둘은 같은 서버 보고서예요. */
+  onSaveReport?: (format: "pdf" | "hwp") => Promise<void> | void;
+  /** 지정하면 저장 창에서 서버 PDF 미리보기를 보여줍니다. */
+  onPreviewReport?: () => Promise<Blob>;
+  /** 서버가 없을 때 저장 창 미리보기에 보여줄 앱 보고서 */
+  report?: ReactNode;
 };
 export function SubmissionPanel({
   student,
@@ -30,12 +33,13 @@ export function SubmissionPanel({
   answers,
   question,
   onQuestion,
-  onSavePdf,
-  onSaveHwp,
+  onSaveReport,
+  onPreviewReport,
+  report,
 }: Props) {
+  const [saveOpen, setSaveOpen] = useState(false);
   // 인쇄 창의 기본 파일 이름과 제목이 보고서 이름이 되도록 잠시 문서 제목을 바꾼다.
   const savePdf = () => {
-    if (onSavePdf) return onSavePdf();
     const previous = document.title;
     document.title = `${student.name} 학습 보고서`;
     window.addEventListener("afterprint", () => (document.title = previous), {
@@ -62,13 +66,8 @@ export function SubmissionPanel({
           </div>
         </div>
         <div className="student-summary-actions">
-          {onSaveHwp && (
-            <Button variant="secondary" onClick={onSaveHwp}>
-              HWP로 저장하기
-            </Button>
-          )}
-          <Button variant="primary" onClick={savePdf}>
-            PDF로 저장하기
+          <Button variant="primary" onClick={() => setSaveOpen(true)}>
+            저장하기
           </Button>
         </div>
       </section>
@@ -117,6 +116,16 @@ export function SubmissionPanel({
           <EmptyState size="inline" icon="doc" title="등록된 문항이 없어요" />
         )}
       </section>
+      {saveOpen && (
+        <ReportSaveDialog
+          studentName={student.name}
+          hwp={Boolean(onSaveReport)}
+          loadPreview={onPreviewReport}
+          report={report}
+          onSave={(format) => (onSaveReport ? onSaveReport(format) : savePdf())}
+          onClose={() => setSaveOpen(false)}
+        />
+      )}
     </main>
   );
 }
