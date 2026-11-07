@@ -7,6 +7,7 @@ type Props = {
   actions?: ReactNode;
   className?: string;
   size?: "small" | "medium" | "large";
+  /** 비워 두면 입력칸이 있는 모달은 배경을 눌러도 닫히지 않습니다. */
   dismissOnBackdrop?: boolean;
   dismissOnEscape?: boolean;
 };
@@ -17,7 +18,7 @@ export function Modal({
   actions,
   className = "",
   size = "medium",
-  dismissOnBackdrop = true,
+  dismissOnBackdrop,
   dismissOnEscape = true,
 }: Props) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -36,7 +37,13 @@ export function Modal({
         if (dismissOnEscape) onClose();
       }}
       onClick={(e) => {
-        if (dismissOnBackdrop && e.target === e.currentTarget) onClose();
+        if (e.target !== e.currentTarget) return;
+        const hasInput = Boolean(
+          e.currentTarget.querySelector(
+            'input:not([type="hidden"]), textarea, [contenteditable="true"]',
+          ),
+        );
+        if (dismissOnBackdrop ?? !hasInput) onClose();
       }}
     >
       <div className="modal-heading">

@@ -106,7 +106,7 @@
   border-radius: 0;
 }
 
-/* 학생 풀이 화면의 문항 탭: 버튼 안쪽 위아래 여백을 조금 늘립니다. */
+/* 학생 풀이 화면의 문항 탭: 버튼 안쪽 위아래 여백(좌우 22px보다 작게). */
 :root:root:root:root:root .student-editor .segment-tabs button {
-  padding-block: 11px;
+  padding-block: 9px;
 }

@@ -96,8 +96,10 @@ body {
   gap: 8px;
   align-items: center;
 }
-.screen-loading-grading-content {
+/* teacher.css의 .teacher-page-content(가운데 1180px 폭)보다 우선해서 실제 채점 화면처럼 꽉 채웁니다. */
+.page-loading.screen-loading--grading .teacher-page-content.screen-loading-grading-content {
   width: 100%;
+  max-width: none;
   margin: 0;
   padding: 0;
 }
