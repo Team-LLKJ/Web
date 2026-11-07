@@ -10,6 +10,8 @@ export type AssessmentClass = {
   assessmentId: string;
   className: string;
   state: ClassState;
+  /** 대기실 상태. 대기실을 열면 state=READY 그대로이고 lobbyState=WAITING이 됩니다. */
+  lobbyState?: string | null;
   evaluationState: string;
   pin: string | null;
   joinUrl: string | null;
@@ -128,6 +130,18 @@ export const startAssessmentClass = (
 ) =>
   apiRequest<AssessmentClass>(
     `${base}/${idPath(assessmentId)}/classes/${idPath(classId)}/start`,
+    { method: "POST", body: { expiresInMinutes } },
+  );
+
+// 대기실 열기: PIN·QR만 발급하고 WAITING을 유지합니다. 학생은 들어와 기다리고, 타이머는 /start에서 시작합니다.
+// 이미 열린 대기실에 다시 보내면 PIN·참가자·유효시간이 유지되고, 만료된 대기실은 같은 PIN으로 다시 열립니다.
+export const openAssessmentClassLobby = (
+  assessmentId: string,
+  classId: string,
+  expiresInMinutes = 60,
+) =>
+  apiRequest<AssessmentClass>(
+    `${base}/${idPath(assessmentId)}/classes/${idPath(classId)}/lobby`,
     { method: "POST", body: { expiresInMinutes } },
   );
 

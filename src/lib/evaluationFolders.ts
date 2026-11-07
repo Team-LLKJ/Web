@@ -12,6 +12,7 @@ import {
   removeCollaborator,
   renameAssessmentClass,
   startAssessmentClass,
+  openAssessmentClassLobby,
   type Assessment,
   type AssessmentClass,
   type AssessmentCollaborator,
@@ -32,6 +33,8 @@ export type FolderSession = {
   submitted: number;
   pin?: string | null;
   endsAt?: string | null;
+  /** 시작 전이지만 대기실을 열어 학생이 들어올 수 있는 상태. */
+  lobbyOpen?: boolean;
 };
 
 export type EvaluationFolder = {
@@ -68,6 +71,9 @@ export const toSession = (item: AssessmentClass): FolderSession => ({
   submitted: item.submittedCount,
   pin: item.pin,
   endsAt: item.endsAt,
+  lobbyOpen:
+    item.state === "READY" &&
+    (item.lobbyState === "WAITING" || (item.lobbyState == null && Boolean(item.pin))),
 });
 
 function toFolder(item: AssessmentSummary | Assessment): EvaluationFolder {
@@ -151,6 +157,10 @@ export const removeSession = (folderId: string, sessionId: string) =>
 
 export async function startSession(folderId: string, sessionId: string, expiresInMinutes: number) {
   return toSession(await startAssessmentClass(folderId, sessionId, expiresInMinutes));
+}
+
+export async function openSessionLobby(folderId: string, sessionId: string) {
+  return toSession(await openAssessmentClassLobby(folderId, sessionId));
 }
 
 export async function endSession(folderId: string, sessionId: string) {
