@@ -356,11 +356,11 @@ export function NotificationsPage() {
       <header className="notifications-head">
         <div>
           <h1>알림</h1>
-          <p className="info-description">
-            {unreadCount > 0
-              ? `읽지 않은 알림이 ${unreadCount}개 있습니다.`
-              : "새 알림을 모두 확인했습니다."}
-          </p>
+          {unreadCount > 0 && (
+            <p className="info-description">
+              {`읽지 않은 알림이 ${unreadCount}개 있습니다.`}
+            </p>
+          )}
         </div>
       </header>
       <div className="tab-toolbar">

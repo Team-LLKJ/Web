@@ -11,6 +11,7 @@ import { Avatar } from "../ui/Avatar";
 import { Button } from "../ui/Button";
 import { Modal } from "../ui/Modal";
 import { Skeleton } from "../ui/Skeleton";
+import { ShareRoleMenu } from "./ShareRoleMenu";
 import "./folder-share.css";
 
 /** 수행평가 공유 창. 목록 카드와 상세 화면에서 같이 씁니다. */
@@ -131,7 +132,6 @@ export function ShareDialog({
           </form>
         )}
         {shareError && <p className="input-error share-error">{shareError}</p>}
-        <h3 className="share-section-title">액세스 권한이 있는 사용자</h3>
         <ul className="share-people">
           <li>
             <Avatar name={(isOwner ? user?.name : folder.owner) || "?"} size="large" />
@@ -143,6 +143,16 @@ export function ShareDialog({
             </span>
             <span className="share-role share-role--fixed">소유자</span>
           </li>
+          {!isOwner && user && (
+            <li>
+              <Avatar name={user.name || user.email || "?"} size="large" />
+              <span className="share-person">
+                <strong>{`${user.name ?? ""} (나)`}</strong>
+                {user.email && <small>{user.email}</small>}
+              </span>
+              <span className="share-role share-role--fixed">편집자</span>
+            </li>
+          )}
           {collaborators === null ? (
             <li className="share-people-skeleton" aria-label="공유 멤버를 불러오는 중">
               <Skeleton className="share-skeleton-avatar" />
@@ -153,7 +163,9 @@ export function ShareDialog({
               <Skeleton style={{ width: 48, height: 18 }} />
             </li>
           ) : (
-            collaborators.map((item) => {
+            collaborators
+              .filter((item) => isOwner || item.teacherId !== user?.id)
+              .map((item) => {
               const me = item.teacherId === user?.id;
               const canEdit = isOwner;
               return (
@@ -164,18 +176,12 @@ export function ShareDialog({
                     <small>{item.email}</small>
                   </span>
                   {canEdit ? (
-                    <select
-                      className="share-role"
-                      aria-label={`${item.name} 권한`}
-                      value="EDITOR"
+                    <ShareRoleMenu
+                      label={`${item.name} 권한`}
+                      removeLabel={me ? "공유에서 나가기" : "액세스 권한 삭제"}
                       disabled={busy}
-                      onChange={(event) => {
-                        if (event.target.value === "REMOVE") void removeShare(item);
-                      }}
-                    >
-                      <option value="EDITOR">편집자</option>
-                      <option value="REMOVE">{me ? "공유에서 나가기" : "액세스 권한 삭제"}</option>
-                    </select>
+                      onRemove={() => void removeShare(item)}
+                    />
                   ) : (
                     <span className="share-role share-role--fixed">편집자</span>
                   )}
