@@ -110,3 +110,11 @@
 :root:root:root:root:root .student-editor .segment-tabs button {
   padding-block: 9px;
 }
+
+/* 화살표 탭 바: 탭 목록 아래에 남는 여백(margin)이 회색 틀 안에 빈 공간으로 보이지 않게 합니다. */
+:root:root:root .segment-tabs-wrap > .segment-tabs,
+:root:root:root .grading-workspace .segment-tabs-wrap > .segment-tabs,
+:root:root:root .compact-workspace .segment-tabs-wrap > .segment-tabs,
+:root:root:root .student-editor .segment-tabs-wrap > .segment-tabs {
+  margin-bottom: 0;
+}

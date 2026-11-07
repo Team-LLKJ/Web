@@ -56,8 +56,8 @@ a {
 .counts {
   display: flex;
   gap: 11px;
-  font-size: calc(var(--font-text-sm) * 0.75);
-  line-height: calc(var(--line-text-sm) * 0.75);
+  font-size: calc(var(--font-text-sm) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-text-sm) * var(--ui-scale, 0.75));
   padding: 0 15px;
   color: var(--muted);
 }
@@ -82,8 +82,8 @@ a {
   align-items: center;
   justify-content: space-between;
   min-height: 41px;
-  font-size: calc(var(--font-text-md) * 0.75);
-  line-height: calc(var(--line-text-md) * 0.75);
+  font-size: calc(var(--font-text-md) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-text-md) * var(--ui-scale, 0.75));
 }
 .student-row.selected {
   background: var(--color-primary-soft);
@@ -120,17 +120,17 @@ a {
 .identity > .avatar {
   width: 37.5px;
   height: 37.5px;
-  font-size: calc(var(--font-text-md) * 0.75);
+  font-size: calc(var(--font-text-md) * var(--ui-scale, 0.75));
   font-weight: var(--weight-medium);
 }
 .identity h1 {
-  font-size: calc(var(--font-test-lg) * 0.75);
+  font-size: calc(var(--font-test-lg) * var(--ui-scale, 0.75));
   font-weight: var(--weight-medium);
-  line-height: calc(var(--line-test-lg) * 0.75);
+  line-height: calc(var(--line-test-lg) * var(--ui-scale, 0.75));
 }
 .identity p {
-  font-size: calc(var(--font-caption) * 0.75);
-  line-height: calc(var(--line-caption) * 0.75);
+  font-size: calc(var(--font-caption) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-caption) * var(--ui-scale, 0.75));
   color: var(--muted);
   margin-top: 4px;
 }
@@ -140,9 +140,9 @@ a {
   padding: 22.5px;
 }
 .answer-card h2 {
-  font-size: calc(var(--font-title-sm) * 0.75);
+  font-size: calc(var(--font-title-sm) * var(--ui-scale, 0.75));
   font-weight: var(--weight-semibold);
-  line-height: calc(var(--line-title-sm) * 0.75);
+  line-height: calc(var(--line-title-sm) * var(--ui-scale, 0.75));
   margin-bottom: 11px;
 }
 .question-box,
@@ -157,9 +157,9 @@ a {
   margin-bottom: 15px;
 }
 h3 {
-  font-size: calc(var(--font-test-lg) * 0.75);
+  font-size: calc(var(--font-test-lg) * var(--ui-scale, 0.75));
   font-weight: var(--weight-medium);
-  line-height: calc(var(--line-test-lg) * 0.75);
+  line-height: calc(var(--line-test-lg) * var(--ui-scale, 0.75));
 }
 .question-box h3,
 .response-box h3 {
@@ -167,8 +167,8 @@ h3 {
 }
 .question-box p,
 .response-box p {
-  font-size: calc(var(--font-text-md) * 0.75);
-  line-height: calc(var(--line-text-md) * 0.75);
+  font-size: calc(var(--font-text-md) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-text-md) * var(--ui-scale, 0.75));
 }
 .response-box p + p {
   margin-top: 17px;
@@ -196,8 +196,8 @@ h3 {
   display: flex;
   gap: 4px;
   align-items: center;
-  font-size: calc(var(--font-caption) * 0.75);
-  line-height: calc(var(--line-caption) * 0.75);
+  font-size: calc(var(--font-caption) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-caption) * var(--ui-scale, 0.75));
 }
 .ai-avatar {
   background: var(--primary);
@@ -208,8 +208,8 @@ h3 {
   padding: 7.5px 11px;
   background: var(--color-grey-10);
   border-radius: 7.5px;
-  font-size: calc(var(--font-text-md) * 0.75);
-  line-height: calc(var(--line-text-md) * 0.75);
+  font-size: calc(var(--font-text-md) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-text-md) * var(--ui-scale, 0.75));
 }
 .message-content--markdown {
   max-width: 100%;
@@ -364,8 +364,8 @@ h3 {
 .detail-empty p {
   color: var(--muted);
   margin-top: 11px;
-  font-size: calc(var(--font-text-md) * 0.75);
-  line-height: calc(var(--line-text-md) * 0.75);
+  font-size: calc(var(--font-text-md) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-text-md) * var(--ui-scale, 0.75));
 }
 @media (min-width: 1600px) {
   .workspace {
@@ -708,8 +708,8 @@ h3 {
   min-height: 33px;
   padding: 7px 19px;
   border-radius: 8px;
-  font-size: calc(var(--font-text-md) * 0.75);
-  line-height: calc(var(--line-text-md) * 0.75);
+  font-size: calc(var(--font-text-md) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-text-md) * var(--ui-scale, 0.75));
 }
 .compact-workspace .modal .button,
 .grading-workspace .modal .button {

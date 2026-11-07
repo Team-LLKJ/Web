@@ -1,6 +1,7 @@
 import { EmptyState } from "../ui/EmptyState";
 import type { StudentReview } from "../../data/review";
 import { ContributionChart } from "./ContributionChart";
+import "./grading-extras.css";
 export function ActivityAnalysis({
   review,
   warningsOnly = false,
