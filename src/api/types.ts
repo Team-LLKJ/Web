@@ -141,7 +141,16 @@ export type Lobby = {
 };
 
 export type JoinRequest = { pin: string; nickname: string };
-export type ReconnectRequest = { pin: string };
+export type ReconnectRequest = { evaluationId: string; participantToken: string };
+/** PIN 없이 기존 참가자로 다시 들어온 결과. 대기 중이면 workspace=null, 종료·제출 후엔 readOnly=true. */
+export type Reconnected = {
+  evaluationId: string;
+  participantId: string;
+  nickname: string;
+  lobby: Lobby;
+  readOnly: boolean;
+  workspace: Workspace | null;
+};
 export type Joined = { participantId: string; participantToken: string; lobby: Lobby };
 
 export type ApiAnswer = {
@@ -350,6 +359,54 @@ export type RubricScores = {
   participantId?: string;
   recommendedMaxScore: number | null;
   missingAiCriteria: string[];
+};
+
+/** 기준별 점수 변경 이력 한 줄. level은 0~4, null이면 지운 기록입니다. */
+export type ScoreChange = {
+  id: number;
+  criterionId: number;
+  previousLevel: number | null;
+  level: number | null;
+  aiLevel: number | null;
+  teacherId: string;
+  changedAt: string;
+};
+
+export type ComplianceDecision = "CONFIRMED_OK" | "HOLD" | "CONFIRMED_VIOLATION";
+
+/** 규칙 기반 AI 활용 분석(추가 LLM 호출 없음). 기여도는 문장 유사도 추정이며 실제 저자 기여율이 아닙니다. */
+export type AssessmentAnalysis = {
+  status: string;
+  aiPolicy?: string;
+  aiLevel?: number | null;
+  compliance?: { result: string; reasons: string[] } | null;
+  contribution?: {
+    direct: number;
+    aiReferenced: number;
+    aiUsed: number;
+    basis: string;
+  } | null;
+  usage?: { type: string; label: string; count: number; share: number; level: string }[];
+  indicators?: {
+    indicator: string;
+    value: number | null;
+    level: number | null;
+    reason: string;
+    evidence: { conversationId?: number }[];
+  }[];
+  summary?: string;
+  analyzedAt?: string | null;
+  model?: string;
+  limitations?: string[];
+};
+
+/** 학생이 직접 적는 AI 사용 기록. 제출 전까지 본인이 수정할 수 있습니다. */
+export type AiDisclosure = {
+  tools: string;
+  usedParts: string;
+  reason: string;
+  updatedAt: string | null;
+  editable: boolean;
 };
 
 export type ApiMessage = { message: string };

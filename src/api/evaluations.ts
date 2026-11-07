@@ -14,6 +14,12 @@ import type {
   GradingStudentList,
   RubricAdjustment,
   Joined,
+  AiDisclosure,
+  AssessmentAnalysis,
+  ComplianceDecision,
+  ScoreChange,
+  Reconnected,
+  ReconnectRequest,
   LearningEvent,
   Lobby,
   PageResponse,
@@ -142,6 +148,15 @@ export function joinEvaluation(payload: { pin: string; nickname?: string }) {
   });
 }
 
+// 탭을 닫았다 다시 열었을 때 기존 참가 토큰으로 재접속합니다. 토큰은 URL이 아닌 본문으로만 보냅니다.
+export function reconnectParticipant(evaluationId: string, participantToken: string) {
+  return apiRequest<Reconnected>("/api/participation/reconnect", {
+    method: "POST",
+    body: { evaluationId, participantToken } satisfies ReconnectRequest,
+    auth: false,
+  });
+}
+
 export function getStudentState(evaluationId: string) {
   return apiRequest<Lobby>(
     `/api/evaluations/${idPath(evaluationId)}/state`,
@@ -173,6 +188,14 @@ export function getStudentWorkspace(evaluationId: string) {
 export function getStudentQuestion(evaluationId: string, questionId: string) {
   return apiRequest<QuestionAnswer>(
     `/api/evaluations/${idPath(evaluationId)}/questions/${idPath(questionId)}`,
+    participantRequest(evaluationId),
+  );
+}
+
+/** 문항 하나의 서버 저장본. 저장한 적 없으면 content="" · version=0. */
+export function getStudentAnswer(evaluationId: string, questionId: string) {
+  return apiRequest<ApiAnswer>(
+    `/api/evaluations/${idPath(evaluationId)}/questions/${idPath(questionId)}/answer`,
     participantRequest(evaluationId),
   );
 }
@@ -260,6 +283,46 @@ export function getSubmission(evaluationId: string) {
 }
 
 /** 창 이탈·캡처 단축키 신고. 멱등 키가 없으므로 같은 사건을 자동 재전송하지 마세요. */
+// 학생 본인 리포트. 제출 후 평가에서 나간 뒤에도 기존 참가 토큰으로 받을 수 있습니다(토큰은 헤더로만 보냄).
+const myReportRequest = (participantToken: string) =>
+  ({ auth: false, participant: true, participantToken }) as const;
+
+export function createMyReport(evaluationId: string, participantToken: string) {
+  return apiRequest<{ id: string; version: number; createdAt: string }>(
+    `/api/evaluations/${idPath(evaluationId)}/reports`,
+    { method: "POST", ...myReportRequest(participantToken) },
+  );
+}
+
+export function getMyReportFile(evaluationId: string, participantToken: string, format: "pdf" | "hwp") {
+  return apiRequest<Blob>(
+    `/api/evaluations/${idPath(evaluationId)}/report/${format}?includeConversations=false`,
+    {
+      responseType: "blob",
+      accept: format === "pdf" ? "application/pdf, */*" : "application/x-hwp, */*",
+      ...myReportRequest(participantToken),
+    },
+  );
+}
+
+/** 학생 AI 사용 기록 조회·저장(시작 후 제출 전). tools≤500, usedParts·reason≤4000자. */
+export function getAiDisclosure(evaluationId: string) {
+  return apiRequest<AiDisclosure>(
+    `/api/evaluations/${idPath(evaluationId)}/ai-disclosure`,
+    participantRequest(evaluationId),
+  );
+}
+
+export function saveAiDisclosure(
+  evaluationId: string,
+  body: { tools: string; usedParts: string; reason: string },
+) {
+  return apiRequest<AiDisclosure>(
+    `/api/evaluations/${idPath(evaluationId)}/ai-disclosure`,
+    { method: "PUT", body, ...participantRequest(evaluationId) },
+  );
+}
+
 export function sendClientEvent(
   evaluationId: string,
   payload: ClientEventRequest,
@@ -376,6 +439,47 @@ export function saveRubricScore(
   );
 }
 
+/** 점수 변경 이력. 마지막 id를 다음 afterId로 넘겨 이어서 받습니다. */
+export function getRubricScoreHistory(
+  evaluationId: string,
+  participantId: string,
+  afterId = 0,
+  limit = 100,
+) {
+  const query = new URLSearchParams({ afterId: String(afterId), limit: String(limit) });
+  return apiRequest<ScoreChange[]>(
+    `${rubricScorePath(evaluationId, participantId)}/history?${query}`,
+  );
+}
+
+/** 허용 범위에 대한 교사 판단. 점수에는 영향이 없습니다. note 최대 1000자. */
+export function saveComplianceReview(
+  evaluationId: string,
+  participantId: string,
+  decision: ComplianceDecision,
+  note: string,
+) {
+  return apiRequest<RubricScores>(
+    `/api/teacher/evaluations/${idPath(evaluationId)}/participants/${idPath(participantId)}/compliance-review`,
+    { method: "PUT", body: { decision, note } },
+  );
+}
+
+/** 규칙 기반 AI 활용 분석(기여도 추정·지표·허용 범위 점검). */
+export function getAssessmentAnalysis(evaluationId: string, participantId: string) {
+  return apiRequest<AssessmentAnalysis>(
+    `/api/teacher/evaluations/${idPath(evaluationId)}/participants/${idPath(participantId)}/analysis`,
+  );
+}
+
+/** 제출한 학생 전체의 분석을 다시 예약합니다(비동기, 202). */
+export function rerunAnalysis(evaluationId: string) {
+  return apiRequest<{ evaluationId: string; queued: number; status: string }>(
+    `/api/teacher/evaluations/${idPath(evaluationId)}/analysis/run`,
+    { method: "POST" },
+  );
+}
+
 /** 모든 기준에 교사 값이 있어야 확정됩니다(부족하면 409 GRADING_INCOMPLETE). */
 export function confirmGrade(
   evaluationId: string,
@@ -400,6 +504,14 @@ export function getGradingReportPdf(
   return apiRequest<Blob>(
     `${studentPath(evaluationId, participantId)}/report.pdf?${query}`,
     { responseType: "blob", accept: "application/pdf, */*" },
+  );
+}
+
+/** 제출 리포트 생성(같은 내용이면 같은 버전을 돌려줍니다). HWP는 리포트가 있어야 받을 수 있습니다. */
+export function createGradingReport(evaluationId: string, participantId: string) {
+  return apiRequest<{ id: string; version: number; createdAt: string }>(
+    `${studentPath(evaluationId, participantId)}/reports`,
+    { method: "POST" },
   );
 }
 
@@ -429,28 +541,90 @@ export type ProcessJobStatus = "PENDING" | "RUNNING" | "DONE" | "HOLD" | "NOT_AP
 export type ProcessComplianceDecision = "CONFIRMED_OK" | "HOLD" | "CONFIRMED_VIOLATION";
 export type ProcessNoAiPolicy = "HOLD" | "NOT_APPLICABLE" | "USE_RECORDED_EVIDENCE";
 
+export type ProcessPolicy = {
+  version: number;
+  rubricVersion: string;
+  taskGoal: string;
+  allowedRules: string;
+  noAiPolicy: ProcessNoAiPolicy;
+  questionWeights: { questionId: string; weight: number }[];
+};
+
+/** 결과 한 칸(문항별 4영역 + GLOBAL 투명성). 명세에 모양이 자세히 없어 선택 필드로 받습니다. */
+export type ProcessCell = {
+  questionId: string;
+  criterion: string;
+  level?: number | null;
+  score?: number | null;
+  maxScore?: number | null;
+  status?: string;
+  reason?: string;
+  evidence?: unknown[];
+};
+
+export type ProcessResult = {
+  status: string;
+  compliance?: { status: string; reason: string; evidence?: unknown[]; limitations?: string[] } | null;
+  cells: ProcessCell[];
+  /** 모든 항목이 유효할 때만 숫자. 근거가 부족하면 null(0점 아님). */
+  total: number | null;
+  limitations?: string[];
+};
+
+export type ProcessJob = {
+  id: string;
+  evaluationId: string;
+  participantId: string;
+  version: number;
+  status: ProcessJobStatus;
+  inputHash?: string;
+  rubricVersion: string;
+  model: string | null;
+  createdAt: string;
+  completedAt: string | null;
+  result: ProcessResult | null;
+  errorCode: string | null;
+};
+
+export type ProcessOverride = { questionId: string; criterion: string; level: number; reason: string };
+
+export type ProcessReview = {
+  revision: number;
+  teacherId: string;
+  reviewedAt: string;
+  overrides: ProcessOverride[];
+  complianceDecision: ProcessComplianceDecision;
+  complianceReason: string;
+  result: ProcessResult | null;
+  confirmed: boolean;
+};
+
+export type ProcessRubric = {
+  rubricVersion: string;
+  provisional: boolean;
+  criteria: Record<string, unknown>[];
+  criteriaMarkdown: string;
+};
+
 export const getProcessRubric = (evaluationId: string) =>
-  apiRequest<{
-    rubricVersion: string;
-    provisional: boolean;
-    criteria: unknown[];
-    criteriaMarkdown: string;
-  }>(`${processPath(evaluationId)}/rubric`);
+  apiRequest<ProcessRubric>(`${processPath(evaluationId)}/rubric`);
 
 export const getProcessPolicy = (evaluationId: string) =>
-  apiRequest<Record<string, unknown>>(`${processPath(evaluationId)}/policy`);
+  apiRequest<ProcessPolicy>(`${processPath(evaluationId)}/policy`);
 
-export const saveProcessPolicy = (evaluationId: string, body: Record<string, unknown>) =>
-  apiRequest<Record<string, unknown>>(`${processPath(evaluationId)}/policy`, { method: "PUT", body });
+export const saveProcessPolicy = (
+  evaluationId: string,
+  body: Omit<ProcessPolicy, "version" | "rubricVersion"> & { expectedVersion: number },
+) => apiRequest<ProcessPolicy>(`${processPath(evaluationId)}/policy`, { method: "PUT", body });
 
 export const listProcessRuns = (evaluationId: string, participantId: string) =>
-  apiRequest<Record<string, unknown>[]>(processRunPath(evaluationId, participantId));
+  apiRequest<ProcessJob[]>(processRunPath(evaluationId, participantId));
 
 export const startProcessRun = (evaluationId: string, participantId: string) =>
-  apiRequest<Record<string, unknown>>(processRunPath(evaluationId, participantId), { method: "POST" });
+  apiRequest<ProcessJob>(processRunPath(evaluationId, participantId), { method: "POST" });
 
 export const getProcessRun = (evaluationId: string, participantId: string, jobId: string) =>
-  apiRequest<Record<string, unknown>>(`${processRunPath(evaluationId, participantId)}/${idPath(jobId)}`);
+  apiRequest<ProcessJob>(`${processRunPath(evaluationId, participantId)}/${idPath(jobId)}`);
 
 export const getProcessEvidence = (evaluationId: string, participantId: string, jobId: string) =>
   apiRequest<Record<string, unknown>>(
@@ -458,7 +632,7 @@ export const getProcessEvidence = (evaluationId: string, participantId: string, 
   );
 
 export const getProcessReview = (evaluationId: string, participantId: string, jobId: string) =>
-  apiRequest<Record<string, unknown>>(
+  apiRequest<ProcessReview>(
     `${processRunPath(evaluationId, participantId)}/${idPath(jobId)}/review`,
   );
 
@@ -466,15 +640,20 @@ export const saveProcessReview = (
   evaluationId: string,
   participantId: string,
   jobId: string,
-  body: Record<string, unknown>,
+  body: {
+    expectedRevision: number;
+    overrides: ProcessOverride[];
+    complianceDecision: ProcessComplianceDecision;
+    complianceReason: string;
+  },
 ) =>
-  apiRequest<Record<string, unknown>>(
+  apiRequest<ProcessReview>(
     `${processRunPath(evaluationId, participantId)}/${idPath(jobId)}/review`,
     { method: "PUT", body },
   );
 
 export const getProcessReviewHistory = (evaluationId: string, participantId: string, jobId: string) =>
-  apiRequest<Record<string, unknown>[]>(
+  apiRequest<ProcessReview[]>(
     `${processRunPath(evaluationId, participantId)}/${idPath(jobId)}/review/history`,
   );
 
@@ -484,7 +663,7 @@ export const confirmProcessReview = (
   jobId: string,
   expectedRevision: number,
 ) =>
-  apiRequest<Record<string, unknown>>(
+  apiRequest<ProcessReview>(
     `${processRunPath(evaluationId, participantId)}/${idPath(jobId)}/confirm`,
     { method: "POST", body: { expectedRevision } },
   );

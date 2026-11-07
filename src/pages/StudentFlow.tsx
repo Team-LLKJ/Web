@@ -11,8 +11,10 @@ import { ApiError, apiErrorMessage } from "../api/client";
 import {
   askQuestion,
   confirmSubmission,
+  getAiDisclosure,
   getConversations,
   getStudentLearningEvents,
+  getStudentAnswer,
   getStudentQuestion,
   getStudentState,
   getStudentWorkspace,
@@ -20,7 +22,10 @@ import {
   getSubmissionPreview,
   joinEvaluation,
   leaveEvaluation,
+  reconnectParticipant,
+  saveAiDisclosure,
   saveStudentAnswer,
+  sendClientEvent,
   sendHeartbeat,
   verifyPin,
 } from "../api/evaluations";
@@ -39,6 +44,8 @@ import {
   saveSession,
   clearSession,
   getParticipantToken,
+  getReconnectCredentials,
+  saveReportCredentials,
   saveParticipantCredentials,
   type StudentSession,
 } from "../data/studentSession";
@@ -165,6 +172,9 @@ export function StudentFlow({ route }: { route: string }) {
   const [aiBusy, setAiBusy] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [chatExpanded, setChatExpanded] = useState(false);
+  // 제출 창에서 적는 AI 사용 기록(선택). saved는 서버에 저장된 값과 비교해 바뀐 경우에만 저장하려고 둡니다.
+  const [disclosure, setDisclosure] = useState({ tools: "", usedParts: "", reason: "" });
+  const savedDisclosure = useRef({ tools: "", usedParts: "", reason: "" });
 
   const isSolving = route === "/student/solve";
   const isWaiting = route === "/student/wait";
@@ -174,6 +184,8 @@ export function StudentFlow({ route }: { route: string }) {
   const readOnly = serverReadOnly || timeUp;
   const forceEndRef = useRef<() => Promise<void>>(async () => undefined);
   const endHandled = useRef(false);
+  const questionIdRef = useRef("");
+  const lastEventAt = useRef(0);
 
   function updateSession(next: StudentSession) {
     setSession(next);
@@ -197,6 +209,53 @@ export function StudentFlow({ route }: { route: string }) {
     },
     [navigate],
   );
+
+  // 재접속: 대기·풀이 화면에 들어오면 기존 토큰으로 참가 상태를 다시 살리고,
+  // 참여 화면에서는 탭을 닫기 전 평가가 아직 진행 중이면 PIN 없이 이어서 들어갑니다.
+  const reconnectTried = useRef("");
+  const isJoinPage = !isWaiting && !isSolving && route !== "/student/nickname";
+  useEffect(() => {
+    if (!isWaiting && !isSolving && !isJoinPage) return;
+    const saved = getReconnectCredentials();
+    const evaluationId = isJoinPage ? (saved?.evaluationId ?? "") : session.evaluationId;
+    const token = evaluationId ? getParticipantToken(evaluationId) : null;
+    if (!evaluationId || !token || reconnectTried.current === evaluationId) return;
+    // 참여 화면에서 주소의 PIN으로 다른 평가에 들어오려는 경우엔 이어 들어가지 않습니다.
+    const pinInUrl = new URLSearchParams(location.search).get("pin") ?? "";
+    if (isJoinPage && pinInUrl && session.pin && pinInUrl !== session.pin) return;
+    reconnectTried.current = evaluationId;
+    let active = true;
+    reconnectParticipant(evaluationId, token)
+      .then((result) => {
+        if (!active) return;
+        saveParticipantCredentials(token, result.evaluationId);
+        const current = readSession();
+        updateSession({
+          ...current,
+          evaluationId: result.evaluationId,
+          evaluationTitle: result.lobby.title || current.evaluationTitle,
+          nickname: result.nickname,
+          participantId: result.participantId,
+        });
+        const screen = screenFor(result.lobby);
+        if (screen === "WAITING" && !isWaiting) navigate("/student/wait", { replace: true });
+        else if (screen === "SOLVING" && !isSolving) navigate("/student/solve", { replace: true });
+      })
+      .catch((error) => {
+        if (!active) return;
+        if (isJoinPage) {
+          // 이어 들어갈 수 없는 평가면 남은 재접속 정보만 지우고 PIN 입력을 그대로 보여 줍니다.
+          if (error instanceof ApiError && error.status === 401) clearSession();
+          return;
+        }
+        // 재접속 API가 없는 서버여도 기존 토큰으로 계속 진행합니다.
+        redirectForParticipantAuthError(error);
+      });
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isWaiting, isSolving, isJoinPage, session.evaluationId]);
 
   useEffect(() => {
     if (
@@ -439,12 +498,27 @@ export function StudentFlow({ route }: { route: string }) {
   }, [isSolving, session.evaluationId]);
 
   useEffect(() => {
+    questionIdRef.current = questionId;
+  }, [questionId]);
+
+  useEffect(() => {
     if (!isSolving) return;
-    const showWarning = () => {
+    const report = (type: "WINDOW_LEAVE" | "SHORTCUT_CAPTURE") => {
+      const now = Date.now();
+      if (now - lastEventAt.current < 1500 || !session.evaluationId) return;
+      lastEventAt.current = now;
+      void sendClientEvent(session.evaluationId, {
+        type,
+        occurredAt: new Date(now).toISOString(),
+        questionId: questionIdRef.current || null,
+      }).catch(() => undefined);
+    };
+    const showWarning = (type: "WINDOW_LEAVE" | "SHORTCUT_CAPTURE" = "WINDOW_LEAVE") => {
+      report(type);
       setDialog("warning");
     };
     const detectVisibilityChange = () => {
-      if (document.visibilityState === "hidden") showWarning();
+      if (document.visibilityState === "hidden") showWarning("WINDOW_LEAVE");
     };
     const interceptShortcuts = (event: KeyboardEvent) => {
       const key = event.key.toLowerCase();
@@ -460,18 +534,19 @@ export function StudentFlow({ route }: { route: string }) {
       } else if (screenshotShortcut) {
         event.preventDefault();
         event.stopImmediatePropagation();
-        showWarning();
+        showWarning("SHORTCUT_CAPTURE");
       }
     };
     document.addEventListener("visibilitychange", detectVisibilityChange);
-    window.addEventListener("blur", showWarning);
+    const onBlur = () => showWarning("WINDOW_LEAVE");
+    window.addEventListener("blur", onBlur);
     window.addEventListener("keydown", interceptShortcuts, true);
     return () => {
       document.removeEventListener("visibilitychange", detectVisibilityChange);
-      window.removeEventListener("blur", showWarning);
+      window.removeEventListener("blur", onBlur);
       window.removeEventListener("keydown", interceptShortcuts, true);
     };
-  }, [isSolving]);
+  }, [isSolving, session.evaluationId]);
 
   // Autosave: a few seconds after the last edit, without waiting for focus to leave the editor.
   const saveLatest = useRef<(id: string) => Promise<boolean>>(
@@ -541,17 +616,19 @@ export function StudentFlow({ route }: { route: string }) {
         error.code === "ANSWER_VERSION_CONFLICT"
       ) {
         try {
-          const latest = await getStudentQuestion(session.evaluationId, id);
+          const latest = await getStudentAnswer(session.evaluationId, id).catch(
+            async () => (await getStudentQuestion(session.evaluationId, id)).answer,
+          );
           setVersions((current) => ({
             ...current,
-            [id]: latest.answer.version,
+            [id]: latest.version,
           }));
           setWorkspace((current) =>
             current
               ? {
                   ...current,
                   questions: current.questions.map((row) =>
-                    row.question.id === id ? latest : row,
+                    row.question.id === id ? { ...row, answer: latest } : row,
                   ),
                 }
               : current,
@@ -715,6 +792,13 @@ export function StudentFlow({ route }: { route: string }) {
     }
     try {
       setPreview(await getSubmissionPreview(session.evaluationId));
+      void getAiDisclosure(session.evaluationId)
+        .then((saved) => {
+          const value = { tools: saved.tools ?? "", usedParts: saved.usedParts ?? "", reason: saved.reason ?? "" };
+          savedDisclosure.current = value;
+          setDisclosure(value);
+        })
+        .catch(() => undefined);
       setDialog("submit");
     } catch (error) {
       setDialogError(
@@ -730,6 +814,25 @@ export function StudentFlow({ route }: { route: string }) {
     setSubmitting(true);
     setDialogError("");
     try {
+      const changed = (Object.keys(disclosure) as (keyof typeof disclosure)[]).some(
+        (key) => disclosure[key].trim() !== savedDisclosure.current[key].trim(),
+      );
+      if (changed) {
+        try {
+          await saveAiDisclosure(session.evaluationId, {
+            tools: disclosure.tools.trim(),
+            usedParts: disclosure.usedParts.trim(),
+            reason: disclosure.reason.trim(),
+          });
+        } catch (error) {
+          // 기록 API가 없는 서버면 제출은 그대로 진행합니다.
+          const missing = error instanceof ApiError && (error.status === 404 || error.status === 405);
+          if (!missing) {
+            setDialogError(apiErrorMessage(error, "AI 사용 기록을 저장하지 못했습니다. 다시 시도해주세요."));
+            return;
+          }
+        }
+      }
       await confirmSubmission(session.evaluationId, preview.reviewToken);
       setPreview(null);
       // 제출하면 평가에서 자동으로 나가 처음 화면으로 돌아갑니다.
@@ -738,10 +841,22 @@ export function StudentFlow({ route }: { route: string }) {
       } catch {
         /* 이미 제출됐으므로 나가기 기록 실패는 무시합니다. */
       }
+      // 제출 완료 화면에서 본인 리포트를 받을 수 있게 토큰만 따로 남겨 두고 참가 정보는 지웁니다.
+      const submittedToken = getParticipantToken(session.evaluationId);
+      if (submittedToken)
+        saveReportCredentials({
+          evaluationId: session.evaluationId,
+          participantToken: submittedToken,
+          title: session.evaluationTitle,
+          nickname: session.nickname,
+        });
       clearSession();
       setSession(emptySession);
       setDialog("");
-      navigate("/", { replace: true, state: { notice: "답안을 제출했어요. 수고했어요!" } });
+      navigate(submittedToken ? "/student/done" : "/", {
+        replace: true,
+        state: submittedToken ? undefined : { notice: "답안을 제출했어요. 수고했어요!" },
+      });
     } catch (error) {
       if (error instanceof ApiError && error.code === "REVIEW_CHANGED") {
         try {
@@ -867,6 +982,8 @@ export function StudentFlow({ route }: { route: string }) {
           onClose={closeDialog}
           onLeave={() => void leave()}
           onSubmit={() => void submitFinalAnswer()}
+          disclosure={disclosure}
+          onDisclosure={setDisclosure}
         />
       </main>
     );
@@ -1053,6 +1170,8 @@ export function StudentFlow({ route }: { route: string }) {
         onClose={closeDialog}
         onLeave={() => void leave()}
         onSubmit={() => void submitFinalAnswer()}
+        disclosure={disclosure}
+        onDisclosure={setDisclosure}
       />
       {selectedQuestion && (
         <span className="sr-only" aria-live="polite">
