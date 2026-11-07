@@ -18,6 +18,8 @@ import { TeacherHeader } from "../components/teacher/TeacherHeader";
 import { Toast } from "../components/teacher/Toast";
 import { Button } from "../components/ui/Button";
 import { Modal } from "../components/ui/Modal";
+import { BulkReportDialog } from "../components/grading/BulkReportDialog";
+import { downloadClassReports } from "../lib/classReports";
 import { TextInput } from "../components/ui/TextInput";
 import {
   addSession,
@@ -34,6 +36,7 @@ import { evaluationCriteria } from "../data/landing";
 import { guidelinesToSafeHtml } from "../lib/guidelinesText";
 import "../components/teacher/teacher.css";
 import "../components/teacher/class-card-actions.css";
+import "../components/teacher/more-menu.css";
 import "../components/teacher/folder-detail-text.css";
 import "../components/teacher/folder-share.css";
 import { ShareDialog } from "../components/teacher/ShareDialog";
@@ -58,6 +61,7 @@ export function TeacherFolderDetailPage() {
   const [className, setClassName] = useState("");
   const [renameTarget, setRenameTarget] = useState<FolderSession | null>(null);
   const [removeTarget, setRemoveTarget] = useState<FolderSession | null>(null);
+  const [bulkTarget, setBulkTarget] = useState<FolderSession | null>(null);
   const [error, setError] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [filter, setFilter] = useState<"ALL" | SessionState>("ALL");
@@ -431,6 +435,7 @@ export function TeacherFolderDetailPage() {
                   setRenameTarget(session);
                 }}
                 onRemove={() => setRemoveTarget(session)}
+                onSaveAll={() => setBulkTarget(session)}
                 onOpen={() =>
                   navigate(
                     session.state === "ENDED"
@@ -445,6 +450,15 @@ export function TeacherFolderDetailPage() {
         </ClassEvaluationSection>
       </div>
 
+      {bulkTarget && (
+        <BulkReportDialog
+          title={`${bulkTarget.className} 전체 보고서 저장`}
+          submitted={bulkTarget.submitted}
+          hwp
+          onSaveAll={(format, onProgress) => downloadClassReports(bulkTarget.id, format, onProgress)}
+          onClose={() => setBulkTarget(null)}
+        />
+      )}
       {adding && (
         <Modal title="반 추가" onClose={() => setAdding(false)}>
           <form className="folder-create-form" onSubmit={submitClass}>

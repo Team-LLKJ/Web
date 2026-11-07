@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import type { FolderSession, SessionState } from "../../lib/evaluationFolders";
 import { Skeleton } from "../ui/Skeleton";
 import { AddClassCard } from "./AddClassCard";
-import { EditIcon, TrashIcon } from "./folderIcons";
+import { MoreMenu } from "./MoreMenu";
 import "./class-evaluation-loading.css";
 
 type Filter = "ALL" | SessionState;
@@ -21,6 +21,8 @@ const states = {
   },
   ENDED: { label: "종료", color: "ended", action: "채점 결과 보기" },
 };
+// 시작 전이지만 대기실을 열어 PIN이 있는 반.
+const lobbyState = { label: "대기 중", color: "waiting", action: "대기실로 가기" };
 
 export function ClassEvaluationSection({
   sessions = [],
@@ -54,13 +56,15 @@ export function ClassEvaluationSection({
             disabled={loading}
             onClick={() => onFilter?.(value)}
           >
-            {label}{" "}
-            {loading ? (
-              <Skeleton className="class-evaluation-count" />
-            ) : value === "ALL" ? (
-              sessions.length
-            ) : (
-              sessions.filter((session) => session.state === value).length
+            {label}
+            {/* 불러오는 동안에는 태그 이름만 보여 주고, 다 불러오면 개수를 붙입니다. */}
+            {!loading && (
+              <>
+                {" "}
+                {value === "ALL"
+                  ? sessions.length
+                  : sessions.filter((session) => session.state === value).length}
+              </>
             )}
           </button>
         ))}
@@ -76,16 +80,19 @@ type CardProps =
       onRename: () => void;
       onRemove: () => void;
       onOpen: () => void;
+      onSaveAll: () => void;
     }
-  | { session?: undefined; onRename?: never; onRemove?: never; onOpen?: never };
+  | { session?: undefined; onRename?: never; onRemove?: never; onOpen?: never; onSaveAll?: never };
 
 export function ClassEvaluationCard({
   session,
   onRename,
   onRemove,
   onOpen,
+  onSaveAll,
 }: CardProps) {
-  const state = session ? states[session.state] : null;
+  const lobbyOpen = Boolean(session?.lobbyOpen);
+  const state = session ? (lobbyOpen ? lobbyState : states[session.state]) : null;
   const loading = !session;
   return (
     <article
@@ -103,26 +110,24 @@ export function ClassEvaluationCard({
           )}
         </span>
         <span className="evaluation-card-actions">
-          <button
-            type="button"
-            aria-label={session ? `${session.className} 이름 수정` : undefined}
-            title="수정"
+          <MoreMenu
+            label={session ? `${session.className} 더보기` : "더보기"}
             disabled={loading}
-            onClick={onRename}
-          >
-            <EditIcon />
-          </button>
-          {session?.state !== "IN_PROGRESS" && (
-            <button
-              type="button"
-              aria-label={session ? `${session.className} 삭제` : undefined}
-              title="삭제"
-              disabled={loading}
-              onClick={onRemove}
-            >
-              <TrashIcon />
-            </button>
-          )}
+            items={[
+              { label: "수정하기", onClick: () => onRename?.() },
+              {
+                label: "반 전체 저장",
+                onClick: () => onSaveAll?.(),
+                hidden: session?.state !== "ENDED",
+              },
+              {
+                label: "삭제하기",
+                onClick: () => onRemove?.(),
+                danger: true,
+                hidden: session?.state === "IN_PROGRESS",
+              },
+            ]}
+          />
         </span>
       </div>
       <h2 title={session?.className}>
@@ -137,7 +142,7 @@ export function ClassEvaluationCard({
           <dt>평가 인원</dt>
           <dd>
             {session ? (
-              session.state === "READY" ? (
+              session.state === "READY" && !lobbyOpen ? (
                 "-"
               ) : (
                 `${session.participants}명`
@@ -162,18 +167,13 @@ export function ClassEvaluationCard({
           </dd>
         </div>
       </dl>
-      <button
-        type="button"
-        className="evaluation-card-cta"
-        disabled={loading}
-        onClick={onOpen}
-      >
-        {state ? (
-          state.action
-        ) : (
-          <Skeleton style={{ width: "8em", height: "1lh" }} />
-        )}
-      </button>
+      {state ? (
+        <button type="button" className="evaluation-card-cta" onClick={onOpen}>
+          {state.action}
+        </button>
+      ) : (
+        <Skeleton className="evaluation-card-cta-skeleton" />
+      )}
     </article>
   );
 }
