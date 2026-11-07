@@ -40,6 +40,8 @@ type RequestOptions = Omit<RequestInit, "body"> & {
   retryOnUnauthorized?: boolean;
   participant?: boolean;
   participantEvaluationId?: string;
+  /** 저장소 대신 이 토큰을 씁니다(제출 후 리포트처럼 참가 정보를 지운 뒤 요청할 때). */
+  participantToken?: string;
 };
 
 function storageGet(storage: Storage, key: string) {
@@ -176,9 +178,8 @@ async function send(
   if (options.auth !== false && token)
     headers.set("Authorization", `Bearer ${token}`);
   if (options.participant) {
-    const participantToken = getParticipantToken(
-      options.participantEvaluationId,
-    );
+    const participantToken =
+      options.participantToken ?? getParticipantToken(options.participantEvaluationId);
     if (participantToken) headers.set("X-Participant-Token", participantToken);
   }
 
@@ -213,6 +214,7 @@ export async function apiRequest<T>(
 ): Promise<T> {
   if (
     options.participant &&
+    !options.participantToken &&
     !getParticipantToken(options.participantEvaluationId)
   ) {
     throw new ApiError(

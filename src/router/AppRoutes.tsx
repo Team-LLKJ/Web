@@ -13,6 +13,7 @@ import { PasswordResetPage } from "../pages/PasswordResetPage";
 import { StudentFlow } from "../pages/StudentFlow";
 import { ViewIndex } from "../pages/ViewIndex";
 import { NotFoundPage } from "../pages/NotFoundPage";
+import { StudentDonePage } from "../pages/StudentDonePage";
 import {
   NotificationsPage,
   PrivacyPage,
@@ -41,6 +42,7 @@ export function AppRoutes() {
       />
       <Route path={paths.wait} element={<StudentFlow route={paths.wait} />} />
       <Route path={paths.solve} element={<StudentFlow route={paths.solve} />} />
+      <Route path={paths.done} element={<StudentDonePage />} />
       <Route
         path="/teacher"
         element={<Navigate to={paths.evaluations} replace />}
