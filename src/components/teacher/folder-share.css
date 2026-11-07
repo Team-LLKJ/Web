@@ -120,10 +120,7 @@
 }
 
 /* ───── 공유 모달(구글 드라이브 공유 창 느낌) ───── */
-.modal.share-modal {
-  width: min(560px, calc(100vw - 40px));
-  max-width: calc(100vw - 40px);
-}
+/* 크기는 다른 모달과 같은 기본(Medium 400px)을 씁니다. */
 .share-body {
   display: flex;
   flex-direction: column;

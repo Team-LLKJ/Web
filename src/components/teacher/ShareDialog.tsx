@@ -99,7 +99,6 @@ export function ShareDialog({
   return (
     <Modal
       title={`"${folder.title}" 공유`}
-      size="large"
       className="share-modal"
       onClose={onClose}
       actions={
