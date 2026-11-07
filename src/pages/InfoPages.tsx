@@ -25,11 +25,14 @@ import { toNotificationRow } from "../components/ui/headerSettings";
 import { AccountSettings } from "../components/info/AccountSettings";
 import { ConsentHistory, DeleteAccount, EmailChangeRow } from "../components/info/AccountExtras";
 import { useNotifications } from "../hooks/useNotifications";
+import { Toast } from "../components/teacher/Toast";
 import { useUserSettings } from "../hooks/useUserSettings";
 import "../components/info/account-settings.css";
 import { paths } from "../router/paths";
 import "../components/landing/landing.css";
 import "../components/info/info.css";
+import "../components/teacher/folder-share.css";
+import "../components/info/notification-delete.css";
 
 function InfoLayout({
   title,
@@ -333,8 +336,33 @@ export function NotificationsPage() {
   const [filter, setFilter] = useState<"all" | "unread">("all");
   const { user } = useAuth();
   const enabled = user?.role === "TEACHER";
-  const { items, unread, loading, error, markRead, markAllRead } =
+  const { items, unread, loading, error, markRead, markAllRead, remove, removeAll } =
     useNotifications(enabled);
+  const [clearOpen, setClearOpen] = useState(false);
+  const [clearing, setClearing] = useState(false);
+  const [notice, setNotice] = useState("");
+
+  async function removeOne(id: string) {
+    if (params.get("id") === id) setParams({});
+    try {
+      await remove(Number(id));
+    } catch (caught) {
+      setNotice(apiErrorMessage(caught, "알림을 삭제하지 못했습니다."));
+    }
+  }
+
+  async function clearAll() {
+    setClearing(true);
+    try {
+      await removeAll();
+      setParams({});
+      setClearOpen(false);
+    } catch (caught) {
+      setNotice(apiErrorMessage(caught, "알림을 삭제하지 못했습니다."));
+    } finally {
+      setClearing(false);
+    }
+  }
   const rows = items.map(toNotificationRow);
   const unreadCount = enabled ? unread : 0;
   const isRead = (id: string) =>
@@ -377,14 +405,33 @@ export function NotificationsPage() {
           ]}
           onChange={setFilter}
         />
-        <button
-          type="button"
-          className="notifications-read-all"
-          disabled={unreadCount === 0}
-          onClick={() => void markAllRead()}
-        >
-          모두 읽음
-        </button>
+        <div className="notifications-actions">
+          <button
+            type="button"
+            className="folder-action"
+            disabled={unreadCount === 0}
+            onClick={() => void markAllRead()}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="m5 12.5 4.5 4.5L19 7.5" />
+            </svg>
+            모두 읽음
+          </button>
+          <button
+            type="button"
+            className="folder-action folder-action--danger"
+            disabled={!enabled || rows.length === 0}
+            onClick={() => setClearOpen(true)}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M4 7h16" />
+              <path d="M10 11v6M14 11v6" />
+              <path d="M6 7l1 13h10l1-13" />
+              <path d="M9 7V4h6v3" />
+            </svg>
+            전체 삭제
+          </button>
+        </div>
       </div>
       <section className="notifications-card" aria-label="알림 목록">
         {!enabled ? (
@@ -438,7 +485,8 @@ export function NotificationsPage() {
                       className="notification-detail"
                     >
                       <p>{item.detail}</p>
-                      {item.action && (
+                      <div className="notification-detail-footer">
+                      {item.action ? (
                         <Link
                           className="notification-detail-action"
                           to={item.action.to}
@@ -453,7 +501,17 @@ export function NotificationsPage() {
                             <path d="m9 6 6 6-6 6" />
                           </svg>
                         </Link>
+                      ) : (
+                        <span />
                       )}
+                        <button
+                          type="button"
+                          className="notification-delete"
+                          onClick={() => void removeOne(item.id)}
+                        >
+                          삭제
+                        </button>
+                      </div>
                     </div>
                   )}
                 </li>
@@ -462,6 +520,25 @@ export function NotificationsPage() {
           </ul>
         )}
       </section>
+      <Toast message={notice} onClose={() => setNotice("")} />
+      {clearOpen && (
+        <Modal
+          title="알림을 모두 삭제할까요?"
+          onClose={() => setClearOpen(false)}
+          actions={
+            <>
+              <Button variant="white-danger" loading={clearing} onClick={() => void clearAll()}>
+                삭제
+              </Button>
+              <Button variant="secondary" onClick={() => setClearOpen(false)}>
+                취소
+              </Button>
+            </>
+          }
+        >
+          <p>읽은 알림까지 모두 지워지고, 지운 알림은 되돌릴 수 없어요.</p>
+        </Modal>
+      )}
     </InfoLayout>
   );
 }

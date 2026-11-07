@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  deleteAllNotifications,
+  deleteNotification,
   getNotifications,
   markAllNotificationsRead,
   markNotificationRead,
@@ -118,5 +120,25 @@ export function useNotifications(enabled: boolean, onNewUnread?: () => void) {
     }
   }, [reload]);
 
-  return { items, unread, loading, error, reload, markRead, markAllRead };
+  /** 알림 하나 삭제. 실패하면 목록을 다시 받아 오고 오류를 다시 던집니다. */
+  const remove = useCallback(async (id: number) => {
+    setItems((current) => current.filter((item) => item.id !== id));
+    try {
+      const result = await deleteNotification(id);
+      setUnread(result.unreadCount);
+      previousUnread.current = result.unreadCount;
+    } catch (caught) {
+      void reload();
+      throw caught;
+    }
+  }, [reload]);
+
+  const removeAll = useCallback(async () => {
+    const result = await deleteAllNotifications();
+    setItems([]);
+    setUnread(result.unreadCount);
+    previousUnread.current = result.unreadCount;
+  }, []);
+
+  return { items, unread, loading, error, reload, markRead, markAllRead, remove, removeAll };
 }

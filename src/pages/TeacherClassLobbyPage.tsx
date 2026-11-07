@@ -3,7 +3,7 @@ import { Skeleton } from "../components/ui/Skeleton";
 import { useEffect, useState, type FormEvent } from "react";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { apiErrorMessage } from "../api/client";
+import { ApiError, apiErrorMessage } from "../api/client";
 import { getEvaluationQr, getParticipants } from "../api/evaluations";
 import type { Participant } from "../api/types";
 import { TeacherHeader } from "../components/teacher/TeacherHeader";
@@ -15,11 +15,13 @@ import {
   endSession,
   getCachedFolder,
   getFolder,
+  openSessionLobby,
   startSession,
   type EvaluationFolder,
   type FolderSession,
 } from "../lib/evaluationFolders";
 import { ParticipantAvatar } from "./TeacherEvaluationPage";
+import { ProcessPolicyDialog } from "../components/teacher/ProcessPolicyDialog";
 import "../components/teacher/teacher.css";
 import "../components/teacher/class-card-actions.css";
 
@@ -66,8 +68,11 @@ export function TeacherClassLobbyPage() {
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const running = session?.state === "IN_PROGRESS";
-  // PIN과 QR은 반을 시작할 때 발급되므로, 시작된 반에서만 학생이 들어올 수 있습니다.
-  const live = running;
+  // 대기실을 열면(시작 전인데 PIN이 있음) 학생이 미리 들어와 기다릴 수 있습니다.
+  const lobbyOpen = Boolean(session?.lobbyOpen);
+  const live = running || lobbyOpen;
+  const [opening, setOpening] = useState(false);
+  const [policyOpen, setPolicyOpen] = useState(false);
   const peopleLoading = live && !peopleSnapshot;
   const qrLoading = live && qrResult?.sessionId !== sessionId;
 
@@ -194,13 +199,45 @@ export function TeacherClassLobbyPage() {
     }
     setBusy(true);
     try {
-      const next = await startSession(folder!.id, session!.id, total);
+      let next;
+      try {
+        next = await startSession(folder!.id, session!.id, total);
+      } catch (caught) {
+        // 대기실을 먼저 열어야 하는 서버면 대기실을 열고 바로 시작합니다.
+        if (!(caught instanceof ApiError && caught.code === "CLASS_LOBBY_REQUIRED")) throw caught;
+        await openSessionLobby(folder!.id, session!.id);
+        next = await startSession(folder!.id, session!.id, total);
+      }
       setSession(next);
       setStarting(false);
     } catch (caught) {
       setError(apiErrorMessage(caught, "평가를 시작하지 못했습니다."));
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function openLobby() {
+    setOpening(true);
+    try {
+      const next = await openSessionLobby(folder!.id, session!.id);
+      setSession(next);
+    } catch (caught) {
+      // 대기실 API가 아직 없는 서버면 예전처럼 바로 시작 창을 엽니다.
+      const missing =
+        caught instanceof ApiError &&
+        (caught.status === 405 ||
+          (caught.status === 404 &&
+            caught.code !== "ASSESSMENT_NOT_FOUND" &&
+            caught.code !== "CLASS_NOT_FOUND"));
+      if (missing) {
+        setError("");
+        setStarting(true);
+      } else {
+        setNotice(apiErrorMessage(caught, "대기실을 열지 못했습니다."));
+      }
+    } finally {
+      setOpening(false);
     }
   }
 
@@ -245,7 +282,11 @@ export function TeacherClassLobbyPage() {
           >
             채점 결과 보기
           </Button>
-        ) : (
+        ) : lobbyOpen ? (
+          <>
+          <Button variant="secondary" onClick={() => setPolicyOpen(true)}>
+            과정 평가 설정
+          </Button>
           <Button
             onClick={() => {
               setError("");
@@ -254,6 +295,16 @@ export function TeacherClassLobbyPage() {
           >
             평가 시작하기
           </Button>
+          </>
+        ) : (
+          <>
+          <Button variant="secondary" onClick={() => setPolicyOpen(true)}>
+            과정 평가 설정
+          </Button>
+          <Button loading={opening} onClick={() => void openLobby()}>
+            대기실 열기
+          </Button>
+          </>
         )}
       </TeacherHeader>
       <div className="teacher-page-content">
@@ -291,7 +342,7 @@ export function TeacherClassLobbyPage() {
                   <p className="teacher-join-hint">
                     {running
                       ? "QR코드를 스캔하거나 PIN을 입력해 참여하세요"
-                      : ""}
+                      : "QR코드를 스캔하거나 PIN을 입력해 들어와 기다려주세요"}
                   </p>
                 </div>
                 <div className="teacher-join-qr">
@@ -319,7 +370,7 @@ export function TeacherClassLobbyPage() {
                 <p className="teacher-join-hint">
                   {ended
                     ? "종료된 평가입니다."
-                    : "평가를 시작하면 PIN과 QR 코드가 만들어져요. 시작한 뒤에도 학생이 들어올 수 있어요."}
+                    : "대기실을 열면 PIN과 QR 코드가 만들어져요. 학생이 모두 들어오면 평가를 시작하세요."}
                 </p>
               </div>
             )}
@@ -361,13 +412,19 @@ export function TeacherClassLobbyPage() {
                 description={
                   live
                     ? "학생이 PIN이나 QR로 들어오면 여기에 보여요."
-                    : "평가를 시작하면 들어온 학생이 여기에 보여요."
+                    : "대기실을 열면 들어온 학생이 여기에 보여요."
                 }
               />
             )}
           </section>
         </div>
       </div>
+      {policyOpen && (
+        <ProcessPolicyDialog
+          evaluationId={session.id}
+          onClose={() => setPolicyOpen(false)}
+        />
+      )}
       {qrOpen && qrUrl && (
         <Modal
           title="참여 QR 코드"
@@ -389,8 +446,9 @@ export function TeacherClassLobbyPage() {
         >
           <form className="folder-create-form" onSubmit={start}>
             <p className="folder-start-desc">
-              풀이 시간을 정해주세요. 시작하면 PIN과 QR 코드가 만들어지고,
-              학생은 시작한 뒤에도 들어올 수 있어요.
+              {lobbyOpen
+                ? "풀이 시간을 정해주세요. 시작하면 대기실에 있는 학생들의 타이머가 함께 시작되고, 시작한 뒤에도 학생이 들어올 수 있어요."
+                : "풀이 시간을 정해주세요. 시작하면 PIN과 QR 코드가 만들어지고, 학생은 시작한 뒤에도 들어올 수 있어요."}
             </p>
             <fieldset className="teacher-expiry-field">
               <legend>풀이 시간</legend>

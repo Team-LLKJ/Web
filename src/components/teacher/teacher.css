@@ -2726,3 +2726,14 @@
 :root .teacher-rich-editor > .answer-document-viewport:first-child {
   border-radius: 0 0 11px 11px;
 }
+
+/* 단계 번호 원과 제목 글자를 세로 가운데로 맞춥니다. */
+:root h2:has(> .teacher-section-num) {
+  display: flex;
+  align-items: center;
+}
+:root .teacher-section-num {
+  flex: none;
+  line-height: 1;
+  vertical-align: middle;
+}

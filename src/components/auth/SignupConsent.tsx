@@ -85,7 +85,6 @@ export function SignupConsent({
       {viewing?.doc && (
         <Modal
           title={viewing.doc.title}
-          size="large"
           className="legal-modal"
           onClose={() => setViewing(null)}
           actions={

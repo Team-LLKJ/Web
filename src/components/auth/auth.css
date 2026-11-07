@@ -583,8 +583,6 @@
 
 /* 약관 전문 보기 팝업 */
 .modal.legal-modal {
-  width: min(560px, calc(100vw - 32px));
-  max-width: calc(100vw - 32px);
   max-height: min(720px, calc(100dvh - 48px));
   display: flex;
   flex-direction: column;

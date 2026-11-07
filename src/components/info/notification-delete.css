@@ -1,0 +1,44 @@
+/* 알림 삭제: 툴바의 전체 삭제 버튼과 펼친 알림 안의 삭제 버튼 */
+/* 툴바 오른쪽 버튼: 수행평가 화면의 공유·수정·삭제(.folder-action)와 같은 모양을 씁니다. */
+.notifications-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 8px;
+}
+.notifications-actions .folder-action:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+.notifications-actions .folder-action:disabled:hover {
+  border-color: #e3e3e8;
+  background: var(--color-white);
+  color: var(--color-grey-70);
+}
+.notifications-actions .folder-action:disabled:hover svg {
+  color: var(--color-grey-50);
+}
+.notifications-actions .folder-action--danger:disabled:hover,
+.notifications-actions .folder-action--danger:disabled:hover svg {
+  color: var(--color-danger);
+}
+.notification-detail-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+}
+:root .notification-detail-footer .notification-detail-action {
+  margin-top: 0;
+}
+.notification-delete {
+  padding: 4px 8px;
+  border-radius: 6px;
+  color: var(--color-grey-50);
+  font-size: var(--font-caption);
+  font-weight: var(--weight-semibold);
+}
+.notification-delete:hover {
+  background: var(--color-white);
+  color: var(--color-danger);
+}

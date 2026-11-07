@@ -12,6 +12,7 @@ export const paths = {
   nickname: "/student/nickname",
   wait: "/student/wait",
   solve: "/student/solve",
+  done: "/student/done",
   grading: "/teacher/grading",
   folders: "/teacher/folders",
   folderCreate: "/teacher/folders/new",
