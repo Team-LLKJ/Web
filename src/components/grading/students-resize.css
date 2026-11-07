@@ -1,0 +1,85 @@
+/* 채점 화면 왼쪽 학생 목록 너비: 경계를 끌어 조절 */
+:root .grading-workspace .teacher-workspace {
+  grid-template-columns: var(--students-width, 280px) minmax(0, 1fr);
+}
+:root .grading-workspace .teacher-workspace > .students {
+  position: relative;
+  min-width: 0;
+}
+:root .grading-workspace .students .student-row {
+  width: 100%;
+  box-sizing: border-box;
+}
+.students-resize-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: -3px;
+  width: 7px;
+  z-index: 3;
+  cursor: col-resize;
+  touch-action: none;
+}
+.students-resize-handle:focus-visible {
+  outline: 1px solid var(--color-primary);
+  outline-offset: -4px;
+}
+:root .grading-workspace .students .counts span {
+  white-space: nowrap;
+}
+
+/* 학생 목록 접기 */
+:root .grading-workspace .students.collapsed {
+  padding: 0;
+  border-right: 0;
+}
+:root .grading-workspace .students.collapsed > :not(.students-toggle) {
+  display: none;
+}
+.students-toggle {
+  position: absolute;
+  top: 50%;
+  right: -21px;
+  transform: translateY(-50%);
+  z-index: 4;
+  width: 21px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid #c6c6c6;
+  border-left: 1px solid #c6c6c6;
+  border-radius: 0 10.5px 10.5px 0;
+  background: #f4f4f4;
+  color: #636366;
+  cursor: pointer;
+  transition:
+    background-color 150ms,
+    color 150ms;
+}
+.students-toggle:hover {
+  color: #363639;
+}
+.students-toggle:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* 루브릭 화면과 같은 접힘·크기 조절 동작 */
+:root .grading-workspace .teacher-workspace {
+  transition: grid-template-columns 260ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+:root .grading-workspace .teacher-workspace.is-resizing {
+  transition: none;
+  cursor: col-resize;
+  user-select: none;
+}
+.teacher-workspace.is-resizing textarea,
+.teacher-workspace.is-resizing input {
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root .grading-workspace .teacher-workspace {
+    transition: none;
+  }
+}
