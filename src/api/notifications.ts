@@ -54,6 +54,17 @@ export const markAllNotificationsRead = () =>
     method: "POST",
   });
 
+// 알림 삭제. 응답의 unreadCount로 안 읽은 개수를 바로 맞춥니다.
+export const deleteNotification = (id: number) =>
+  apiRequest<{ deleted: number; unreadCount: number }>(`/api/notifications/${id}`, {
+    method: "DELETE",
+  });
+
+export const deleteAllNotifications = () =>
+  apiRequest<{ deleted: number; unreadCount: number }>("/api/notifications", {
+    method: "DELETE",
+  });
+
 export const getUserSettings = () => apiRequest<UserSettings>("/api/users/me/settings");
 
 export const saveUserSettings = (settings: { notify?: boolean; sound?: boolean }) =>
