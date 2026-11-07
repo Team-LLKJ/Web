@@ -3,6 +3,7 @@ import { ApiError, apiErrorMessage } from "../../api/client";
 import { checkUsernameAvailable, confirmEmailVerification, sendEmailVerification } from "../../api/auth";
 import type { LoginRequest, TeacherSignup } from "../../api/types";
 import { Button } from "../ui/Button";
+import { PasswordResetRequest } from "./PasswordResetRequest";
 import { checkNewPassword, checkPasswordFormat } from "../../lib/passwordRules";
 import { TextInput } from "../ui/TextInput";
 import "./auth-email.css";
@@ -333,6 +334,7 @@ export function AuthForm({ mode, onSubmit }: Props) {
             )}
           />
         </div>
+        {isLogin && <PasswordResetRequest />}
         </>)}
         {signupStep === 1 && (
           <>
