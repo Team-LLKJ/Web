@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { EmptyState } from "../ui/EmptyState";
+import { AutoGrowTextarea } from "./AutoGrowTextarea";
 import type { StudentReview } from "../../data/review";
 import { Button } from "../ui/Button";
 import "./rubric-ai.css";
@@ -8,15 +10,21 @@ export function RubricAssessment({
   onScore,
   onLevel,
   onConfirm,
+  onFeedback,
   onAnalysis,
 }: {
   review: StudentReview;
   onScore: (id: string, score: number) => void;
   /** 있으면 서버의 기준별 점수(AI 추천 + 교사 점수)로 채점합니다. */
   onLevel?: (criterionId: number, level: number | null) => void;
-  onConfirm?: () => void;
+  onConfirm?: () => Promise<number[]> | void;
+  onFeedback?: (criterionId: number, feedback: string) => void;
   onAnalysis: () => void;
 }) {
+  // 확정을 눌렀을 때 AI도 채점하지 못한 기준만 표시합니다.
+  const [missing, setMissing] = useState<number[]>([]);
+  // 근거 입력 중인 글(저장 전). 칸에서 벗어날 때 서버에 저장합니다.
+  const [drafts, setDrafts] = useState<Record<number, string>>({});
   const rubric = review.rubric;
   if (rubric && onLevel) {
     const confirmed = rubric.status === "CONFIRMED";
@@ -46,7 +54,9 @@ export function RubricAssessment({
                         <img src="/review-assets/rubric-divider.svg" alt="" />
                       </div>
                     )}
-                    <fieldset className="criterion">
+                    <fieldset
+                      className={`criterion${!item.teacher && !item.ai && missing.includes(item.criterionId) ? " criterion--missing" : ""}`}
+                    >
                       <legend>
                         {item.name} (
                         {item.teacher ? fmt(item.teacher.score) : "미채점"}/{fmt(item.maxScore)}점)
@@ -65,14 +75,28 @@ export function RubricAssessment({
                           </button>
                         ))}
                       </div>
-                      {item.ai ? (
-                        <p className="rubric-ai-note">
-                          <strong>AI 추천 {levels[item.ai.level]}</strong> · {item.ai.reason}
-                        </p>
-                      ) : (
+                      {!item.ai && (
                         <p className="rubric-ai-note is-empty">
                           AI가 추천할 근거가 부족해 직접 채점해주세요.
                         </p>
+                      )}
+                      {onFeedback && item.teacher && (!item.ai || item.teacher.level !== item.ai.level) && (
+                        <AutoGrowTextarea
+                          className="rubric-reason"
+                          maxLength={1000}
+                          aria-label={`${item.name} 채점 근거`}
+                          placeholder={item.ai ? "AI 추천과 다르게 채점한 근거를 적어주세요" : "이 기준을 채점한 근거를 적어주세요"}
+                          value={drafts[item.criterionId] ?? item.teacher.feedback ?? ""}
+                          onChange={(event) =>
+                            setDrafts((current) => ({ ...current, [item.criterionId]: event.target.value }))
+                          }
+                          onBlur={() => {
+                            const text = drafts[item.criterionId];
+                            if (text !== undefined && text !== (item.teacher?.feedback ?? "")) {
+                              onFeedback(item.criterionId, text.trim());
+                            }
+                          }}
+                        />
                       )}
                     </fieldset>
                   </div>
@@ -101,7 +125,11 @@ export function RubricAssessment({
           </div>
           <div className="rubric-actions">
             {onConfirm && (
-              <Button size="small" onClick={onConfirm} disabled={!rubric.criteria.length}>
+              <Button
+                size="small"
+                onClick={() => void Promise.resolve(onConfirm()).then((ids) => setMissing(ids ?? []))}
+                disabled={!rubric.criteria.length}
+              >
                 {confirmed ? "수정 후 다시 확정" : "채점 확정"}
               </Button>
             )}

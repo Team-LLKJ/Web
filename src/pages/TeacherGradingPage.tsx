@@ -2,7 +2,7 @@ import { PageLoading } from "../components/ui/PageLoading";
 import { StudentWorkspace } from "../components/student/StudentWorkspace";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { apiErrorMessage } from "../api/client";
 import "../App.css";
 import "../components/ui/ui.css";
@@ -19,6 +19,7 @@ import { Button } from "../components/ui/Button";
 import { Modal } from "../components/ui/Modal";
 import { Header } from "../components/grading/Header";
 import { StudentSidebar } from "../components/grading/StudentSidebar";
+import { readStudentsWidth } from "../components/grading/sidebarWidth";
 import { SubmissionPanel } from "../components/grading/SubmissionPanel";
 import { ReviewPanel } from "../components/grading/ReviewPanel";
 import { PrintReport } from "../components/grading/PrintReport";
@@ -35,6 +36,7 @@ function TeacherGradingPage() {
   const live = useGradingData(evaluationId);
   const isLive = Boolean(evaluationId);
   const [query, setQuery] = useState("");
+  const [studentsWidth, setStudentsWidth] = useState(readStudentsWidth);
   const [selected, setSelected] = useState(0);
   const [mockQuestion, setMockQuestion] = useState(mockQuestions[0]?.id ?? 0);
   const [liveQuestion, setLiveQuestion] = useState(1);
@@ -137,22 +139,20 @@ function TeacherGradingPage() {
       {notice ? (
         <Toast message={notice.message} tone={notice.tone} onClose={() => setNotice(null)} />
       ) : null}
-      {!notice && isLive && live.events[0] && (
+      {!notice && isLive && live.error && (
+        <Toast message={live.error} onClose={live.clearError} />
+      )}
+      {!notice && isLive && !live.error && live.events[0] && (
         <Toast
           message={live.events[0].message}
           tone={live.events[0].tone}
           onClose={() => live.dismissEvent(live.events[0].key)}
         />
       )}
-      {isLive && live.error && (
-        <p className="grading-error" role="alert">
-          {live.error}
-          <button type="button" onClick={live.clearError}>
-            닫기
-          </button>
-        </p>
-      )}
-      <div className="workspace teacher-workspace">
+      <div
+        className="workspace teacher-workspace"
+        style={{ "--students-width": `${studentsWidth}px` } as CSSProperties}
+      >
         {showLoading ? (
           <StudentSidebarSkeleton />
         ) : (
@@ -161,6 +161,8 @@ function TeacherGradingPage() {
             student={current}
             query={query}
             onQuery={setQuery}
+            width={studentsWidth}
+            onWidth={setStudentsWidth}
             onSelect={(index) => {
               if (isLive) {
                 live.select(students[index].id);
@@ -187,8 +189,9 @@ function TeacherGradingPage() {
                 answers={current.answers}
                 question={question}
                 onQuestion={setQuestion}
-                onSavePdf={isLive ? () => void live.downloadReport("pdf") : undefined}
-                onSaveHwp={isLive ? () => void live.downloadReport("hwp") : undefined}
+                onSaveReport={isLive ? (format) => live.downloadReport(format) : undefined}
+                onPreviewReport={isLive ? live.previewReport : undefined}
+                report={<PrintReport student={current} questions={questions} review={review} />}
               />
             )
           }
@@ -203,7 +206,8 @@ function TeacherGradingPage() {
                 review={review}
                 onScore={onScore}
                 onLevel={isLive ? (id, level) => void live.setLevel(id, level) : undefined}
-                onConfirm={isLive ? () => void live.confirmGrading() : undefined}
+                onFeedback={isLive ? (id, text) => void live.setFeedback(id, text) : undefined}
+                onConfirm={isLive ? () => live.confirmGrading() : undefined}
                 lockedNotice={lockedNotice}
                 tab={tab}
                 onTab={setTab}

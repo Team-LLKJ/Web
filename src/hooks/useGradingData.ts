@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ApiError, apiErrorMessage } from "../api/client";
 import {
   confirmGrade,
+  createGradingReport,
   endEvaluation,
   extendEvaluation,
   getEvaluation,
@@ -12,11 +13,13 @@ import {
   getGradingReportPdf,
   getGradingReview,
   getGradingStudents,
+  getAssessmentAnalysis,
   getRubricScores,
   saveCriterionScore,
   saveRubricScore,
 } from "../api/evaluations";
 import type {
+  AssessmentAnalysis,
   GradingActivity,
   GradingAnswers,
   GradingMessage,
@@ -70,10 +73,15 @@ function toReview(
   review: GradingReview | null,
   activity: GradingActivity | null,
   rubric: RubricScores | null = null,
+  analysis: AssessmentAnalysis | null = null,
 ): StudentReview {
+  // 활동 카드의 기여도는 항상 null이라, AI 활용 분석의 문장 유사도 추정값을 대신 씁니다.
+  const estimated = analysis?.contribution?.direct ?? null;
   return {
     rubric,
-    studentContribution: activity?.studentContribution ?? null,
+    studentContribution: estimated ?? activity?.studentContribution ?? null,
+    contributionEstimated: estimated !== null,
+    analysisDetail: analysis,
     usage: (activity?.usage ?? []).map((item, index) => ({
       label: item.name,
       percent: Math.round(item.percentage),
@@ -143,6 +151,7 @@ export function useGradingData(evaluationId: string | undefined) {
     activity: GradingActivity;
     review: GradingReview;
     rubric: RubricScores | null;
+    analysis: AssessmentAnalysis | null;
   } | null>(null);
   const [loadingList, setLoadingList] = useState(Boolean(evaluationId));
   const [loadingDetail, setLoadingDetail] = useState(false);
@@ -209,16 +218,17 @@ export function useGradingData(evaluationId: string | undefined) {
       if (!evaluationId || !participantId) return;
       if (!silent) setLoadingDetail(true);
       try {
-        const [answers, messages, activity, review, rubric] = await Promise.all([
+        const [answers, messages, activity, review, rubric, analysis] = await Promise.all([
           getGradingAnswers(evaluationId, participantId),
           getGradingConversations(evaluationId, participantId),
           getGradingActivity(evaluationId, participantId),
           getGradingReview(evaluationId, participantId),
           // 기준별 점수는 실패해도 기존 루브릭 화면으로 대신 보여줍니다.
           getRubricScores(evaluationId, participantId).catch(() => null),
+          getAssessmentAnalysis(evaluationId, participantId).catch(() => null),
         ]);
         if (selectedRef.current !== participantId) return;
-        setDetail({ id: participantId, answers, messages, activity, review, rubric });
+        setDetail({ id: participantId, answers, messages, activity, review, rubric, analysis });
         setError("");
       } catch (e) {
         setError(apiErrorMessage(e, "학생 자료를 불러오지 못했습니다."));
@@ -262,7 +272,20 @@ export function useGradingData(evaluationId: string | undefined) {
     title: q.title || `문항 ${q.position}`,
     content: q.content,
   }));
-  const review = toReview(current?.review ?? null, current?.activity ?? null, current?.rubric ?? null);
+  const review = toReview(
+    current?.review ?? null,
+    current?.activity ?? null,
+    current?.rubric ?? null,
+    current?.analysis ?? null,
+  );
+
+  // 허용 범위 판단처럼 루브릭 응답을 통째로 돌려주는 동작 뒤에 화면 값을 바꿉니다.
+  const replaceRubric = useCallback(
+    (rubric: RubricScores) => {
+      setDetail((now) => (now && now.id === selectedRef.current ? { ...now, rubric } : now));
+    },
+    [],
+  );
 
   const setScore = useCallback(
     async (criterionId: string, score: number | null) => {
@@ -347,26 +370,52 @@ export function useGradingData(evaluationId: string | undefined) {
     [evaluationId, selectedId, current],
   );
 
-  // 모든 기준에 교사 값이 있을 때 채점을 확정합니다. acceptAiForMissing이면 비어 있는 기준에 AI 추천을 채웁니다.
-  const confirmGrading = useCallback(
-    async (acceptAiForMissing = false) => {
-      if (!evaluationId || !selectedId) return;
+  // 교사 점수를 바꾸거나 AI가 못 한 기준을 채점한 근거(feedback)를 저장합니다.
+  const setFeedback = useCallback(
+    async (criterionId: number, feedback: string) => {
+      if (!evaluationId || !selectedId || !current?.rubric) return;
+      const target = current.rubric.criteria.find((c) => c.criterionId === criterionId);
+      if (!target?.teacher) return;
       try {
-        const saved = await confirmGrade(evaluationId, selectedId, acceptAiForMissing);
+        const saved = await saveRubricScore(evaluationId, selectedId, criterionId, {
+          level: target.teacher.level,
+          feedback,
+        });
         setDetail((now) => (now && now.id === selectedId ? { ...now, rubric: saved } : now));
         setError("");
       } catch (e) {
-        setError(
-          e instanceof ApiError && e.code === "GRADING_INCOMPLETE"
-            ? "아직 점수가 없는 기준이 있어요. 모든 기준에 점수를 입력한 뒤 확정해주세요."
-            : e instanceof ApiError && e.code === "SUBMISSION_REQUIRED"
-              ? "제출한 학생만 채점할 수 있어요."
-              : apiErrorMessage(e, "채점을 확정하지 못했습니다."),
-        );
+        setError(apiErrorMessage(e, "근거를 저장하지 못했습니다."));
       }
     },
-    [evaluationId, selectedId],
+    [evaluationId, selectedId, current],
   );
+
+  // 교사가 고르지 않은 기준은 AI 추천 점수로 확정합니다. AI도 채점하지 못한 기준이 있으면
+  // 확정하지 않고 그 기준 번호를 돌려줘 직접 채점하게 합니다.
+  const confirmGrading = useCallback(async (): Promise<number[]> => {
+    if (!evaluationId || !selectedId) return [];
+    const missing = (current?.rubric?.criteria ?? []).filter((c) => !c.teacher && !c.ai);
+    if (missing.length) {
+      setError(
+        `AI가 채점하지 못한 기준이 있어요. ${missing.map((c) => c.name).join(", ")}만 직접 채점해주세요.`,
+      );
+      return missing.map((c) => c.criterionId);
+    }
+    try {
+      const saved = await confirmGrade(evaluationId, selectedId, true);
+      setDetail((now) => (now && now.id === selectedId ? { ...now, rubric: saved } : now));
+      setError("");
+    } catch (e) {
+      setError(
+        e instanceof ApiError && e.code === "GRADING_INCOMPLETE"
+          ? "AI가 채점하지 못한 기준이 있어요. 해당 기준을 직접 채점해주세요."
+          : e instanceof ApiError && e.code === "SUBMISSION_REQUIRED"
+            ? "제출한 학생만 채점할 수 있어요."
+            : apiErrorMessage(e, "채점을 확정하지 못했습니다."),
+      );
+    }
+    return [];
+  }, [evaluationId, selectedId, current]);
 
   const finishEvaluation = useCallback(async () => {
     if (!evaluationId) return;
@@ -388,30 +437,53 @@ export function useGradingData(evaluationId: string | undefined) {
     [evaluationId],
   );
 
-  const downloadReport = useCallback(async (format: "pdf" | "hwp" = "pdf") => {
-    if (!evaluationId || !selectedId) return;
+  // 저장 창이 오류를 보여주도록 실패하면 메시지와 함께 던집니다.
+  const reportError = (e: unknown, fallback: string) =>
+    new Error(
+      e instanceof ApiError && e.code === "SUBMISSION_REQUIRED"
+        ? "제출 후에 보고서를 저장할 수 있어요."
+        : apiErrorMessage(e, fallback),
+    );
+
+  const downloadReport = useCallback(
+    async (format: "pdf" | "hwp" = "pdf") => {
+      if (!evaluationId || !selectedId) return;
+      try {
+        let blob: Blob;
+        if (format === "hwp") {
+          try {
+            blob = await getGradingReportHwp(evaluationId, selectedId);
+          } catch (e) {
+            // 아직 만든 리포트가 없으면 만들고 다시 받습니다.
+            if (!(e instanceof ApiError && e.status === 404)) throw e;
+            await createGradingReport(evaluationId, selectedId);
+            blob = await getGradingReportHwp(evaluationId, selectedId);
+          }
+        } else {
+          blob = await getGradingReportPdf(evaluationId, selectedId);
+        }
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        const name = list.find((s) => s.participantId === selectedId)?.nickname ?? "학생";
+        link.href = url;
+        link.download = `${name} 학습 보고서.${format}`;
+        link.click();
+        window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      } catch (e) {
+        throw reportError(e, "보고서를 저장하지 못했습니다.");
+      }
+    },
+    [evaluationId, selectedId, list],
+  );
+
+  const previewReport = useCallback(async () => {
+    if (!evaluationId || !selectedId) throw new Error("학생을 먼저 선택해주세요.");
     try {
-      const blob =
-        format === "hwp"
-          ? await getGradingReportHwp(evaluationId, selectedId)
-          : await getGradingReportPdf(evaluationId, selectedId);
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      const name = list.find((s) => s.participantId === selectedId)?.nickname ?? "학생";
-      link.href = url;
-      link.download = `${name} 학습 보고서.${format}`;
-      link.click();
-      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      return await getGradingReportPdf(evaluationId, selectedId);
     } catch (e) {
-      setError(
-        e instanceof ApiError && e.code === "SUBMISSION_REQUIRED"
-          ? "제출 후에 보고서를 저장할 수 있어요."
-          : e instanceof ApiError && e.status === 404 && format === "hwp"
-            ? "저장된 보고서가 없어요. 먼저 PDF 보고서를 만들어주세요."
-            : apiErrorMessage(e, "보고서를 저장하지 못했습니다."),
-      );
+      throw reportError(e, "미리보기를 불러오지 못했습니다.");
     }
-  }, [evaluationId, selectedId, list]);
+  }, [evaluationId, selectedId]);
 
   return {
     students,
@@ -429,9 +501,16 @@ export function useGradingData(evaluationId: string | undefined) {
     ended,
     setScore,
     setLevel,
+    setFeedback,
     confirmGrading,
+    replaceRubric,
+    evaluationId: evaluationId ?? "",
+    questionTitles: Object.fromEntries(
+      (current?.answers.questions ?? []).map((q) => [q.questionId, q.title || `문항 ${q.position}`]),
+    ) as Record<string, string>,
     finishEvaluation,
     extendTime,
     downloadReport,
+    previewReport,
   };
 }

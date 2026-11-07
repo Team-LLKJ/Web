@@ -1,5 +1,5 @@
 import { EmptyState } from "../ui/EmptyState";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "../student/student.css";
 import type { StudentReview } from "../../data/review";
 import { ActivityAnalysis } from "./ActivityAnalysis";
@@ -15,7 +15,10 @@ type Props = {
   onScore: (id: string, score: number) => void;
   /** 기준별 점수(AI 추천 + 교사 점수)가 있을 때 쓰는 저장·확정 동작입니다. */
   onLevel?: (criterionId: number, level: number | null) => void;
-  onConfirm?: () => void;
+  /** AI도 채점하지 못해 직접 채점해야 하는 기준 번호를 돌려줍니다. */
+  /** 교사가 AI 추천을 바꾸거나 AI가 못 한 기준을 채점한 근거를 저장합니다. */
+  onFeedback?: (criterionId: number, feedback: string) => void;
+  onConfirm?: () => Promise<number[]> | void;
   tab: string;
   onTab: (tab: string) => void;
   /** 지정하면 활동·루브릭 탭 대신 이 안내를 보여줍니다(평가 중에는 열람 불가). */
@@ -28,11 +31,30 @@ export function ReviewPanel({
   onScore,
   onLevel,
   onConfirm,
+  onFeedback,
   tab,
   onTab,
   lockedNotice,
 }: Props) {
   const [analysisOpen, setAnalysisOpen] = useState(false);
+  const [targetConversation, setTargetConversation] = useState<number | null>(null);
+  // 평가 근거의 'AI 대화 #n' 링크: AI 대화창으로 옮겨 해당 프롬프트로 스크롤합니다.
+  useEffect(() => {
+    if (targetConversation === null || tab !== "AI 대화창") return;
+    const frame = requestAnimationFrame(() => {
+      const nodes = document.querySelectorAll<HTMLElement>(
+        `.teacher-chat [data-message-id="${targetConversation}"]`,
+      );
+      const node = nodes[0];
+      if (node) {
+        node.scrollIntoView({ block: "center", behavior: "smooth" });
+        node.classList.add("message--target");
+        window.setTimeout(() => node.classList.remove("message--target"), 2200);
+      }
+      setTargetConversation(null);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [targetConversation, tab, messages]);
   return (
     <aside className="details" aria-label="학생 평가 자료">
       <Tabs
@@ -60,6 +82,7 @@ export function ReviewPanel({
                   role={message.role}
                   content={message.content}
                   pending={message.pending}
+                  messageId={message.id}
                 />
               ))
             ) : (
@@ -84,12 +107,21 @@ export function ReviewPanel({
             onScore={onScore}
             onLevel={onLevel}
             onConfirm={onConfirm}
+            onFeedback={onFeedback}
             onAnalysis={() => setAnalysisOpen(true)}
           />
         )}
       </div>
       {analysisOpen && (
-        <AnalysisModal review={review} onClose={() => setAnalysisOpen(false)} />
+        <AnalysisModal
+          review={review}
+          onClose={() => setAnalysisOpen(false)}
+          onOpenConversation={(id) => {
+            setAnalysisOpen(false);
+            setTargetConversation(id);
+            onTab("AI 대화창");
+          }}
+        />
       )}
     </aside>
   );
