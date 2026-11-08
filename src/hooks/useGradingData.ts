@@ -158,7 +158,9 @@ export function useGradingData(evaluationId: string | undefined) {
   const [error, setError] = useState("");
   const [ended, setEnded] = useState(false);
   const selectedRef = useRef("");
-  selectedRef.current = selectedId;
+  useEffect(() => {
+    selectedRef.current = selectedId;
+  });
   // 새로 제출했거나 경고가 생긴 학생을 알려 주는 토스트 대기열입니다.
   const [events, setEvents] = useState<
     { key: string; message: string; tone: "info" | "error" }[]
