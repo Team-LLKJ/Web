@@ -188,9 +188,9 @@ export function TeacherFoldersPage() {
       {bulkFolder && (
         <BulkReportDialog
           title={`${bulkFolder.title} 전체 보고서 저장`}
-          submitted={bulkFolder.sessions
+          classes={bulkFolder.sessions
             .filter((session) => session.state === "ENDED")
-            .reduce((sum, session) => sum + session.submitted, 0)}
+            .map((session) => ({ id: session.id, name: session.className }))}
           hwp
           onSaveAll={(format, onProgress) =>
             downloadFolderReports(
