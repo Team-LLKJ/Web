@@ -98,6 +98,7 @@ export function ShareDialog({
 
   return (
     <Modal
+      dismissOnBackdrop={false}
       title={`"${folder.title}" 공유`}
       className="share-modal"
       onClose={onClose}

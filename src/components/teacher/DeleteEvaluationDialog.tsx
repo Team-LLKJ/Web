@@ -36,6 +36,7 @@ export function DeleteEvaluationDialog({ title, onConfirm, onClose }: Props) {
 
   return (
     <Modal
+      dismissOnBackdrop={false}
       title="수행평가를 삭제할까요?"
       className="evaluation-delete-modal"
       onClose={() => {

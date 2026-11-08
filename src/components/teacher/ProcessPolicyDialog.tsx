@@ -120,6 +120,7 @@ export function ProcessPolicyDialog({
 
   return (
     <Modal
+      dismissOnBackdrop={false}
       title="과정 평가 설정"
       onClose={onClose}
       actions={
