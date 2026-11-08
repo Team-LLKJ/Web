@@ -71,6 +71,7 @@ export function ReportSaveDialog({
 
   return (
     <Modal
+      dismissOnBackdrop={false}
       title="보고서 저장"
       size="large"
       className="report-save-modal"

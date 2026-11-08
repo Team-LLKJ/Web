@@ -19,7 +19,8 @@ import { Toast } from "../components/teacher/Toast";
 import { Button } from "../components/ui/Button";
 import { Modal } from "../components/ui/Modal";
 import { BulkReportDialog } from "../components/grading/BulkReportDialog";
-import { downloadClassReports } from "../lib/classReports";
+import { downloadClassReports, downloadFolderReports } from "../lib/classReports";
+import { DownloadIcon } from "../components/teacher/folderIcons";
 import { TextInput } from "../components/ui/TextInput";
 import {
   addSession,
@@ -62,6 +63,7 @@ export function TeacherFolderDetailPage() {
   const [renameTarget, setRenameTarget] = useState<FolderSession | null>(null);
   const [removeTarget, setRemoveTarget] = useState<FolderSession | null>(null);
   const [bulkTarget, setBulkTarget] = useState<FolderSession | null>(null);
+  const [bulkFolder, setBulkFolder] = useState(false);
   const [error, setError] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [filter, setFilter] = useState<"ALL" | SessionState>("ALL");
@@ -142,6 +144,7 @@ export function TeacherFolderDetailPage() {
   const canAddHere = filter === "ALL";
 
   const isOwner = folder.role !== "EDITOR";
+  const endedSessions = folder.sessions.filter((session) => session.state === "ENDED");
 
   async function submitClass(event: FormEvent) {
     event.preventDefault();
@@ -278,6 +281,12 @@ export function TeacherFolderDetailPage() {
                 </span>
               )}
             </button>
+            {endedSessions.length > 0 && (
+              <button type="button" className="folder-action" onClick={() => setBulkFolder(true)}>
+                <DownloadIcon />
+                전체 저장
+              </button>
+            )}
             <button
               type="button"
               className="folder-action"
@@ -450,10 +459,26 @@ export function TeacherFolderDetailPage() {
         </ClassEvaluationSection>
       </div>
 
+      {bulkFolder && folder && (
+        <BulkReportDialog
+          title={`${folder.title} 전체 보고서 저장`}
+          classes={endedSessions.map((session) => ({ id: session.id, name: session.className }))}
+          hwp
+          onSaveAll={(format, onProgress) =>
+            downloadFolderReports(
+              folder.title,
+              endedSessions.map((session) => ({ id: session.id, name: session.className })),
+              format,
+              onProgress,
+            )
+          }
+          onClose={() => setBulkFolder(false)}
+        />
+      )}
       {bulkTarget && (
         <BulkReportDialog
           title={`${bulkTarget.className} 전체 보고서 저장`}
-          submitted={bulkTarget.submitted}
+          classes={[{ id: bulkTarget.id, name: "", label: bulkTarget.className }]}
           hwp
           onSaveAll={(format, onProgress) => downloadClassReports(bulkTarget.id, format, onProgress)}
           onClose={() => setBulkTarget(null)}

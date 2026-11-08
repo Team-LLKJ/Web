@@ -335,13 +335,6 @@
   flex-direction: column;
   gap: 4px;
 }
-.grading-skeleton-tabs {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 15px;
-  padding-bottom: 4px;
-  border-bottom: 1px solid var(--border);
-}
 .grading-skeleton-review-tabs {
   display: flex;
   justify-content: space-between;

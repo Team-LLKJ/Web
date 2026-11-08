@@ -118,3 +118,10 @@
 :root:root:root .student-editor .segment-tabs-wrap > .segment-tabs {
   margin-bottom: 0;
 }
+
+/* 화살표 탭 바: 흰 선택 칸이 탭 목록 높이를 그대로 채우도록 위·아래 안쪽 여백(4px)을 없앱니다.
+   다른 화면용 규칙(top: 4px)이 더 우선이라 그대로 두면 위아래에 빈 칸이 두 겹으로 생깁니다. */
+:root:root:root:root:root:root .segment-tabs-wrap.has-arrows .segment-thumb {
+  top: 0;
+  bottom: 0;
+}

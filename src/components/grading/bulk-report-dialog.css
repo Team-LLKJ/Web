@@ -31,3 +31,25 @@
   margin: 0;
   color: var(--color-danger);
 }
+.bulk-report-pickers {
+  display: flex;
+  gap: 12px;
+  margin-top: 14px;
+}
+.bulk-report-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 190px;
+  max-width: 50%;
+  min-width: 0;
+}
+.bulk-report-picker > span {
+  color: var(--color-grey-60);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+}
+:root .modal.bulk-report-modal .report-preview {
+  height: clamp(280px, calc(100dvh - 440px), 640px);
+}

@@ -61,3 +61,13 @@ export function MoreIcon() {
     </svg>
   );
 }
+
+export function DownloadIcon() {
+  return (
+    <svg {...stroke}>
+      <path d="M12 4v11" />
+      <path d="m7.5 11 4.5 4.5L16.5 11" />
+      <path d="M5 19h14" />
+    </svg>
+  );
+}

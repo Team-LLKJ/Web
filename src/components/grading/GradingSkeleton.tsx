@@ -53,21 +53,16 @@ export function SubmissionSkeleton() {
           </div>
           <Skeleton style={{ width: 168, height: 45, borderRadius: 10 }} />
         </section>
-        <section className="answer-card" aria-hidden="true">
-          <Skeleton style={{ width: 97, height: 34, marginBottom: 15 }} />
-          <div className="grading-skeleton-tabs">
-            <Skeleton style={{ width: 75, height: 30 }} />
-            <Skeleton style={{ width: 75, height: 30 }} />
-          </div>
-          <section className="question-box">
-            <Skeleton style={{ width: 75, height: 28, marginBottom: 10 }} />
-            <Skeleton style={{ width: "100%", height: 22, marginBottom: 8 }} />
+        <section className="answer-card teacher-submission" aria-hidden="true">
+          <h2>제출 답안</h2>
+          <Skeleton style={{ width: 360, maxWidth: "100%", height: 42, borderRadius: 11, marginBottom: 15 }} />
+          <section className="question-box teacher-question">
             <Skeleton style={{ width: "100%", height: 22, marginBottom: 8 }} />
             <Skeleton style={{ width: "55%", height: 22 }} />
           </section>
           <section className="response-box">
             <Skeleton style={{ width: 75, height: 28, marginBottom: 10 }} />
-            {Array.from({ length: 12 }, (_, index) => (
+            {Array.from({ length: 8 }, (_, index) => (
               <Skeleton
                 key={index}
                 style={{

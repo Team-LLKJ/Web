@@ -25,9 +25,9 @@ function loginErrorMessage(error: unknown) {
   if (error instanceof ApiError) {
     switch (error.code) {
       case "INVALID_CREDENTIALS":
-        return "아이디 또는 비밀번호를 확인해주세요.";
+        return "아이디 또는 비밀번호가 일치하지 않습니다.";
       case "INVALID_REQUEST":
-        return "아이디와 비밀번호를 확인해주세요.";
+        return "아이디 또는 비밀번호 형식이 올바르지 않습니다.";
       case "RATE_LIMITED":
         return "로그인 시도가 제한되었습니다. 잠시 후 다시 시도해주세요.";
     }
@@ -189,8 +189,13 @@ export function AuthForm({ mode, onSubmit }: Props) {
       ? String(formData.get("password") ?? password)
       : password;
 
-    if (!submittedUsername.trim() || !submittedPassword) {
-      setNotice("아이디와 비밀번호를 입력해주세요.");
+    // 비어 있는 칸은 그 칸 아래에 "입력해주세요"로 알립니다(틀린 정보와 구분).
+    if (!submittedUsername.trim()) {
+      showFieldError("username", "아이디를 입력해주세요.");
+      return;
+    }
+    if (!submittedPassword) {
+      showFieldError("password", "비밀번호를 입력해주세요.");
       return;
     }
     if (isLogin) {
