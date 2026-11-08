@@ -1,13 +1,16 @@
 import { ClassParticipantsSkeleton } from "../components/teacher/ClassParticipantsSkeleton";
 import { Skeleton } from "../components/ui/Skeleton";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ApiError, apiErrorMessage } from "../api/client";
-import { getEvaluationQr, getParticipants } from "../api/evaluations";
+import { extendEvaluation, getEvaluationQr, getParticipants } from "../api/evaluations";
 import type { Participant } from "../api/types";
 import { TeacherHeader } from "../components/teacher/TeacherHeader";
 import { Toast } from "../components/teacher/Toast";
+import { EvaluationControls } from "../components/ui/EvaluationControls";
+import { DurationPicker } from "../components/teacher/DurationPicker";
+import { addedMinutes, toEndInfo, type EndInfo } from "../lib/remainingTime";
 import { Button } from "../components/ui/Button";
 import { Modal } from "../components/ui/Modal";
 import { PageLoading } from "../components/ui/PageLoading";
@@ -21,11 +24,10 @@ import {
   type FolderSession,
 } from "../lib/evaluationFolders";
 import { ParticipantAvatar } from "./TeacherEvaluationPage";
-import { ProcessPolicyDialog } from "../components/teacher/ProcessPolicyDialog";
 import "../components/teacher/teacher.css";
 import "../components/teacher/class-card-actions.css";
 
-const POLL_MS = 3000;
+const POLL_MS = 2000;
 
 export function TeacherClassLobbyPage() {
   const { folderId = "", sessionId = "" } = useParams();
@@ -66,13 +68,18 @@ export function TeacherClassLobbyPage() {
   const [minutes, setMinutes] = useState("0");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [timeToast, setTimeToast] = useState("");
+  const [endInfo, setEndInfo] = useState<EndInfo | null>(null);
+  const lastEndsAt = useRef<number | null>(null);
+  const [extendOpen, setExtendOpen] = useState(false);
+  const [extendMinutes, setExtendMinutes] = useState(0);
+  const [extending, setExtending] = useState(false);
   const [busy, setBusy] = useState(false);
   const running = session?.state === "IN_PROGRESS";
   // 대기실을 열면(시작 전인데 PIN이 있음) 학생이 미리 들어와 기다릴 수 있습니다.
   const lobbyOpen = Boolean(session?.lobbyOpen);
   const live = running || lobbyOpen;
   const [opening, setOpening] = useState(false);
-  const [policyOpen, setPolicyOpen] = useState(false);
   const peopleLoading = live && !peopleSnapshot;
   const qrLoading = live && qrResult?.sessionId !== sessionId;
 
@@ -109,8 +116,16 @@ export function TeacherClassLobbyPage() {
       inFlight = true;
       try {
         const lobby = await getParticipants(sessionId);
-        if (active)
+        if (active) {
           setPeopleResult({ sessionId, items: lobby.participants, error: "" });
+          if (lobby.endsAt) {
+            const endsAt = new Date(lobby.endsAt).getTime();
+            const added = addedMinutes(lastEndsAt.current, endsAt);
+            if (added > 0) setTimeToast(`평가 시간이 ${added}분 추가되었어요.`);
+            lastEndsAt.current = endsAt;
+            setEndInfo(toEndInfo(lobby.endsAt, lobby.serverNow));
+          }
+        }
       } catch (caught) {
         if (active)
           setPeopleResult((current) => ({
@@ -197,6 +212,17 @@ export function TeacherClassLobbyPage() {
       setError("1분 ~ 24시간 사이로 입력해주세요. (분은 0~59)");
       return;
     }
+    await startWith(total);
+  }
+
+  // 평가를 만들 때 정한 풀이 시간이 있으면 바로 시작하고, 없을 때만 시간을 묻습니다.
+  function requestStart() {
+    const preset = folder?.durationMinutes;
+    if (preset && preset >= 1 && preset <= 1440) void startWith(preset);
+    else setStarting(true);
+  }
+
+  async function startWith(total: number) {
     setBusy(true);
     try {
       let next;
@@ -210,8 +236,12 @@ export function TeacherClassLobbyPage() {
       }
       setSession(next);
       setStarting(false);
+      // 시작하면 대기실에 남지 않고 바로 채점 현황 화면으로 이동합니다.
+      navigate(`/teacher/grading/${encodeURIComponent(next.id)}`);
     } catch (caught) {
-      setError(apiErrorMessage(caught, "평가를 시작하지 못했습니다."));
+      const message = apiErrorMessage(caught, "평가를 시작하지 못했습니다.");
+      setError(message);
+      setNotice(message);
     } finally {
       setBusy(false);
     }
@@ -232,7 +262,7 @@ export function TeacherClassLobbyPage() {
             caught.code !== "CLASS_NOT_FOUND"));
       if (missing) {
         setError("");
-        setStarting(true);
+        requestStart();
       } else {
         setNotice(apiErrorMessage(caught, "대기실을 열지 못했습니다."));
       }
@@ -270,9 +300,6 @@ export function TeacherClassLobbyPage() {
             >
               학생 현황 보기
             </Button>
-            <Button variant="white-danger" onClick={() => setEnding(true)}>
-              평가 종료하기
-            </Button>
           </>
         ) : ended ? (
           <Button
@@ -283,32 +310,23 @@ export function TeacherClassLobbyPage() {
             채점 결과 보기
           </Button>
         ) : lobbyOpen ? (
-          <>
-          <Button variant="secondary" onClick={() => setPolicyOpen(true)}>
-            과정 평가 설정
-          </Button>
           <Button
             onClick={() => {
               setError("");
-              setStarting(true);
+              requestStart();
             }}
           >
             평가 시작하기
           </Button>
-          </>
         ) : (
-          <>
-          <Button variant="secondary" onClick={() => setPolicyOpen(true)}>
-            과정 평가 설정
-          </Button>
           <Button loading={opening} onClick={() => void openLobby()}>
             대기실 열기
           </Button>
-          </>
         )}
       </TeacherHeader>
       <div className="teacher-page-content">
         <Toast message={notice} onClose={() => setNotice("")} />
+        <Toast message={timeToast} tone="info" onClose={() => setTimeToast("")} />
         <Link
           className="folder-back"
           to={`/teacher/folders/${encodeURIComponent(folder.id)}`}
@@ -332,6 +350,17 @@ export function TeacherClassLobbyPage() {
           {folder.title}
           <span>{session.className}</span>
         </h1>
+        {running && (
+          <EvaluationControls
+            className="lobby-controls"
+            endInfo={endInfo}
+            onExtend={() => {
+              setExtendMinutes(0);
+              setExtendOpen(true);
+            }}
+            onEnd={() => setEnding(true)}
+          />
+        )}
         <div className="teacher-lobby">
           <section className="teacher-card teacher-join-card">
             {live ? (
@@ -419,12 +448,6 @@ export function TeacherClassLobbyPage() {
           </section>
         </div>
       </div>
-      {policyOpen && (
-        <ProcessPolicyDialog
-          evaluationId={session.id}
-          onClose={() => setPolicyOpen(false)}
-        />
-      )}
       {qrOpen && qrUrl && (
         <Modal
           title="참여 QR 코드"
@@ -491,6 +514,48 @@ export function TeacherClassLobbyPage() {
                 시작하기
               </Button>
               <Button variant="secondary" onClick={() => setStarting(false)}>
+                취소
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      )}
+      {extendOpen && (
+        <Modal title="평가 시간 연장" onClose={() => !extending && setExtendOpen(false)}>
+          <form
+            className="extend-form"
+            onSubmit={async (event) => {
+              event.preventDefault();
+              if (!Number.isInteger(extendMinutes) || extendMinutes < 1 || extendMinutes > 600) {
+                setNotice("1분 ~ 10시간(600분) 사이로 입력해주세요.");
+                return;
+              }
+              setExtending(true);
+              try {
+                await extendEvaluation(session.id, extendMinutes);
+                setExtendOpen(false);
+              } catch (caught) {
+                setNotice(apiErrorMessage(caught, "평가 시간을 연장하지 못했습니다."));
+              } finally {
+                setExtending(false);
+              }
+            }}
+          >
+            <p>학생들이 계속 작성할 수 있도록 남은 시간을 늘려요.</p>
+            <div className="extend-custom">
+              <span>연장할 시간</span>
+              <DurationPicker
+                hours={Math.floor(extendMinutes / 60)}
+                minutes={extendMinutes % 60}
+                disabled={extending}
+                onChange={(h, m) => setExtendMinutes(h * 60 + m)}
+              />
+            </div>
+            <div className="extend-actions">
+              <Button type="submit" loading={extending}>
+                연장하기
+              </Button>
+              <Button variant="secondary" disabled={extending} onClick={() => setExtendOpen(false)}>
                 취소
               </Button>
             </div>

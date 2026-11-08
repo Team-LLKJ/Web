@@ -75,7 +75,7 @@ export function TeacherResultsPage() {
     if (!evaluationId || evaluation?.state === "ENDED" || evaluation?.state === "EXPIRED") return;
     const timer = window.setInterval(() => {
       void refreshLobby().catch((error) => setNotice(apiErrorMessage(error)));
-    }, 6000);
+    }, 2000);
     return () => window.clearInterval(timer);
   }, [evaluationId, evaluation?.state, refreshLobby]);
 

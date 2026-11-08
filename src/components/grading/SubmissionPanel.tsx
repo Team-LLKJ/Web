@@ -1,6 +1,8 @@
 import { Skeleton, SkeletonStatus } from "../ui/Skeleton";
+import { questionText } from "../../lib/questionLimit";
 import { EmptyState } from "../ui/EmptyState";
-import { lazy, Suspense, useState, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from "react";
+import { clearAuthorMark, markAuthorship } from "./authorshipMark";
 import { ReportSaveDialog } from "./ReportSaveDialog";
 import type { Answer, Question, Student } from "../../data/grading";
 import { Button } from "../ui/Button";
@@ -26,6 +28,12 @@ type Props = {
   onPreviewReport?: () => Promise<Blob>;
   /** 서버가 없을 때 저장 창 미리보기에 보여줄 앱 보고서 */
   report?: ReactNode;
+  /** 지정하면 답안에서 학생이 쓴 문장(student) 또는 AI 답변과 비슷한 문장(ai)에 줄을 칩니다. */
+  authorMark?: "student" | "ai" | "paste" | null;
+  /** 겹침을 비교할 AI 답변들 */
+  aiTexts?: string[];
+  /** 학생이 AI에게 보낸 질문들. AI가 되풀이한 학생 글을 AI의 글로 잘못 세지 않는 데 씁니다. */
+  userTexts?: string[];
 };
 export function SubmissionPanel({
   student,
@@ -36,8 +44,15 @@ export function SubmissionPanel({
   onSaveReport,
   onPreviewReport,
   report,
+  authorMark = null,
+  aiTexts = [],
+  userTexts = [],
 }: Props) {
+  const [markCount, setMarkCount] = useState<number | null>(null);
+  const userKey = userTexts.join("\u0001");
   const [saveOpen, setSaveOpen] = useState(false);
+  const answerRef = useRef<HTMLDivElement>(null);
+  const aiKey = aiTexts.join("\u0001");
   // 인쇄 창의 기본 파일 이름과 제목이 보고서 이름이 되도록 잠시 문서 제목을 바꾼다.
   const savePdf = () => {
     const previous = document.title;
@@ -48,6 +63,28 @@ export function SubmissionPanel({
     window.print();
   };
   const currentQuestion = questions.find((item) => item.id === question);
+  // 학생이 쓴 부분 / AI 답변과 비슷한 부분에 줄을 칩니다. 편집기는 늦게 그려지므로 잠시 뒤 다시 적용합니다.
+  useEffect(() => {
+    const root = answerRef.current;
+    if (!root || !authorMark) return clearAuthorMark();
+    const apply = () => {
+      const text = root.querySelector<HTMLElement>(".tiptap") ?? root;
+      setMarkCount(
+        markAuthorship(
+          text,
+          aiKey ? aiKey.split("\u0001") : [],
+          authorMark,
+          userKey ? userKey.split("\u0001") : [],
+        ),
+      );
+    };
+    apply();
+    const timers = [window.setTimeout(apply, 300), window.setTimeout(apply, 900)];
+    return () => {
+      timers.forEach((timer) => window.clearTimeout(timer));
+      clearAuthorMark();
+    };
+  }, [authorMark, aiKey, userKey, question, student.name]);
   const answer = answers.find((item) => item.questionId === question);
   const answerContent =
     answer?.html ?? answer?.paragraphs.filter((text) => text.trim()).join("\n\n") ?? "";
@@ -88,8 +125,14 @@ export function SubmissionPanel({
         {currentQuestion ? (
           <>
             <section className="question-box teacher-question">
-              <p>{currentQuestion.content}</p>
+              <p>{questionText(currentQuestion.content, currentQuestion.minChars, currentQuestion.maxChars)}</p>
             </section>
+            {authorMark && markCount === 0 && answerContent.trim() && (
+              <p className="author-mark-note">
+                표시할 문장이 없어요. 이 문항의 문장이 모두 다른 구분으로 분류됐어요.
+              </p>
+            )}
+            <div ref={answerRef}>
             <Suspense
               fallback={
                 <SkeletonStatus label="답안을 불러오는 중" className="answer-skeleton">
@@ -111,6 +154,7 @@ export function SubmissionPanel({
                 onBlur={noop}
               />
             </Suspense>
+            </div>
           </>
         ) : (
           <EmptyState size="inline" icon="doc" title="등록된 문항이 없어요" />

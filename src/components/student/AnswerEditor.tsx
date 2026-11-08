@@ -1,4 +1,5 @@
 import { EmptyState } from "../ui/EmptyState";
+import { questionText } from "../../lib/questionLimit";
 import type { ApiQuestion } from "../../api/types";
 import { Tabs } from "../ui/Tabs";
 import { lazy, Suspense, useEffect, useState } from "react";
@@ -82,7 +83,7 @@ function OverviewPanel({
             <li key={item.id}>
               <button type="button" onClick={() => onStart(item.id)}>
                 <strong>{questions.length === 1 ? "문항" : item.title}</strong>
-                <span>{item.content}</span>
+                <span>{questionText(item.content, item.minChars, item.maxChars)}</span>
               </button>
             </li>
           ))}
@@ -204,7 +205,7 @@ export function AnswerEditor({
       ) : question ? (
         <>
           <section className="question-box">
-            <p>{question.content}</p>
+            <p>{questionText(question.content, question.minChars, question.maxChars)}</p>
           </section>
           <Suspense fallback={<EditorPlaceholder />}>
             <RichAnswerField

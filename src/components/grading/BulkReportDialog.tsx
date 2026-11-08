@@ -20,7 +20,7 @@ const messageOf = (caught: unknown, fallback: string) =>
 
 /** 반(또는 폴더) 전체 보고서를 저장하기 전에 학생별 보고서를 미리 보고, 제출한 학생 전원을 ZIP으로 저장합니다. */
 export function BulkReportDialog({
-  title = "반 전체 보고서 저장",
+  title = "보고서 저장",
   classes,
   hwp,
   onSaveAll,

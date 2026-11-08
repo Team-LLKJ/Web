@@ -1,7 +1,6 @@
 import type { AiPolicy, Review } from "../../api/types";
 import { Modal } from "../ui/Modal";
 import { Button } from "../ui/Button";
-import "./ai-disclosure.css";
 
 export type DisclosureDraft = { tools: string; usedParts: string; reason: string };
 
@@ -17,8 +16,6 @@ export function StudentDialogs({
   onClose,
   onLeave,
   onSubmit,
-  disclosure,
-  onDisclosure,
 }: {
   kind: StudentDialog;
   notice: string;
@@ -75,41 +72,6 @@ export function StudentDialogs({
           <p>제출 전에 최종 내용을 확인해주세요. 제출 후에는 답안을 수정할 수 없습니다.</p>
           {preview && preview.blankQuestionIds.length > 0 && <p>미작성 문항 {preview.blankQuestionIds.length}개가 있습니다. 그래도 제출할 수 있습니다.</p>}
           {preview && !preview.canConfirm && <p>AI 응답이 진행 중입니다. 완료된 뒤 다시 제출해주세요.</p>}
-          {disclosure && onDisclosure && (
-            <fieldset className="ai-disclosure" disabled={submitting}>
-              <legend>AI 사용 기록 (선택)</legend>
-              <p className="ai-disclosure-hint">AI를 어디에 어떻게 썼는지 직접 적어두면 선생님이 과정을 이해하는 데 도움이 돼요.</p>
-              <label>
-                <span>사용한 AI 도구</span>
-                <input
-                  maxLength={500}
-                  placeholder="예: LIT 내장 AI"
-                  value={disclosure.tools}
-                  onChange={(event) => onDisclosure({ ...disclosure, tools: event.target.value })}
-                />
-              </label>
-              <label>
-                <span>AI를 활용한 부분</span>
-                <textarea
-                  rows={2}
-                  maxLength={4000}
-                  placeholder="예: 문항 2 첫 문단의 개념 확인"
-                  value={disclosure.usedParts}
-                  onChange={(event) => onDisclosure({ ...disclosure, usedParts: event.target.value })}
-                />
-              </label>
-              <label>
-                <span>활용한 이유</span>
-                <textarea
-                  rows={2}
-                  maxLength={4000}
-                  placeholder="예: 개념만 확인하고 예시는 직접 찾았어요"
-                  value={disclosure.reason}
-                  onChange={(event) => onDisclosure({ ...disclosure, reason: event.target.value })}
-                />
-              </label>
-            </fieldset>
-          )}
           {error && <p className="dialog-error" role="alert">{error}</p>}
         </div>
       ) : kind === "leave" ? (

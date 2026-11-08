@@ -13,6 +13,7 @@ import {
   getGradingReportPdf,
   getGradingReview,
   getGradingStudents,
+  getParticipants,
   getAssessmentAnalysis,
   getRubricScores,
   saveCriterionScore,
@@ -28,10 +29,11 @@ import type {
   RubricScores,
 } from "../api/types";
 import type { Question, Student, StudentStatus } from "../data/grading";
+import { addedMinutes, toEndInfo, type EndInfo } from "../lib/remainingTime";
 import type { Assessment, StudentReview } from "../data/review";
 import { htmlToPlainText } from "../lib/guidelinesText";
 
-const POLL_MS = 10000;
+const POLL_MS = 2000;
 const AVATAR_COLORS = ["#ffd4d3", "#d6e9ff", "#d9f2dc", "#fff0c2", "#e5dcff", "#ffe0f0"];
 const USAGE_COLORS = ["#0059bc", "#007bff", "#52a6ff", "#9bc9ff"];
 
@@ -82,11 +84,14 @@ function toReview(
     studentContribution: estimated ?? activity?.studentContribution ?? null,
     contributionEstimated: estimated !== null,
     analysisDetail: analysis,
-    usage: (activity?.usage ?? []).map((item, index) => ({
+    // 서버가 회색(neutral)으로 내려주는 '미분류' 항목은 화면에서 숨깁니다.
+    usage: (activity?.usage ?? [])
+      .filter((item) => item.colorKey !== "neutral" && item.name !== "미분류")
+      .map((item, index) => ({
       label: item.name,
       percent: Math.round(item.percentage),
       level: item.level,
-      color: item.colorKey === "neutral" ? "#b6bdc7" : USAGE_COLORS[index % USAGE_COLORS.length],
+      color: USAGE_COLORS[index % USAGE_COLORS.length],
     })),
     warnings: (activity?.warnings ?? []).map((item) => ({
       id: String(item.eventId),
@@ -116,7 +121,11 @@ function toStudent(
     id: base.participantId,
     name: base.nickname,
     color: colorFor(base.participantId),
-    status: STATUS[base.status] ?? "작성중",
+    // 평가 종료로 자동 제출된 학생은 status가 WRITING으로 남아도 submissionStatus로 제출 여부를 판단합니다.
+    status:
+      base.submissionStatus === "SUBMITTED" || base.submittedAt
+        ? "제출완료"
+        : (STATUS[base.status] ?? "작성중"),
     submittedAt: dateLabel(base.submittedAt),
     answers: (detail?.answers.questions ?? []).map((q) => ({
       questionId: q.position,
@@ -154,10 +163,15 @@ export function useGradingData(evaluationId: string | undefined) {
     analysis: AssessmentAnalysis | null;
   } | null>(null);
   const [loadingList, setLoadingList] = useState(Boolean(evaluationId));
-  const [loadingDetail, setLoadingDetail] = useState(false);
   const [error, setError] = useState("");
   const [ended, setEnded] = useState(false);
   const selectedRef = useRef("");
+  const endedRef = useRef(false);
+  const [endInfo, setEndInfo] = useState<EndInfo | null>(null);
+  const lastEndsAtRef = useRef<number | null>(null);
+  useEffect(() => {
+    endedRef.current = ended;
+  }, [ended]);
   useEffect(() => {
     selectedRef.current = selectedId;
   });
@@ -166,6 +180,15 @@ export function useGradingData(evaluationId: string | undefined) {
     { key: string; message: string; tone: "info" | "error" }[]
   >([]);
   const seenRef = useRef<Map<string, { submitted: boolean; warning: boolean }> | null>(null);
+  // 경고 표시는 경고를 받은 직후 5초 동안만 보여줍니다.
+  const [warnedIds, setWarnedIds] = useState<string[]>([]);
+  const showWarningBadge = useCallback((participantId: string) => {
+    setWarnedIds((ids) => (ids.includes(participantId) ? ids : [...ids, participantId]));
+    window.setTimeout(
+      () => setWarnedIds((ids) => ids.filter((id) => id !== participantId)),
+      5000,
+    );
+  }, []);
 
   const loadList = useCallback(async () => {
     if (!evaluationId) return;
@@ -186,6 +209,7 @@ export function useGradingData(evaluationId: string | undefined) {
         if (!previous) continue;
         const before = previous.get(student.participantId);
         if (state.warning && !before?.warning) {
+          showWarningBadge(student.participantId);
           fresh.push({
             key: `warn-${student.participantId}-${Date.now()}`,
             message: `${student.nickname} 학생에게서 부정행위가 감지됐어요.`,
@@ -213,12 +237,11 @@ export function useGradingData(evaluationId: string | undefined) {
     } finally {
       setLoadingList(false);
     }
-  }, [evaluationId]);
+  }, [evaluationId, showWarningBadge]);
 
   const loadDetail = useCallback(
-    async (participantId: string, silent = false) => {
+    async (participantId: string) => {
       if (!evaluationId || !participantId) return;
-      if (!silent) setLoadingDetail(true);
       try {
         const [answers, messages, activity, review, rubric, analysis] = await Promise.all([
           getGradingAnswers(evaluationId, participantId),
@@ -234,8 +257,6 @@ export function useGradingData(evaluationId: string | undefined) {
         setError("");
       } catch (e) {
         setError(apiErrorMessage(e, "학생 자료를 불러오지 못했습니다."));
-      } finally {
-        if (!silent) setLoadingDetail(false);
       }
     },
     [evaluationId],
@@ -247,8 +268,21 @@ export function useGradingData(evaluationId: string | undefined) {
     void getEvaluation(evaluationId)
       .then((e) => setEnded(e.state === "ENDED" || e.state === "EXPIRED"))
       .catch(() => undefined);
-    const timer = window.setInterval(() => void loadList(), POLL_MS);
-    return () => window.clearInterval(timer);
+    // 이전 요청이 끝나기 전에는 다시 요청하지 않고, 탭이 보일 때만 갱신합니다.
+    let busy = false;
+    const tick = () => {
+      if (busy || document.visibilityState !== "visible") return;
+      busy = true;
+      void loadList().finally(() => {
+        busy = false;
+      });
+    };
+    const timer = window.setInterval(tick, POLL_MS);
+    document.addEventListener("visibilitychange", tick);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", tick);
+    };
   }, [evaluationId, loadList]);
 
   useEffect(() => {
@@ -256,23 +290,75 @@ export function useGradingData(evaluationId: string | undefined) {
     setDetail((current) => (current?.id === selectedId ? current : null));
     void loadDetail(selectedId);
     // 작성 중인 학생은 답안·대화가 바뀌므로 주기적으로 갱신합니다.
-    const timer = window.setInterval(() => void loadDetail(selectedId, true), POLL_MS);
-    return () => window.clearInterval(timer);
+    // 평가가 끝나면 답안·대화가 더 바뀌지 않으므로 갱신하지 않습니다.
+    let busy = false;
+    const tick = () => {
+      if (busy || endedRef.current || document.visibilityState !== "visible") return;
+      busy = true;
+      void loadDetail(selectedId).finally(() => {
+        busy = false;
+      });
+    };
+    const timer = window.setInterval(tick, POLL_MS);
+    document.addEventListener("visibilitychange", tick);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", tick);
+    };
   }, [selectedId, loadDetail]);
 
+  // 남은 시간: 풀이 종료 시각을 주기적으로 받아 오고, 시간이 늘어나면 알려 줍니다.
+  const refreshEnd = useCallback(
+    async (silent: boolean) => {
+      if (!evaluationId) return;
+      try {
+        const lobby = await getParticipants(evaluationId);
+        if (!lobby.endsAt) return;
+        const endsAt = new Date(lobby.endsAt).getTime();
+        const added = addedMinutes(lastEndsAtRef.current, endsAt);
+        if (added > 0 && !silent) {
+          setEvents((queue) => [
+            ...queue,
+            { key: `time-${endsAt}`, message: `평가 시간이 ${added}분 추가되었어요.`, tone: "info" },
+          ]);
+        }
+        lastEndsAtRef.current = endsAt;
+        setEndInfo(toEndInfo(lobby.endsAt, lobby.serverNow));
+      } catch {
+        /* 다음 주기에 다시 받아 옵니다. */
+      }
+    },
+    [evaluationId],
+  );
+  useEffect(() => {
+    if (!evaluationId) return;
+    void refreshEnd(true);
+    const timer = window.setInterval(() => {
+      if (!endedRef.current && document.visibilityState === "visible") void refreshEnd(false);
+    }, POLL_MS);
+    return () => window.clearInterval(timer);
+  }, [evaluationId, refreshEnd]);
+
   const current = detail?.id === selectedId ? detail : null;
-  const students = list.map((item) =>
-    toStudent(
+  const students = list.map((item) => {
+    const student = toStudent(
       item,
       item.participantId === selectedId && current
         ? { answers: current.answers, messages: current.messages }
         : undefined,
-    ),
-  );
+    );
+    // 경고 표시는 받은 직후 5초만 보여주고, 그 뒤에는 작성 중으로 되돌립니다.
+    if (student.status === "경고" && !warnedIds.includes(item.participantId)) {
+      return { ...student, status: "작성중" as const };
+    }
+    return student;
+  });
   const questions: Question[] = (current?.answers.questions ?? []).map((q) => ({
     id: q.position,
     title: q.title || `문항 ${q.position}`,
     content: q.content,
+    minChars: q.minChars,
+    maxChars: q.maxChars,
   }));
   const review = toReview(
     current?.review ?? null,
@@ -314,7 +400,7 @@ export function useGradingData(evaluationId: string | undefined) {
         setDetail((now) => (now && now.id === selectedId ? { ...now, review: previous } : now));
         if (e instanceof ApiError && e.code === "REVIEW_VERSION_CONFLICT") {
           setError("다른 곳에서 먼저 채점이 저장됐어요. 최신 내용을 다시 불러왔습니다.");
-          void loadDetail(selectedId, true);
+          void loadDetail(selectedId);
         } else if (e instanceof ApiError && e.code === "SUBMISSION_REQUIRED") {
           setError("제출한 학생만 채점할 수 있어요.");
         } else {
@@ -419,15 +505,18 @@ export function useGradingData(evaluationId: string | undefined) {
     return [];
   }, [evaluationId, selectedId, current]);
 
+  /** 평가를 종료합니다. 성공하면 true, 실패하면 오류를 화면에 띄우고 false를 돌려줍니다. */
   const finishEvaluation = useCallback(async () => {
-    if (!evaluationId) return;
+    if (!evaluationId) return false;
     try {
       await endEvaluation(evaluationId);
       setEnded(true);
       void loadList();
-      if (selectedRef.current) void loadDetail(selectedRef.current, true);
+      if (selectedRef.current) void loadDetail(selectedRef.current);
+      return true;
     } catch (e) {
       setError(apiErrorMessage(e, "평가를 종료하지 못했습니다."));
+      return false;
     }
   }, [evaluationId, loadList, loadDetail]);
 
@@ -435,8 +524,10 @@ export function useGradingData(evaluationId: string | undefined) {
     async (minutes: number) => {
       if (!evaluationId) return;
       await extendEvaluation(evaluationId, minutes);
+      // 직접 연장한 경우는 화면이 이미 알려 주므로 토스트 없이 시각만 갱신합니다.
+      await refreshEnd(true);
     },
-    [evaluationId],
+    [evaluationId, refreshEnd],
   );
 
   // 저장 창이 오류를 보여주도록 실패하면 메시지와 함께 던집니다.
@@ -494,10 +585,13 @@ export function useGradingData(evaluationId: string | undefined) {
     review: current ? review : emptyReview,
     selectedId,
     select: setSelectedId,
-    loading: loadingList || (loadingDetail && !current),
+    // 목록을 처음 불러오는 동안만 전체 로딩, 학생 전환 중에는 안쪽 내용만 로딩합니다.
+    listLoading: loadingList,
+    loading: loadingList || (Boolean(selectedId) && !current && !error),
     error,
     clearError: () => setError(""),
     events,
+    endInfo,
     dismissEvent: (key: string) =>
       setEvents((queue) => queue.filter((event) => event.key !== key)),
     ended,

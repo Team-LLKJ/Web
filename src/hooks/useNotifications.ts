@@ -8,7 +8,7 @@ import {
   type AppNotification,
 } from "../api/notifications";
 
-const POLL_MS = 30_000;
+const POLL_MS = 2_000;
 
 /** "방금 전", "5분 전", "3시간 전", "2일 전"처럼 읽기 쉬운 시간으로 바꿉니다. */
 export function formatNotificationTime(iso: string, now = Date.now()) {
@@ -65,7 +65,11 @@ export function useNotifications(enabled: boolean, onNewUnread?: () => void) {
     onNewUnreadRef.current = onNewUnread;
   });
 
+  const loadingRef = useRef(false);
   const reload = useCallback(async () => {
+    // 이전 요청이 끝나기 전에는 겹쳐 요청하지 않습니다.
+    if (loadingRef.current) return;
+    loadingRef.current = true;
     try {
       const page = await getNotifications(0, 20);
       setItems(page.items);
@@ -78,6 +82,7 @@ export function useNotifications(enabled: boolean, onNewUnread?: () => void) {
     } catch {
       setError("알림을 불러오지 못했습니다.");
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
   }, []);

@@ -58,6 +58,8 @@ export type EvaluationFolder = {
   collaboratorCount?: number;
   /** 수정 충돌 검사에 쓰는 버전. 저장할 때 그대로 돌려보냅니다. */
   revision?: number;
+  /** 평가를 만들 때 정한 풀이 시간(분). 시작할 때 이 값을 씁니다. */
+  durationMinutes?: number;
 };
 
 const toState = (state: AssessmentClass["state"]): SessionState =>
@@ -94,6 +96,7 @@ function toFolder(item: AssessmentSummary | Assessment): EvaluationFolder {
     role: item.myRole ?? item.role,
     collaboratorCount: item.collaboratorCount,
     revision: item.revision,
+    durationMinutes: detail?.durationMinutes,
   };
 }
 
@@ -132,6 +135,7 @@ export type NewFolderInput = {
   questions: QuestionInput[];
   criteria: string[];
   antiCheat: string[];
+  durationMinutes?: number;
 };
 
 export async function createFolder(input: NewFolderInput): Promise<EvaluationFolder> {

@@ -18,6 +18,8 @@ import { Toast } from "../components/teacher/Toast";
 import { Button } from "../components/ui/Button";
 import { Modal } from "../components/ui/Modal";
 import { Header } from "../components/grading/Header";
+import { DurationPicker } from "../components/teacher/DurationPicker";
+import { EvaluationControls } from "../components/ui/EvaluationControls";
 import { StudentSidebar } from "../components/grading/StudentSidebar";
 import { readStudentsWidth } from "../components/grading/sidebarWidth";
 import { SubmissionPanel } from "../components/grading/SubmissionPanel";
@@ -41,6 +43,8 @@ function TeacherGradingPage() {
   const [mockQuestion, setMockQuestion] = useState(mockQuestions[0]?.id ?? 0);
   const [liveQuestion, setLiveQuestion] = useState(1);
   const [tab, setTab] = useState("AI 대화창");
+  // 활동 탭의 기여도 범례를 눌러 답안에 줄을 쳐 보는 종류
+  const [authorMark, setAuthorMark] = useState<"student" | "ai" | "paste" | null>(null);
   const [dialog, setDialog] = useState("");
   const [extendOpen, setExtendOpen] = useState(false);
   const [extendCustom, setExtendCustom] = useState("");
@@ -68,6 +72,8 @@ function TeacherGradingPage() {
         : "이 학생은 아직 제출하지 않았어요. 제출이 확인된 뒤에 확인할 수 있어요."
       : undefined;
   const showLoading = loading || (isLive && live.loading);
+  // 학생 목록을 처음 불러올 때만 화면 전체를 로딩으로 덮고, 학생을 옮길 때는 목록을 그대로 둡니다.
+  const listLoading = loading || (isLive && live.listLoading);
   const onScore = (id: string, score: number) => {
     if (isLive) return void live.setScore(id, score);
     const key = (student as Student).id;
@@ -82,18 +88,17 @@ function TeacherGradingPage() {
     }));
   };
   const endNow = () => {
-    if (isLive) void live.finishEvaluation();
-    else setMockEnded(true);
+    if (isLive) {
+      // 종료에 성공하면 이 화면에서 나갑니다.
+      void live.finishEvaluation().then((done) => {
+        if (done) navigate("/teacher/evaluations");
+      });
+    } else setMockEnded(true);
   };
   if (!student && !showLoading) {
     return (
       <div className="app-shell grading-workspace">
-        <Header
-          ended={ended}
-          showActions={!live.error}
-          onDialog={setDialog}
-          onExtend={() => { setExtendCustom(""); setExtendOpen(true); }}
-        />
+        <Header ended={ended} />
         <div className="workspace teacher-workspace">
           {live.error ? (
             <EmptyState
@@ -119,7 +124,7 @@ function TeacherGradingPage() {
       </div>
     );
   }
-  if (showLoading) return <PageLoading layout="grading" />;
+  if (listLoading) return <PageLoading layout="grading" />;
 
   // 첫 로딩 중에는 학생이 아직 없으므로 자리표시 데이터로 스켈레톤 화면을 그립니다.
   const current: Student = student ?? {
@@ -135,7 +140,7 @@ function TeacherGradingPage() {
   };
   return (
     <div className="app-shell grading-workspace">
-      <Header ended={ended} onDialog={setDialog} onExtend={() => { setExtendCustom(""); setExtendOpen(true); }} />
+      <Header ended={ended} />
       {notice ? (
         <Toast message={notice.message} tone={notice.tone} onClose={() => setNotice(null)} />
       ) : null}
@@ -153,7 +158,7 @@ function TeacherGradingPage() {
         className="workspace teacher-workspace"
         style={{ "--students-width": `${studentsWidth}px` } as CSSProperties}
       >
-        {showLoading ? (
+        {listLoading ? (
           <StudentSidebarSkeleton />
         ) : (
           <StudentSidebar
@@ -163,6 +168,15 @@ function TeacherGradingPage() {
             onQuery={setQuery}
             width={studentsWidth}
             onWidth={setStudentsWidth}
+            top={
+              ended ? null : (
+                <EvaluationControls
+                  endInfo={isLive ? live.endInfo : null}
+                  onExtend={() => { setExtendCustom(""); setExtendOpen(true); }}
+                  onEnd={() => setDialog("평가를 종료하시겠습니까?")}
+                />
+              )
+            }
             onSelect={(index) => {
               if (isLive) {
                 live.select(students[index].id);
@@ -192,12 +206,15 @@ function TeacherGradingPage() {
                 onSaveReport={isLive ? (format) => live.downloadReport(format) : undefined}
                 onPreviewReport={isLive ? live.previewReport : undefined}
                 report={<PrintReport student={current} questions={questions} review={review} />}
+                authorMark={authorMark}
+                aiTexts={current.messages.filter((m) => m.role === "ai").map((m) => m.content)}
+                userTexts={current.messages.filter((m) => m.role === "user").map((m) => m.content)}
               />
             )
           }
           chat={
             showLoading ? (
-              <ReviewSkeleton />
+              <ReviewSkeleton tab={tab} onTab={setTab} />
             ) : (
               <ReviewPanel
                 student={current}
@@ -211,6 +228,8 @@ function TeacherGradingPage() {
                 lockedNotice={lockedNotice}
                 tab={tab}
                 onTab={setTab}
+                authorMark={authorMark}
+                onAuthorMark={setAuthorMark}
               />
             )
           }
@@ -244,18 +263,15 @@ function TeacherGradingPage() {
             }}
           >
             <p>학생들이 계속 작성할 수 있도록 남은 시간을 늘려요.</p>
-            <label className="extend-custom">
+            <div className="extend-custom">
               <span>연장할 시간</span>
-              <input
-                type="text"
-                inputMode="numeric"
-                placeholder="예) 10"
-                autoFocus
-                value={extendCustom}
-                onChange={(event) => setExtendCustom(event.target.value.replace(/\D/g, "").slice(0, 3))}
+              <DurationPicker
+                hours={Math.floor((Number(extendCustom) || 0) / 60)}
+                minutes={(Number(extendCustom) || 0) % 60}
+                disabled={extending}
+                onChange={(h, m) => setExtendCustom(String(h * 60 + m))}
               />
-              <em>분</em>
-            </label>
+            </div>
             <div className="extend-actions">
               <Button type="submit" loading={extending}>
                 연장하기

@@ -2,11 +2,14 @@ import { Link } from "react-router-dom";
 import { useScrolled } from "../../hooks/useScrolled";
 import { Button } from "../ui/Button";
 import { HeaderUtilities } from "../ui/HeaderDialogs";
+import { RemainingTime } from "../ui/RemainingTime";
+import type { EndInfo } from "../../lib/remainingTime";
 export function StudentHeader({
   submitted,
   disabledSubmit = false,
   onSubmit,
   onPolicy,
+  endInfo = null,
 }: {
   submitted: boolean;
   disabledSubmit?: boolean;
@@ -14,6 +17,8 @@ export function StudentHeader({
   onLeave?: () => void;
   onSubmit: () => void;
   onPolicy: () => void;
+  /** 풀이 종료 시각. 있으면 남은 시간을 보여 줍니다. */
+  endInfo?: EndInfo | null;
 }) {
   const scrolled = useScrolled();
   return (
@@ -26,6 +31,7 @@ export function StudentHeader({
         <img src="/lit-logo.png" width="100" height="50" alt="LIT" />
       </Link>
       <nav aria-label="학생 평가 도구">
+        {!submitted && <RemainingTime info={endInfo} />}
         <HeaderUtilities onSettings={onPolicy} />
         <Button onClick={onSubmit} disabled={submitted || disabledSubmit}>
           {submitted ? "제출 완료" : "제출하기"}

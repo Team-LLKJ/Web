@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, type ReactNode } from "react";
 import { EmptyState } from "../ui/EmptyState";
 import type { Student } from "../../data/grading";
 import { Icon } from "../ui/Icon";
@@ -20,6 +20,7 @@ export function StudentSidebar({
   onSelect,
   width = DEFAULT_STUDENTS_WIDTH,
   onWidth,
+  top,
 }: {
   students: Student[];
   student: Student;
@@ -29,6 +30,8 @@ export function StudentSidebar({
   /** 사이드바 가로 크기(px)와 바꾸는 동작. 지정하면 경계를 끌어 크기를 조절할 수 있습니다. */
   width?: number;
   onWidth?: (width: number) => void;
+  /** 목록 맨 위에 둘 내용(평가 진행 조작 등). */
+  top?: ReactNode;
 }) {
   const drag = useRef<{ x: number; width: number } | null>(null);
   const latest = useRef(width);
@@ -149,6 +152,7 @@ export function StudentSidebar({
           <EmptyState size="inline" icon="search" title="검색 결과가 없어요" />
         )}
       </div>
+      {top}
     </aside>
   );
 }

@@ -461,7 +461,7 @@ export function TeacherFolderDetailPage() {
 
       {bulkFolder && folder && (
         <BulkReportDialog
-          title={`${folder.title} 전체 보고서 저장`}
+          title="보고서 저장"
           classes={endedSessions.map((session) => ({ id: session.id, name: session.className }))}
           hwp
           onSaveAll={(format, onProgress) =>
@@ -477,7 +477,7 @@ export function TeacherFolderDetailPage() {
       )}
       {bulkTarget && (
         <BulkReportDialog
-          title={`${bulkTarget.className} 전체 보고서 저장`}
+          title="보고서 저장"
           classes={[{ id: bulkTarget.id, name: "", label: bulkTarget.className }]}
           hwp
           onSaveAll={(format, onProgress) => downloadClassReports(bulkTarget.id, format, onProgress)}

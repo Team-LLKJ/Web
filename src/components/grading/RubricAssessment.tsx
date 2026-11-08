@@ -33,7 +33,9 @@ export function RubricAssessment({
       <div className="review-cards">
         <section className="review-card summary-card">
           <h3>종합 평가</h3>
-          <p>{review.summary}</p>
+          <div className="analysis-overview">
+            <p>{review.analysisDetail?.summary?.trim() || review.summary}</p>
+          </div>
         </section>
         <section className="review-card rubric-card">
           <div className="criteria-list">

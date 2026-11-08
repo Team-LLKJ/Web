@@ -260,6 +260,9 @@ export type GradingAnswerQuestion = {
   position: number;
   title: string;
   content: string;
+  /** 글자 수 제한. 서버가 내려주면 문항 끝에 자동으로 보여 줍니다. */
+  minChars?: number | null;
+  maxChars?: number | null;
   answer: ApiAnswer | null;
 };
 export type GradingAnswers = {
@@ -329,7 +332,7 @@ export type RubricScoreAi = {
   level: number;
   score: number;
   reason: string;
-  evidence: { conversationId?: number }[];
+  evidence: { conversationId?: number; quote?: string }[];
 };
 export type RubricScoreTeacher = {
   level: number;
@@ -392,7 +395,7 @@ export type AssessmentAnalysis = {
     value: number | null;
     level: number | null;
     reason: string;
-    evidence: { conversationId?: number }[];
+    evidence: { conversationId?: number; quote?: string }[];
   }[];
   summary?: string;
   analyzedAt?: string | null;

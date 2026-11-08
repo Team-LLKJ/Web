@@ -2714,5 +2714,16 @@
 :root .student-chat.is-expanded .message.ai > p,
 :root .student-chat.is-expanded .message.ai > .message-content {
   border-color: var(--color-grey-20);
-  background: var(--color-grey-10);
+  background: var(--color-white);
+}
+
+/* 글자 수 제한 충족 여부 */
+.answer-rich-status .limit-status {
+  font-weight: var(--weight-semibold);
+}
+.answer-rich-status .limit-status[data-met="true"] {
+  color: var(--color-primary);
+}
+.answer-rich-status .limit-status[data-met="false"] {
+  color: var(--color-danger-dark);
 }
