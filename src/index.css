@@ -5,7 +5,8 @@
   font-family: var(--font-family-base);
   color: var(--color-black);
   background: var(--color-primary-background);
-  font-synthesis: none;
+  /* Pretendard에는 기울임 글꼴이 없어 기울임만 브라우저가 만들어 그립니다. */
+  font-synthesis: style;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
