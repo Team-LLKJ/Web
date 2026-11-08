@@ -98,6 +98,16 @@ export function Tabs<T extends string | number>({
     };
   }, [segment, items]);
 
+  // 마지막 탭까지 한 화면에 다 들어오는 가장 앞쪽 탭의 위치. 이보다 더 넘기면 빈 화면만 늘어나요.
+  const maxStart = (list: HTMLElement) => {
+    const tabs = [...list.querySelectorAll<HTMLElement>('[role="tab"]')];
+    const last = tabs[tabs.length - 1];
+    if (!last) return 0;
+    const end = last.offsetLeft + last.offsetWidth;
+    const first = tabs.find((tab) => end - tab.offsetLeft <= list.clientWidth);
+    return first ? first.offsetLeft : 0;
+  };
+
   // 선택한 탭이 가려져 있으면 보이는 위치로 스크롤합니다.
   useLayoutEffect(() => {
     if (!segment) return;
@@ -113,16 +123,6 @@ export function Tabs<T extends string | number>({
         behavior: "smooth",
       });
   }, [segment, value]);
-
-  // 마지막 탭까지 한 화면에 다 들어오는 가장 앞쪽 탭의 위치. 이보다 더 넘기면 빈 화면만 늘어나요.
-  const maxStart = (list: HTMLElement) => {
-    const tabs = [...list.querySelectorAll<HTMLElement>('[role="tab"]')];
-    const last = tabs[tabs.length - 1];
-    if (!last) return 0;
-    const end = last.offsetLeft + last.offsetWidth;
-    const first = tabs.find((tab) => end - tab.offsetLeft <= list.clientWidth);
-    return first ? first.offsetLeft : 0;
-  };
 
   // 탭이 중간에 잘린 채로 멈추지 않도록, 한 번에 보이는 만큼을 탭 단위로 넘깁니다.
   const scrollTabs = (direction: -1 | 1) => {
