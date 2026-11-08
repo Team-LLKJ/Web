@@ -20,7 +20,7 @@ export async function login(credentials: LoginRequest) {
   });
   if (tokens.user.role !== "TEACHER") {
     clearTokens();
-    throw new ApiError(401, "INVALID_CREDENTIALS", "아이디 또는 비밀번호를 확인해주세요.");
+    throw new ApiError(401, "INVALID_CREDENTIALS", "아이디 또는 비밀번호가 일치하지 않습니다.");
   }
   setTokens(tokens);
   return tokens.user;
