@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { PDFDocumentProxy, RenderTask } from "pdfjs-dist";
 import "./pdf-page-preview.css";
 
@@ -30,7 +30,8 @@ export function PdfPagePreview({ blob, title }: { blob: Blob; title: string }) {
           return;
         }
         setDoc(loaded);
-      } catch {
+      } catch (caught) {
+        console.error("PDF 미리보기 엔진을 불러오지 못했습니다", caught);
         if (active) setFailed(true);
       }
     })();
@@ -84,7 +85,8 @@ export function PdfPagePreview({ blob, title }: { blob: Blob; title: string }) {
     box.addEventListener("wheel", onWheel, { passive: false });
     return () => box.removeEventListener("wheel", onWheel);
   }, []);
-  if (failed) return <p className="pdf-preview-empty">미리보기를 불러오지 못했어요.</p>;
+  // 미리보기 엔진을 못 쓰는 환경(서버가 .mjs를 잘못 내려주는 경우 등)에서는 브라우저 기본 PDF 뷰어로 보여줍니다.
+  if (failed) return <FallbackViewer blob={blob} title={title} />;
   const total = doc?.numPages ?? 0;
   return (
     <div className="pdf-preview">
@@ -115,4 +117,10 @@ export function PdfPagePreview({ blob, title }: { blob: Blob; title: string }) {
       </div>
     </div>
   );
+}
+
+function FallbackViewer({ blob, title }: { blob: Blob; title: string }) {
+  const url = useMemo(() => URL.createObjectURL(blob), [blob]);
+  useEffect(() => () => URL.revokeObjectURL(url), [url]);
+  return <iframe className="pdf-preview-fallback" src={url} title={title} />;
 }
