@@ -291,16 +291,25 @@
   inherits: false;
   initial-value: 0%;
 }
+@property --donut-mid {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
 :root .grading-workspace .contribution-chart {
   width: 104px;
   height: 104px;
 }
 :root .dynamic-donut {
   background: conic-gradient(
-    var(--color-primary) var(--donut-value),
-    #52a6ff 0
+    var(--color-primary) 0 var(--donut-value),
+    #ff9500 var(--donut-value)
+      var(--donut-mid),
+    #ffcc00 var(--donut-mid) 100%
   );
-  transition: --donut-value 600ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition:
+    --donut-value 600ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    --donut-mid 600ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 :root .dynamic-donut.is-empty {
   background: var(--color-grey-10);
@@ -312,4 +321,144 @@
   :root .dynamic-donut {
     transition: none;
   }
+}
+
+/* 답안 기여도: 학생(기본 파랑)과 AI(회색)를 한눈에 구분하고 범례 글씨를 키웁니다. */
+:root .contribution-legend i {
+  background: var(--color-primary);
+}
+:root .contribution-legend i.ai-dot {
+  background: #ff9500;
+}
+:root .grading-workspace .contribution-legend p {
+  font-size: calc(var(--font-text-md) * var(--ui-scale, 0.75));
+  line-height: calc(var(--line-text-md) * var(--ui-scale, 0.75));
+  color: var(--color-grey-70);
+}
+:root .grading-workspace .contribution-legend i {
+  width: 11px;
+  height: 11px;
+}
+
+/* 기여도 범례: 눌러서 답안에 줄 표시 */
+:root .contribution-legend .legend-toggle {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 4px 8px;
+  margin: 0 0 2px -8px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  font: inherit;
+  color: var(--color-grey-70);
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+:root .contribution-legend .legend-toggle:hover {
+  background: var(--color-grey-10);
+}
+:root .contribution-legend .legend-toggle.is-on {
+  background: var(--color-primary-soft);
+  color: var(--color-grey-90);
+}
+:root .contribution-legend .legend-toggle i {
+  flex: none;
+}
+
+/* 답안에 칠하는 배경 (줄 없이 글 배경만) */
+::highlight(author-student) {
+  background-color: rgba(0, 123, 255, 0.28);
+}
+::highlight(author-ai) {
+  background-color: rgba(255, 149, 0, 0.35);
+}
+::highlight(author-paste) {
+  background-color: rgba(255, 204, 0, 0.45);
+}
+:root .contribution-legend i.paste-dot {
+  background: #ffcc00;
+}
+
+/* 도넛 호버 말풍선 */
+.donut-tip {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 10px;
+  border: 1px solid var(--color-grey-20);
+  border-radius: 8px;
+  background: var(--color-white);
+  color: var(--color-grey-90);
+  font-size: calc(var(--font-text-sm) * var(--ui-scale, 0.75));
+  line-height: 1.3;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translate(12px, 12px);
+}
+.donut-tip > span {
+  color: var(--color-grey-60);
+}
+
+/* 범례 비율 */
+:root .contribution-legend .legend-name {
+  flex: 1;
+}
+:root .contribution-legend .legend-share {
+  margin-left: 14px;
+  color: var(--color-grey-50);
+  font-variant-numeric: tabular-nums;
+}
+
+.author-mark-note {
+  margin: 0 0 8px;
+  color: var(--color-grey-50);
+  font-size: calc(var(--font-text-sm) * var(--ui-scale, 0.75));
+}
+
+/* 답안이 없거나 너무 짧아 기여도를 분석할 수 없을 때 */
+:root .grading-workspace .contribution-card--empty {
+  display: block;
+  padding: 20px 28px 24px;
+}
+:root .grading-workspace .contribution-card--empty > h3 {
+  margin-bottom: 12px;
+}
+
+/* 기여도 카드: 제목은 카드 왼쪽 위, 그 아래에 그래프와 범례 */
+:root .grading-workspace .contribution-card--titled {
+  display: block;
+}
+:root .grading-workspace .contribution-card--titled > .contribution-title {
+  margin: 0 0 14px;
+}
+:root .grading-workspace .contribution-card--titled .contribution-body {
+  display: flex;
+  align-items: center;
+  gap: 26px;
+}
+:root .grading-workspace .contribution-card--titled .contribution-legend {
+  flex: 1;
+  min-width: 0;
+}
+
+/* AI 사용 방법 분석 카드와 같은 여백·제목 간격으로 맞춤 */
+:root .grading-workspace .contribution-card--titled,
+:root .grading-workspace .contribution-card--empty {
+  padding: 15px;
+  min-height: 0;
+}
+:root .grading-workspace .contribution-card--titled > .contribution-title,
+:root .grading-workspace .contribution-card--empty > h3 {
+  margin: 0 0 15px;
+}
+
+/* 기여도 범례 글씨 크기 */
+:root .grading-workspace .contribution-legend .legend-toggle {
+  font-size: calc(var(--font-text-sm) * var(--ui-scale, 0.75) * 1.1);
+  line-height: 1.4;
 }

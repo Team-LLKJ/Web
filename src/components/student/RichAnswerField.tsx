@@ -201,7 +201,6 @@ function AnswerStatus({
     editor,
     selector: ({ editor: e }) => ({
       characters: e.storage.characterCount.characters() || 0,
-      words: e.storage.characterCount.words() || 0,
       selected: e.state.doc.textBetween(
         e.state.selection.from,
         e.state.selection.to,
@@ -209,6 +208,16 @@ function AnswerStatus({
       ).length,
     }),
   });
+  const characters = stats?.characters || 0;
+  // 글자 수 제한이 있으면 지금 글이 그 제한을 채웠는지 알려 줍니다.
+  const limit =
+    minChars || maxChars
+      ? minChars && characters < minChars
+        ? { met: false, text: `최소 ${minChars.toLocaleString()}자 (${(minChars - characters).toLocaleString()}자 부족)` }
+        : maxChars && characters > maxChars
+          ? { met: false, text: `${(characters - maxChars).toLocaleString()}자 초과` }
+          : { met: true, text: "글자 수 충족" }
+      : null;
   return (
     <div className="answer-rich-status" aria-live="polite">
       <span>
@@ -216,11 +225,16 @@ function AnswerStatus({
       </span>
       <span>
         {stats?.selected ? `선택 ${stats.selected}자 · ` : ""}
-        {minChars && (stats?.characters || 0) < minChars
-          ? `최소 ${minChars.toLocaleString()}자 · `
-          : ""}
-        {stats?.words || 0}단어 · {stats?.characters || 0} /{" "}
+        {characters.toLocaleString()} /{" "}
         {Math.min(maxChars ?? MAX_ANSWER_LENGTH, MAX_ANSWER_LENGTH).toLocaleString()}자
+        {limit && (
+          <>
+            {" · "}
+            <b className="limit-status" data-met={limit.met}>
+              {limit.text}
+            </b>
+          </>
+        )}
       </span>
     </div>
   );

@@ -1393,3 +1393,18 @@
   object-fit: cover;
   line-height: 1;
 }
+
+/* 알림: 아이콘은 세로 중앙, 시간 글자는 조금 작게 */
+.notification-item {
+  align-items: center;
+}
+.notification-item-side {
+  font-size: calc(11px + var(--font-bump));
+}
+
+/* 문항 탭(채점·학생 풀이 화면 공통): 글자와 가로 여백을 줄인 크기 */
+:root .compact-workspace .student-editor .segment-tabs button {
+  padding: 6px 18px;
+  font-size: calc(var(--font-text-lg) * var(--ui-scale, 0.75) * 0.75);
+  line-height: calc(var(--line-text-lg) * var(--ui-scale, 0.75) * 0.75);
+}

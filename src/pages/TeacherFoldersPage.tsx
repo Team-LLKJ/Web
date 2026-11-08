@@ -187,7 +187,7 @@ export function TeacherFoldersPage() {
       )}
       {bulkFolder && (
         <BulkReportDialog
-          title={`${bulkFolder.title} 전체 보고서 저장`}
+          title="보고서 저장"
           classes={bulkFolder.sessions
             .filter((session) => session.state === "ENDED")
             .map((session) => ({ id: session.id, name: session.className }))}

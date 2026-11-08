@@ -83,3 +83,14 @@
     transition: none;
   }
 }
+
+/* 학생 목록 행: 세로 여백을 넓히고 프로필 사진을 조금 키웁니다. */
+:root .grading-workspace .students .student-row {
+  padding-block: 12px;
+  min-height: 48px;
+}
+:root .grading-workspace .students .student-name > .avatar {
+  width: 25px;
+  height: 25px;
+  flex-shrink: 0;
+}

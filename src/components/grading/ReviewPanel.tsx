@@ -8,6 +8,7 @@ import { AnalysisModal } from "./AnalysisModal";
 import type { Message, Student } from "../../data/grading";
 import { Tabs } from "../ui/Tabs";
 import { ChatMessage } from "./ChatMessage";
+import { clearEvidenceMark, markEvidence } from "./highlightText";
 type Props = {
   student: Student;
   messages: Message[];
@@ -23,6 +24,9 @@ type Props = {
   onTab: (tab: string) => void;
   /** 지정하면 활동·루브릭 탭 대신 이 안내를 보여줍니다(평가 중에는 열람 불가). */
   lockedNotice?: string;
+  /** 답안에 줄을 쳐 보여주는 종류와 바꾸는 동작 */
+  authorMark?: "student" | "ai" | "paste" | null;
+  onAuthorMark?: (kind: "student" | "ai" | "paste" | null) => void;
 };
 export function ReviewPanel({
   student,
@@ -35,26 +39,39 @@ export function ReviewPanel({
   tab,
   onTab,
   lockedNotice,
+  authorMark,
+  onAuthorMark,
 }: Props) {
   const [analysisOpen, setAnalysisOpen] = useState(false);
-  const [targetConversation, setTargetConversation] = useState<number | null>(null);
+  const [target, setTarget] = useState<{ id: number; quote?: string } | null>(null);
+  const targetConversation = target?.id ?? null;
   // 평가 근거의 'AI 대화 #n' 링크: AI 대화창으로 옮겨 해당 프롬프트로 스크롤합니다.
   useEffect(() => {
     if (targetConversation === null || tab !== "AI 대화창") return;
     const frame = requestAnimationFrame(() => {
-      const nodes = document.querySelectorAll<HTMLElement>(
-        `.teacher-chat [data-message-id="${targetConversation}"]`,
-      );
-      const node = nodes[0];
+      // 대화 번호가 메시지 id와 그대로 같거나(73), 숫자 부분으로 들어 있는(turn-73, 73:user 등) 말풍선을 찾습니다.
+      const nodes = [
+        ...document.querySelectorAll<HTMLElement>(".teacher-chat [data-message-id]"),
+      ];
+      const token = new RegExp(`(^|\\D)${targetConversation}(\\D|$)`);
+      const node =
+        nodes.find((item) => item.dataset.messageId === String(targetConversation)) ??
+        nodes.find((item) => token.test(item.dataset.messageId ?? ""));
       if (node) {
         node.scrollIntoView({ block: "center", behavior: "smooth" });
         node.classList.add("message--target");
         window.setTimeout(() => node.classList.remove("message--target"), 2200);
+        // 근거가 된 문장만 형광펜처럼 표시합니다. (못 찾으면 이동만 합니다)
+        clearEvidenceMark();
+        const text = node.querySelector<HTMLElement>(".message-content, p");
+        if (text) markEvidence(text, target?.quote);
       }
-      setTargetConversation(null);
+      setTarget(null);
     });
     return () => cancelAnimationFrame(frame);
-  }, [targetConversation, tab, messages]);
+  }, [target, targetConversation, tab, messages]);
+  // 탭을 옮기거나 화면을 떠나면 형광펜 표시를 지웁니다.
+  useEffect(() => clearEvidenceMark, [tab]);
   return (
     <aside className="details" aria-label="학생 평가 자료">
       <Tabs
@@ -100,7 +117,15 @@ export function ReviewPanel({
         ) : lockedNotice ? (
           <EmptyState size="inline" icon="lock" title={`${tab} 정보는 아직 볼 수 없어요`} description={lockedNotice} />
         ) : tab === "활동" ? (
-          <ActivityAnalysis review={review} />
+          <ActivityAnalysis
+            review={review}
+            authorMark={authorMark}
+            onAuthorMark={onAuthorMark}
+            answerChars={student.answers.reduce(
+              (sum, answer) => sum + (answer.paragraphs.join("").replace(/\s/g, "").length || 0),
+              0,
+            )}
+          />
         ) : (
           <RubricAssessment
             review={review}
@@ -115,10 +140,11 @@ export function ReviewPanel({
       {analysisOpen && (
         <AnalysisModal
           review={review}
+          messages={messages}
           onClose={() => setAnalysisOpen(false)}
-          onOpenConversation={(id) => {
+          onOpenConversation={(id, quote) => {
             setAnalysisOpen(false);
-            setTargetConversation(id);
+            setTarget({ id, quote });
             onTab("AI 대화창");
           }}
         />

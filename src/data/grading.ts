@@ -1,5 +1,11 @@
 export type StudentStatus = "제출완료" | "작성중" | "경고";
-export type Question = { id: number; title: string; content: string };
+export type Question = {
+  id: number;
+  title: string;
+  content: string;
+  minChars?: number | null;
+  maxChars?: number | null;
+};
 export type Answer = {
   questionId: number;
   paragraphs: string[];

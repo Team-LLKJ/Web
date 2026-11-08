@@ -64,6 +64,8 @@ import {
   type StudentDialog,
 } from "../components/student/StudentDialogs";
 import { Skeleton, SkeletonStatus } from "../components/ui/Skeleton";
+import { Tabs } from "../components/ui/Tabs";
+import { addedMinutes, toEndInfo, type EndInfo } from "../lib/remainingTime";
 import "../components/student/student.css";
 
 // 서버 오류 코드를 학생이 이해할 수 있는 안내 문구로 바꿉니다.
@@ -162,6 +164,7 @@ export function StudentFlow({ route }: { route: string }) {
   // 선생님이 평가 시간을 늘렸을 때 학생에게 알리는 토스트입니다.
   const [timeToast, setTimeToast] = useState("");
   const lastEndsAt = useRef<number | null>(null);
+  const [endInfo, setEndInfo] = useState<EndInfo | null>(null);
   const [editorNotice, setEditorNotice] = useState("");
   const [chatNotice, setChatNotice] = useState("");
   const [preview, setPreview] = useState<Review | null>(null);
@@ -284,12 +287,10 @@ export function StudentFlow({ route }: { route: string }) {
         const screen = screenFor(next);
         if (next.endsAt) {
           const endsAt = new Date(next.endsAt).getTime();
-          const previous = lastEndsAt.current;
-          if (previous !== null && endsAt - previous >= 30000) {
-            const minutes = Math.round((endsAt - previous) / 60000);
-            setTimeToast(`선생님이 평가 시간을 ${minutes}분 늘렸어요.`);
-          }
+          const added = addedMinutes(lastEndsAt.current, endsAt);
+          if (added > 0) setTimeToast(`선생님이 평가 시간을 ${added}분 늘렸어요.`);
           lastEndsAt.current = endsAt;
+          setEndInfo(toEndInfo(next.endsAt, next.serverNow));
         }
         if (screen === "ENDED" && isSolving && !endHandled.current) {
           endHandled.current = true;
@@ -1016,12 +1017,18 @@ export function StudentFlow({ route }: { route: string }) {
         >
           <main className="student-writing">
             <section className="student-editor student-workspace-skeleton-card">
-              <div className="student-workspace-skeleton-tabs">
-                <span className="is-active" />
-                <span />
-                <span />
-                <span />
-              </div>
+              <Tabs
+                label="문항"
+                variant="segment"
+                value="overview"
+                items={[
+                  { value: "overview", label: "안내" },
+                  { value: "q1", label: "문항 1" },
+                  { value: "q2", label: "문항 2" },
+                  { value: "q3", label: "문항 3" },
+                ]}
+                onChange={() => undefined}
+              />
               <Skeleton className="student-workspace-skeleton-title" />
               <Skeleton className="student-workspace-skeleton-lead" />
               <div className="student-workspace-skeleton-block">
@@ -1107,6 +1114,7 @@ export function StudentFlow({ route }: { route: string }) {
         onLeave={() => setDialog("leave")}
         onSubmit={() => void openSubmissionPreview()}
         onPolicy={() => setDialog("policy")}
+        endInfo={endInfo}
       />
       <StudentWorkspace
         sidebarExpanded={chatExpanded}

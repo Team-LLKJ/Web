@@ -49,6 +49,7 @@ import "../components/teacher/teacher.css";
 import { avatarColor } from "../lib/avatarColor";
 import { createFolder, forgetFolder } from "../lib/evaluationFolders";
 import { getAssessment, updateAssessment } from "../api/assessments";
+import { DurationPicker } from "../components/teacher/DurationPicker";
 import { Toast } from "../components/teacher/Toast";
 
 const MAX_EXPIRES_MINUTES = 1440;
@@ -170,6 +171,10 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
         setAiPolicy(assessment.aiPolicy);
         setCriteria(assessment.criteria);
         setAntiCheat(assessment.antiCheat as AntiCheatOption[]);
+        if (assessment.durationMinutes >= 1) {
+          setExpiresHours(String(Math.floor(assessment.durationMinutes / 60)));
+          setExpiresMinutes(String(assessment.durationMinutes % 60));
+        }
         setQuestions(
           assessment.questions.length
             ? assessment.questions.map(toDraftQuestion)
@@ -254,7 +259,7 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
       return;
     const timer = window.setInterval(() => {
       void refreshLobby().catch((error) => setNotice(apiErrorMessage(error)));
-    }, 4000);
+    }, 2000);
     return () => window.clearInterval(timer);
   }, [evaluationId, evaluation?.state, refreshLobby]);
 
@@ -385,6 +390,10 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
       return;
     }
     if (folderMode) {
+      if (!validateExpiry()) {
+        setCreateStep("details");
+        return;
+      }
       if (htmlToPlainText(evaluationGuidelines).length > GUIDELINES_MAX_LENGTH) {
         setNotice(
           `평가 안내는 ${GUIDELINES_MAX_LENGTH.toLocaleString()}자까지 입력할 수 있어요.`,
@@ -401,6 +410,7 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
           questions: questions.map(toQuestionInput),
           criteria,
           antiCheat,
+          durationMinutes: expiresInMinutes,
         };
         if (editFolderId) {
           await updateAssessment(editFolderId, { ...payload, revision });
@@ -655,46 +665,26 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
                           setTitleError("");
                       }}
                     />
-                    {!folderMode && (
                     <fieldset className="teacher-expiry-field" disabled={busy}>
-                      <legend>유효 시간</legend>
+                      <legend>{folderMode ? "풀이 시간" : "유효 시간"}</legend>
                       <div
                         className="teacher-expiry-inputs"
                         data-error={!!expiresError}
                       >
-                        <label>
-                          <input
-                            type="number"
-                            inputMode="numeric"
-                            min={0}
-                            max={24}
-                            value={expiresHours}
-                            aria-label="시간"
-                            onChange={(event) =>
-                              setExpiresHours(event.target.value)
-                            }
-                          />
-                          시간
-                        </label>
-                        <label>
-                          <input
-                            type="number"
-                            inputMode="numeric"
-                            min={0}
-                            max={59}
-                            value={expiresMinutes}
-                            aria-label="분"
-                            onChange={(event) =>
-                              setExpiresMinutes(event.target.value)
-                            }
-                          />
-                          분
-                        </label>
+                        <DurationPicker
+                          hours={Number(expiresHours) || 0}
+                          minutes={Number(expiresMinutes) || 0}
+                          invalid={!!expiresError}
+                          disabled={busy}
+                          onChange={(h, m) => {
+                            setExpiresHours(String(h));
+                            setExpiresMinutes(String(m));
+                          }}
+                        />
                       </div>
                     </fieldset>
-                    )}
                   </div>
-                  {!folderMode && expiresError && (
+                  {expiresError && (
                     <p className="input-error teacher-expiry-error">
                       {expiresError}
                     </p>
