@@ -33,14 +33,19 @@ import type {
   AnswerSource,
   ApiQuestion,
   Review,
-  StudentScreen,
   Turn,
   Workspace,
 } from "../api/types";
 import { useAuth } from "../auth/useAuth";
 import {
+  clearAnswerDrafts,
   emptySession,
+  readAnswerDraft,
+  readLastQuestion,
   readSession,
+  removeAnswerDraft,
+  saveAnswerDraft,
+  saveLastQuestion,
   saveSession,
   clearSession,
   getParticipantToken,
@@ -63,6 +68,17 @@ import {
   StudentDialogs,
   type StudentDialog,
 } from "../components/student/StudentDialogs";
+import {
+  AnswerConflictDialog,
+  type AnswerConflict,
+} from "../components/student/AnswerConflictDialog";
+import { ConnectionBanner } from "../components/student/ConnectionBanner";
+import {
+  isEndedError,
+  isNetworkError,
+  screenFor,
+  type ConnectionState,
+} from "../lib/studentConnection";
 import { Skeleton, SkeletonStatus } from "../components/ui/Skeleton";
 import { Tabs } from "../components/ui/Tabs";
 import { addedMinutes, toEndInfo, type EndInfo } from "../lib/remainingTime";
@@ -83,24 +99,6 @@ function aiFailureMessage(code: string | null | undefined) {
   if (code === "HTTP_502" || code === "HTTP_503" || code === "HTTP_504")
     return "AI 서버와 연결하지 못했어요. 잠시 후 다시 질문해 주세요.";
   return "AI 응답을 완료하지 못했어요. 잠시 후 다시 질문해 주세요.";
-}
-
-function screenFor(lobby: {
-  screen?: StudentScreen;
-  state: string;
-}): StudentScreen {
-  if (lobby.screen) return lobby.screen;
-  if (lobby.state === "WAITING") return "WAITING";
-  if (lobby.state === "STARTED") return "SOLVING";
-  return "ENDED";
-}
-
-// 서버가 평가 종료·만료로 요청을 거절한 경우인지 확인합니다.
-function isEndedError(error: unknown) {
-  return (
-    error instanceof ApiError &&
-    (error.status === 410 || /ENDED|EXPIRED|CLOSED/.test(error.code))
-  );
 }
 
 function toChatMessages(turns: Turn[]): Message[] {
@@ -137,6 +135,7 @@ function upsertTurn(current: Turn[], next: Turn) {
 }
 
 const AUTOSAVE_DELAY_MS = 3000;
+const RESTORED_BANNER_MS = 2500;
 const pause = (duration: number) =>
   new Promise((resolve) => window.setTimeout(resolve, duration));
 
@@ -178,6 +177,17 @@ export function StudentFlow({ route }: { route: string }) {
   // 제출 창에서 적는 AI 사용 기록(선택). saved는 서버에 저장된 값과 비교해 바뀐 경우에만 저장하려고 둡니다.
   const [disclosure, setDisclosure] = useState({ tools: "", usedParts: "", reason: "" });
   const savedDisclosure = useRef({ tools: "", usedParts: "", reason: "" });
+  const [connection, setConnection] = useState<ConnectionState>("online");
+  const connectionLost = useRef(false);
+  const [reloadKey, setReloadKey] = useState(0);
+  const [conflicts, setConflicts] = useState<AnswerConflict[]>([]);
+  const [draftFailed, setDraftFailed] = useState(false);
+  const [editorRevision, setEditorRevision] = useState(0);
+  const [startOnQuestion, setStartOnQuestion] = useState(false);
+  const answersRef = useRef(answers);
+  useEffect(() => {
+    answersRef.current = answers;
+  });
 
   const isSolving = route === "/student/solve";
   const isWaiting = route === "/student/wait";
@@ -194,6 +204,16 @@ export function StudentFlow({ route }: { route: string }) {
     setSession(next);
     saveSession(next);
   }
+
+  const markConnectionLost = useCallback(() => {
+    connectionLost.current = true;
+    setConnection("offline");
+  }, []);
+  const markConnectionAlive = useCallback(() => {
+    if (!connectionLost.current) return;
+    connectionLost.current = false;
+    setConnection("restored");
+  }, []);
 
   const redirectForParticipantAuthError = useCallback(
     (error: unknown) => {
@@ -284,6 +304,7 @@ export function StudentFlow({ route }: { route: string }) {
       try {
         const next = await getStudentState(session.evaluationId);
         if (!active) return;
+        markConnectionAlive();
         const screen = screenFor(next);
         if (next.endsAt) {
           const endsAt = new Date(next.endsAt).getTime();
@@ -307,10 +328,18 @@ export function StudentFlow({ route }: { route: string }) {
             endHandled.current = true;
             void forceEndRef.current();
           }
+        } else if (active && isNetworkError(error)) {
+          markConnectionLost();
         } else if (active && !redirectForParticipantAuthError(error))
           setNotice(apiErrorMessage(error, "평가 상태를 불러오지 못했습니다."));
       }
     };
+    const handleOnline = () => {
+      if (connectionLost.current) setConnection("reconnecting");
+      void syncState();
+    };
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", markConnectionLost);
     void syncState();
     const stateTimer = window.setInterval(() => void syncState(), 4000);
     const heartbeatTimer = window.setInterval(() => {
@@ -320,6 +349,8 @@ export function StudentFlow({ route }: { route: string }) {
             endHandled.current = true;
             void forceEndRef.current();
           }
+        } else if (active && isNetworkError(error)) {
+          markConnectionLost();
         } else if (active && !redirectForParticipantAuthError(error))
           setNotice(apiErrorMessage(error, "연결 상태를 갱신하지 못했습니다."));
       });
@@ -328,6 +359,8 @@ export function StudentFlow({ route }: { route: string }) {
       active = false;
       window.clearInterval(stateTimer);
       window.clearInterval(heartbeatTimer);
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", markConnectionLost);
     };
   }, [
     isWaiting,
@@ -335,7 +368,21 @@ export function StudentFlow({ route }: { route: string }) {
     session.evaluationId,
     navigate,
     redirectForParticipantAuthError,
+    markConnectionAlive,
+    markConnectionLost,
   ]);
+
+  // 다시 연결되면 안내를 잠시 보여주고, 못 불러온 평가 정보가 있으면 다시 불러옵니다. 답안 저장은 자동 저장이 이어받습니다.
+  const workspaceMissing = !workspace;
+  useEffect(() => {
+    if (connection !== "restored") return;
+    if (workspaceMissing) setReloadKey((current) => current + 1);
+    const timer = window.setTimeout(
+      () => setConnection("online"),
+      RESTORED_BANNER_MS,
+    );
+    return () => window.clearTimeout(timer);
+  }, [connection, workspaceMissing]);
 
   useEffect(() => {
     if (!isSolving || !session.evaluationId) return;
@@ -359,14 +406,36 @@ export function StudentFlow({ route }: { route: string }) {
         );
         setWorkspace(loaded);
         setQuestions(ordered.map((row) => row.question));
-        setAnswers(
-          Object.fromEntries(
-            ordered.map(({ question, answer }) => [
-              question.id,
-              answer.content,
-            ]),
-          ),
-        );
+        // 이 브라우저에 보관한 초안을 서버 답안과 맞춰 봅니다.
+        const nextAnswers: Record<string, string> = {};
+        const nextDirty: Record<string, boolean> = {};
+        const nextConflicts: AnswerConflict[] = [];
+        if (loaded.readOnly) clearAnswerDrafts(session.evaluationId);
+        for (const { question, answer } of ordered) {
+          nextAnswers[question.id] = answer.content;
+          const draft = loaded.readOnly
+            ? null
+            : readAnswerDraft(session.evaluationId, question.id);
+          if (!draft) continue;
+          if (draft.content === answer.content) {
+            removeAnswerDraft(session.evaluationId, question.id);
+          } else if (draft.baseVersion === answer.version) {
+            nextAnswers[question.id] = draft.content;
+            nextDirty[question.id] = true;
+          } else {
+            nextConflicts.push({
+              questionId: question.id,
+              title: question.title,
+              local: draft.content,
+              server: answer.content,
+              version: answer.version,
+            });
+          }
+        }
+        setAnswers(nextAnswers);
+        setConflicts(nextConflicts);
+        if (Object.keys(nextDirty).length)
+          setTimeToast("이 브라우저에 보관한 작성 내용을 복원했어요.");
         setVersions(
           Object.fromEntries(
             ordered.map(({ question, answer }) => [
@@ -375,11 +444,18 @@ export function StudentFlow({ route }: { route: string }) {
             ]),
           ),
         );
-        setDirtyAnswers({});
+        setDirtyAnswers(nextDirty);
+        const lastQuestion = readLastQuestion(session.evaluationId);
+        const resumable = ordered.some(
+          (row) => row.question.id === lastQuestion,
+        );
+        setStartOnQuestion(resumable);
         setQuestionId((current) =>
           current && ordered.some((row) => row.question.id === current)
             ? current
-            : (ordered[0]?.question.id ?? ""),
+            : resumable && lastQuestion
+              ? lastQuestion
+              : (ordered[0]?.question.id ?? ""),
         );
 
         try {
@@ -417,7 +493,8 @@ export function StudentFlow({ route }: { route: string }) {
           }
         }
       } catch (error) {
-        if (active && !redirectForParticipantAuthError(error))
+        if (active && isNetworkError(error)) markConnectionLost();
+        else if (active && !redirectForParticipantAuthError(error))
           setNotice(apiErrorMessage(error, "문항을 불러오지 못했습니다."));
       } finally {
         if (active) setLoadingWorkspace(false);
@@ -426,7 +503,13 @@ export function StudentFlow({ route }: { route: string }) {
     return () => {
       active = false;
     };
-  }, [isSolving, session.evaluationId, redirectForParticipantAuthError]);
+  }, [
+    isSolving,
+    session.evaluationId,
+    redirectForParticipantAuthError,
+    markConnectionLost,
+    reloadKey,
+  ]);
 
   useEffect(() => {
     if (!isSolving || !session.evaluationId || !questionId) return;
@@ -455,7 +538,8 @@ export function StudentFlow({ route }: { route: string }) {
         }));
       })
       .catch((error) => {
-        if (active)
+        if (active && isNetworkError(error)) markConnectionLost();
+        else if (active)
           setChatNotice(
             apiErrorMessage(error, "문항을 불러오지 못했습니다."),
           );
@@ -463,7 +547,7 @@ export function StudentFlow({ route }: { route: string }) {
     return () => {
       active = false;
     };
-  }, [isSolving, session.evaluationId, questionId]);
+  }, [isSolving, session.evaluationId, questionId, markConnectionLost]);
 
   // AI 대화창은 모든 문항이 하나를 함께 쓰므로, 문항을 바꿔도 초기화되지 않게 전체 기록을 한 번만 불러온다.
   useEffect(() => {
@@ -485,7 +569,8 @@ export function StudentFlow({ route }: { route: string }) {
       if (active) setTurns(all);
     })()
       .catch((error) => {
-        if (active)
+        if (active && isNetworkError(error)) markConnectionLost();
+        else if (active)
           setChatNotice(
             apiErrorMessage(error, "대화 기록을 불러오지 못했습니다."),
           );
@@ -496,7 +581,7 @@ export function StudentFlow({ route }: { route: string }) {
     return () => {
       active = false;
     };
-  }, [isSolving, session.evaluationId]);
+  }, [isSolving, session.evaluationId, markConnectionLost, reloadKey]);
 
   useEffect(() => {
     questionIdRef.current = questionId;
@@ -556,24 +641,31 @@ export function StudentFlow({ route }: { route: string }) {
   useEffect(() => {
     saveLatest.current = saveAnswer;
   });
-  const currentDirty = Boolean(questionId && dirtyAnswers[questionId]);
+  // 지금 문항을 먼저 저장하고, 끊긴 동안 쌓이거나 복원한 다른 문항도 이어서 저장합니다.
+  const dirtyQuestionId =
+    questionId && dirtyAnswers[questionId]
+      ? questionId
+      : (Object.keys(dirtyAnswers).find((id) => dirtyAnswers[id]) ?? "");
   const currentContent = questionId ? answers[questionId] : undefined;
+  const hasConflict = conflicts.length > 0;
+  const connected = connection === "online" || connection === "restored";
   useEffect(() => {
-    if (!isSolving || readOnly || !questionId || !currentDirty) return;
+    if (!isSolving || readOnly || !dirtyQuestionId || !connected) return;
     // After a save error or version conflict, wait for the next edit instead of retrying blindly.
-    if (savingQuestionId === questionId || editorNotice) return;
+    if (savingQuestionId || editorNotice || hasConflict) return;
     const timer = window.setTimeout(() => {
-      void saveLatest.current(questionId);
+      void saveLatest.current(dirtyQuestionId);
     }, AUTOSAVE_DELAY_MS);
     return () => window.clearTimeout(timer);
   }, [
     isSolving,
     readOnly,
-    questionId,
-    currentDirty,
+    dirtyQuestionId,
     currentContent,
     savingQuestionId,
     editorNotice,
+    hasConflict,
+    connected,
   ]);
 
   async function saveAnswer(id: string): Promise<boolean> {
@@ -591,9 +683,10 @@ export function StudentFlow({ route }: { route: string }) {
     }
     setSavingQuestionId(id);
     setEditorNotice("");
+    const content = answers[id] ?? currentAnswer?.content ?? "";
     try {
       const saved = await saveStudentAnswer(session.evaluationId, id, {
-        content: answers[id] ?? currentAnswer?.content ?? "",
+        content,
         expectedVersion: versions[id] ?? currentAnswer?.version ?? 0,
         source,
         aiRequestId: source === "DIRECT" ? null : aiRequestId,
@@ -609,10 +702,22 @@ export function StudentFlow({ route }: { route: string }) {
             }
           : current,
       );
-      setDirtyAnswers((current) => ({ ...current, [id]: false }));
+      // 저장하는 동안 더 입력했다면 그 내용은 초안에 남기고 다음 자동 저장에 맡깁니다.
+      const latestContent = answersRef.current[id] ?? content;
+      if (latestContent === content) {
+        removeAnswerDraft(session.evaluationId, id);
+        setDirtyAnswers((current) => ({ ...current, [id]: false }));
+      } else {
+        saveAnswerDraft(session.evaluationId, id, {
+          content: latestContent,
+          baseVersion: saved.version,
+        });
+      }
       return true;
     } catch (error) {
-      if (
+      if (isNetworkError(error)) {
+        markConnectionLost();
+      } else if (
         error instanceof ApiError &&
         error.code === "ANSWER_VERSION_CONFLICT"
       ) {
@@ -634,9 +739,23 @@ export function StudentFlow({ route }: { route: string }) {
                 }
               : current,
           );
-          setEditorNotice(
-            "서버의 답안이 바뀌었습니다. 현재 입력을 확인한 뒤 다시 저장해주세요.",
-          );
+          if (latest.content === content) {
+            removeAnswerDraft(session.evaluationId, id);
+            setDirtyAnswers((current) => ({ ...current, [id]: false }));
+            return true;
+          }
+          setConflicts((current) => [
+            ...current.filter((item) => item.questionId !== id),
+            {
+              questionId: id,
+              title:
+                questions.find((question) => question.id === id)?.title ??
+                "이 문항",
+              local: content,
+              server: latest.content,
+              version: latest.version,
+            },
+          ]);
         } catch {
           setEditorNotice(apiErrorMessage(error));
         }
@@ -647,6 +766,24 @@ export function StudentFlow({ route }: { route: string }) {
     } finally {
       setSavingQuestionId("");
     }
+  }
+
+  function resolveConflict(useLocal: boolean) {
+    const conflict = conflicts[0];
+    if (!conflict) return;
+    const { questionId: id, version } = conflict;
+    const content = useLocal ? conflict.local : conflict.server;
+    setAnswers((current) => ({ ...current, [id]: content }));
+    setVersions((current) => ({ ...current, [id]: version }));
+    setDirtyAnswers((current) => ({ ...current, [id]: useLocal }));
+    if (useLocal)
+      saveAnswerDraft(session.evaluationId, id, {
+        content,
+        baseVersion: version,
+      });
+    else removeAnswerDraft(session.evaluationId, id);
+    setEditorRevision((current) => current + 1);
+    setConflicts((current) => current.slice(1));
   }
 
   // 제한시간 종료: 답안 수정을 막고, 마지막 답안을 저장·제출한 뒤 평가에서 내보낸다.
@@ -689,8 +826,15 @@ export function StudentFlow({ route }: { route: string }) {
   }, [session.evaluationId]);
 
   async function selectQuestion(nextId: string) {
+    saveLastQuestion(session.evaluationId, nextId);
     if (nextId === questionId) return;
-    if (questionId && !(await saveAnswer(questionId))) return;
+    // 연결이 끊겼을 때는 초안이 남아 있으니 문항 이동을 막지 않습니다.
+    if (
+      questionId &&
+      !(await saveAnswer(questionId)) &&
+      !connectionLost.current
+    )
+      return;
     setQuestionId(nextId);
     setChatNotice("");
   }
@@ -780,7 +924,13 @@ export function StudentFlow({ route }: { route: string }) {
   async function openSubmissionPreview() {
     if (!session.evaluationId) return;
     setDialogError("");
-    if (questionId && !(await saveAnswer(questionId))) return;
+    if (!connected) {
+      setNotice("연결이 끊겨 제출할 수 없어요. 다시 연결되면 제출해주세요.");
+      setDialog("notice");
+      return;
+    }
+    for (const id of questions.map((item) => item.id))
+      if (!(await saveAnswer(id))) return;
     for (const [index, item] of questions.entries()) {
       if (!item.minChars) continue;
       const length = htmlToPlainText(answers[item.id] ?? "").replace(/\n/g, "").length;
@@ -907,11 +1057,17 @@ export function StudentFlow({ route }: { route: string }) {
 
   if (route === "/student/wait") {
     return (
-      <WaitingRoom
-        nickname={session.nickname || user?.name || "학생"}
-        onLeave={() => setDialog("leave")}
-        notice={notice}
-      />
+      <>
+        <ConnectionBanner
+          state={connection}
+          offlineMessage="연결이 끊겼어요. 다시 연결을 시도하고 있습니다."
+        />
+        <WaitingRoom
+          nickname={session.nickname || user?.name || "학생"}
+          onLeave={() => setDialog("leave")}
+          notice={notice}
+        />
+      </>
     );
   }
 
@@ -957,6 +1113,14 @@ export function StudentFlow({ route }: { route: string }) {
             initialPin={queryPin || session.pin}
             onJoin={async (pin) => {
               const evaluation = await verifyPin(pin);
+              // 참가 중인 평가의 PIN을 다시 넣으면 새로 참가하지 않고 작성하던 곳으로 돌아갑니다.
+              if (
+                evaluation.id === session.evaluationId &&
+                getParticipantToken(evaluation.id)
+              ) {
+                navigate("/student/solve", { replace: true });
+                return;
+              }
               clearSession();
               updateSession({
                 ...emptySession,
@@ -1080,7 +1244,11 @@ export function StudentFlow({ route }: { route: string }) {
   if (!workspace)
     return (
       <main className="student-workspace-loading" role="alert">
-        {notice || "평가 정보를 불러오지 못했습니다."}
+        {connection === "offline"
+          ? "연결이 끊겼어요. 다시 연결되면 평가 정보를 자동으로 불러옵니다."
+          : connection === "reconnecting"
+            ? "다시 연결 중…"
+            : notice || "평가 정보를 불러오지 못했습니다."}
         <button type="button" onClick={() => navigate("/student/join")}>
           PIN 입력으로 돌아가기
         </button>
@@ -1130,12 +1298,24 @@ export function StudentFlow({ route }: { route: string }) {
               answers={answers}
               readOnly={readOnly}
               savingQuestionId={savingQuestionId}
-              notice={editorNotice}
+              notice={
+                connection === "offline"
+                  ? "연결되면 자동으로 저장돼요."
+                  : editorNotice
+              }
+              startOnQuestion={startOnQuestion}
+              contentRevision={editorRevision}
               onQuestion={(id) => void selectQuestion(id)}
               onAnswer={(id, text) => {
                 setAnswers((current) => ({ ...current, [id]: text }));
                 setDirtyAnswers((current) => ({ ...current, [id]: true }));
                 setEditorNotice("");
+                setDraftFailed(
+                  !saveAnswerDraft(session.evaluationId, id, {
+                    content: text,
+                    baseVersion: versions[id] ?? 0,
+                  }),
+                );
               }}
               onSave={(id) => void saveAnswer(id)}
             />
@@ -1149,19 +1329,37 @@ export function StudentFlow({ route }: { route: string }) {
             messages={messages}
             loadingHistory={loadingHistory}
             aiPolicy={workspace.aiPolicy}
-            disabled={readOnly || workspace.aiPolicy === "DISABLED"}
+            disabled={
+              readOnly || workspace.aiPolicy === "DISABLED" || !connected
+            }
             busy={aiBusy}
             notice={
               readOnly
                 ? "제출 또는 평가 종료 후에는 AI 질문을 할 수 없습니다."
                 : workspace.aiPolicy === "DISABLED"
                   ? "이 평가에서는 AI 사용이 허용되지 않았습니다."
-                  : chatNotice
+                  : !connected
+                    ? "연결이 끊겨 AI에게 질문할 수 없어요. 다시 연결되면 질문해주세요."
+                    : chatNotice
             }
             onSend={(text) => void sendAiQuestion(text)}
           />
         }
       />
+      <ConnectionBanner
+        state={connection}
+        offlineMessage={
+          draftFailed
+            ? "연결이 끊겼어요. 작성 내용을 보관하지 못했으니 이 창을 닫지 말아주세요."
+            : "연결이 끊겼어요. 작성 내용을 보관하고 있습니다."
+        }
+      />
+      {!readOnly && !dialog && conflicts[0] && (
+        <AnswerConflictDialog
+          conflict={conflicts[0]}
+          onResolve={resolveConflict}
+        />
+      )}
       <Toast message={timeToast} tone="info" onClose={() => setTimeToast("")} />
       {notice && (
         <p className="student-runtime-notice" role="status">
