@@ -3,15 +3,30 @@ import { Link, useNavigate } from "react-router-dom";
 import { confirmPasswordReset } from "../api/auth";
 import { apiErrorMessage } from "../api/client";
 import { AuthLayout } from "../components/auth/AuthLayout";
+import { PasswordVisibilityButton } from "../components/auth/PasswordVisibilityButton";
 import { Button } from "../components/ui/Button";
 import { TextInput } from "../components/ui/TextInput";
+import {
+  NEW_PASSWORD_HINT,
+  NEW_PASSWORD_MAX,
+  PASSWORD_MIN,
+  checkNewPassword,
+} from "../lib/passwordRules";
 
 export function PasswordResetPage() {
   const token = useMemo(() => new URLSearchParams(window.location.hash.slice(1)).get("token") ?? "", []);
   const [password, setPassword] = useState("");
   const [confirmation, setConfirmation] = useState("");
-  const [notice, setNotice] = useState("");
+  const [notice, setNoticeText] = useState("");
+  // 실패 문구만 빨간색으로 보여주고, 변경 완료 안내는 기본 색으로 둡니다.
+  const [noticeIsError, setNoticeIsError] = useState(true);
+  const setNotice = (message: string, isError = true) => {
+    setNoticeText(message);
+    setNoticeIsError(isError);
+  };
   const [busy, setBusy] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const navigate = useNavigate();
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -21,8 +36,9 @@ export function PasswordResetPage() {
       setNotice("메일에 있는 재설정 링크를 다시 열어주세요.");
       return;
     }
-    if (password.length < 10 || password.length > 128 || /\s/.test(password)) {
-      setNotice("비밀번호는 공백 없이 10~128자로 입력해주세요.");
+    const passwordProblem = checkNewPassword(password);
+    if (passwordProblem) {
+      setNotice(passwordProblem);
       return;
     }
     if (password !== confirmation) {
@@ -32,7 +48,7 @@ export function PasswordResetPage() {
     setBusy(true);
     try {
       const result = await confirmPasswordReset(token, password);
-      setNotice(result.message);
+      setNotice(result.message, false);
       window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
       setTimeout(() => navigate("/login", { replace: true, state: { notice: result.message } }), 900);
     } catch (error) {
@@ -47,12 +63,39 @@ export function PasswordResetPage() {
       <form className="auth-form" noValidate onSubmit={(event) => void submit(event)}>
         <h1>새 비밀번호 설정</h1>
         <div className="auth-fields">
-          <TextInput label="새 비밀번호" type="password" autoComplete="new-password" minLength={10} maxLength={128} value={password} disabled={busy} onChange={(event) => { setPassword(event.target.value); setNotice(""); }} />
-          <TextInput label="새 비밀번호 확인" type="password" autoComplete="new-password" maxLength={128} value={confirmation} disabled={busy} onChange={(event) => { setConfirmation(event.target.value); setNotice(""); }} />
+          <TextInput
+            label="새 비밀번호"
+            floatingLabel
+            variant="under-bar"
+            placeholder={NEW_PASSWORD_HINT}
+            type={showPassword ? "text" : "password"}
+            autoComplete="new-password"
+            minLength={PASSWORD_MIN}
+            maxLength={NEW_PASSWORD_MAX}
+            value={password}
+            disabled={busy}
+            onChange={(event) => { setPassword(event.target.value); setNotice(""); }}
+            trailingAction={<PasswordVisibilityButton visible={showPassword} onToggle={() => setShowPassword((visible) => !visible)} />}
+          />
+          <TextInput
+            label="새 비밀번호 확인"
+            floatingLabel
+            variant="under-bar"
+            placeholder="새 비밀번호 확인"
+            type={showConfirmation ? "text" : "password"}
+            autoComplete="new-password"
+            maxLength={NEW_PASSWORD_MAX}
+            value={confirmation}
+            disabled={busy}
+            onChange={(event) => { setConfirmation(event.target.value); setNotice(""); }}
+            trailingAction={<PasswordVisibilityButton visible={showConfirmation} onToggle={() => setShowConfirmation((visible) => !visible)} />}
+          />
         </div>
         <div className="auth-submit">
-          <Button type="submit" loading={busy}>{busy ? "변경 중…" : "비밀번호 변경"}</Button>
-          {notice && <p className="auth-notice" role="status">{notice}</p>}
+          <div className="auth-submit-actions">
+            <Button type="submit" size="large" loading={busy}>{busy ? "변경 중…" : "비밀번호 변경"}</Button>
+          </div>
+          {notice && <p className={`auth-notice${noticeIsError ? " auth-notice--error" : ""}`} role="status">{notice}</p>}
           {!token && <Link className="reset-retry-link" to="/login">로그인으로 돌아가기</Link>}
         </div>
       </form>

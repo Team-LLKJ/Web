@@ -4,7 +4,14 @@ import { checkUsernameAvailable, confirmEmailVerification, sendEmailVerification
 import type { LoginRequest, TeacherSignup } from "../../api/types";
 import { Button } from "../ui/Button";
 import { PasswordResetRequest } from "./PasswordResetRequest";
-import { checkNewPassword, checkPasswordFormat } from "../../lib/passwordRules";
+import { PasswordVisibilityButton } from "./PasswordVisibilityButton";
+import {
+  NEW_PASSWORD_HINT,
+  NEW_PASSWORD_MAX,
+  PASSWORD_MAX,
+  checkNewPassword,
+  checkPasswordFormat,
+} from "../../lib/passwordRules";
 import { TextInput } from "../ui/TextInput";
 import "./auth-email.css";
 import { SignupConsent } from "./SignupConsent";
@@ -160,6 +167,13 @@ export function AuthForm({ mode, onSubmit }: Props) {
       showFieldError("name", "이름을 50자 이내로 입력해주세요.");
       return;
     }
+    // 가입 요청 직전에도 비밀번호 규칙을 한 번 더 확인합니다.
+    const passwordProblem = checkNewPassword(password);
+    if (passwordProblem) {
+      setStep(1);
+      showFieldError("password", passwordProblem);
+      return;
+    }
     const payload: TeacherSignup = {
       username: username.trim(),
       password,
@@ -302,41 +316,21 @@ export function AuthForm({ mode, onSubmit }: Props) {
             floatingLabel
             variant="under-bar"
             type={showPassword ? "text" : "password"}
-            placeholder="비밀번호"
+            placeholder={isLogin ? "비밀번호" : NEW_PASSWORD_HINT}
             autoComplete={isLogin ? "current-password" : "new-password"}
-            maxLength={128}
+            maxLength={isLogin ? PASSWORD_MAX : NEW_PASSWORD_MAX}
             error={errorFor("password")}
             {...(isLogin ? {} : { value: password })}
             {...(isLogin ? { className: password ? "text-input-field--filled" : "" } : {})}
             required
             disabled={busy}
             onChange={(event) => { setPassword(event.target.value); setNotice(""); }}
-            trailingAction={(
-              <button
-                className="auth-input-action auth-password-action"
-                type="button"
-                aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 표시"}
-                aria-pressed={showPassword}
-                onMouseDown={(event) => event.preventDefault()}
-                onClick={() => setShowPassword((visible) => !visible)}
-              >
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  {showPassword ? (
-                    <>
-                      <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" />
-                      <circle cx="12" cy="12" r="3" />
-                    </>
-                  ) : (
-                    <>
-                      <path d="m3 3 18 18" />
-                      <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" />
-                      <path d="M9.9 5.1A11.5 11.5 0 0 1 12 5c6.4 0 10 7 10 7a14.7 14.7 0 0 1-3.3 4.1" />
-                      <path d="M6.6 6.6C3.7 8.3 2 12 2 12s3.6 7 10 7a10.4 10.4 0 0 0 4.1-.8" />
-                    </>
-                  )}
-                </svg>
-              </button>
-            )}
+            trailingAction={
+              <PasswordVisibilityButton
+                visible={showPassword}
+                onToggle={() => setShowPassword((visible) => !visible)}
+              />
+            }
           />
         </div>
         {isLogin && <PasswordResetRequest />}
@@ -432,7 +426,7 @@ export function AuthForm({ mode, onSubmit }: Props) {
             {isLogin ? "로그인" : signupStep === 1 ? "다음" : "회원가입"}
           </Button>
         </div>
-        {notice && <p className="auth-notice" role="alert">{notice}</p>}
+        {notice && <p className={`auth-notice${isLogin ? " auth-notice--error" : ""}`} role="alert">{notice}</p>}
       </div>
     </form>
   );

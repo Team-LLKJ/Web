@@ -4,7 +4,12 @@ import { apiErrorMessage } from "../../api/client";
 import { Button } from "../ui/Button";
 import { Modal } from "../ui/Modal";
 import { TextInput } from "../ui/TextInput";
-import { PASSWORD_MAX, checkNewPassword } from "../../lib/passwordRules";
+import {
+  NEW_PASSWORD_HINT,
+  NEW_PASSWORD_MAX,
+  PASSWORD_MAX,
+  checkNewPassword,
+} from "../../lib/passwordRules";
 
 /** 설정 화면의 비밀번호 변경(선생님 전용). 이름 수정은 계정 정보 카드에서 합니다. */
 export function AccountSettings() {
@@ -131,11 +136,11 @@ export function AccountSettings() {
               }}
             />
             <TextInput
-              label="새 비밀번호 (10자 이상, 영문·숫자 포함)"
+              label={`새 비밀번호 (${NEW_PASSWORD_HINT})`}
               type="password"
               autoComplete="new-password"
               value={next}
-              maxLength={PASSWORD_MAX}
+              maxLength={NEW_PASSWORD_MAX}
               error={errorFor("next")}
               onChange={(event) => {
                 setNext(event.target.value);
@@ -147,7 +152,7 @@ export function AccountSettings() {
               type="password"
               autoComplete="new-password"
               value={confirm}
-              maxLength={PASSWORD_MAX}
+              maxLength={NEW_PASSWORD_MAX}
               error={errorFor("confirm")}
               onChange={(event) => {
                 setConfirm(event.target.value);
