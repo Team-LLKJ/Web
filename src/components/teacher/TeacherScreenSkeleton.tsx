@@ -13,6 +13,7 @@ import { StudentWorkspace } from "../student/StudentWorkspace";
 import { RichTextEditor } from "./RichTextEditor";
 import { TextInput } from "../ui/TextInput";
 import { Skeleton } from "../ui/Skeleton";
+import { DownloadIcon } from "./folderIcons";
 import { ClassEvaluationSkeleton } from "./ClassEvaluationSection";
 import { isSharedFolderId } from "../../lib/sharedFolders";
 import { evaluationCriteria } from "../../data/landing";
@@ -92,6 +93,10 @@ function Folder() {
               <path d="M19 8v6M16 11h6" />
             </svg>
             공유
+          </span>
+          <span className="folder-action">
+            <DownloadIcon />
+            전체 저장
           </span>
           <span className="folder-action">
             <svg
