@@ -22,8 +22,11 @@ export function PdfPagePreview({ blob, title }: { blob: Blob; title: string }) {
     (async () => {
       try {
         const pdfjs = await import("pdfjs-dist");
-        const worker = (await import("pdfjs-dist/build/pdf.worker.min.mjs?url")).default;
-        pdfjs.GlobalWorkerOptions.workerSrc = worker;
+        // 워커를 .js 파일로 묶어 쓴다(배포 서버가 .mjs를 JS로 내려주지 않아도 동작).
+        if (!pdfjs.GlobalWorkerOptions.workerPort) {
+          const { default: PdfWorker } = await import("pdfjs-dist/build/pdf.worker.min.mjs?worker");
+          pdfjs.GlobalWorkerOptions.workerPort = new PdfWorker();
+        }
         loaded = await pdfjs.getDocument({ data: new Uint8Array(await blob.arrayBuffer()) }).promise;
         if (!active) {
           void loaded.destroy();
