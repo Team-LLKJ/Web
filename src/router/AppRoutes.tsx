@@ -1,29 +1,41 @@
+import { lazy, Suspense } from "react";
 import { LandingPage } from "../pages/LandingPage";
 import { LoginPage } from "../pages/LoginPage";
-import { SignupPage } from "../pages/SignupPage";
-import { Navigate, Route, Routes } from "react-router-dom";
-import { TeacherEvaluationPage } from "../pages/TeacherEvaluationPage";
-import { TeacherEvaluationEditPage } from "../pages/TeacherEvaluationEditPage";
-import TeacherGradingPage from "../pages/TeacherGradingPage";
-import { TeacherResultsPage } from "../pages/TeacherResultsPage";
-import { TeacherFoldersPage } from "../pages/TeacherFoldersPage";
-import { TeacherClassLobbyPage } from "../pages/TeacherClassLobbyPage";
-import { TeacherFolderDetailPage } from "../pages/TeacherFolderDetailPage";
-import { PasswordResetPage } from "../pages/PasswordResetPage";
-import { StudentFlow } from "../pages/StudentFlow";
-import { ViewIndex } from "../pages/ViewIndex";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { NotFoundPage } from "../pages/NotFoundPage";
-import { StudentDonePage } from "../pages/StudentDonePage";
-import {
-  NotificationsPage,
-  PrivacyPage,
-  SettingsPage,
-  TermsPage,
-} from "../pages/InfoPages";
 import { paths } from "./paths";
+import { PageLoading } from "../components/ui/PageLoading";
+import { getLoadingLayout } from "../components/ui/loadingLayout";
 import { RequireAuth } from "./RequireAuth";
+
+// 화면별로 코드를 나눠, 처음 열 때 필요한 화면만 받습니다.
+const TeacherEvaluationPage = lazy(() => import("../pages/TeacherEvaluationPage").then((m) => ({ default: m.TeacherEvaluationPage })));
+const TeacherEvaluationEditPage = lazy(() => import("../pages/TeacherEvaluationEditPage").then((m) => ({ default: m.TeacherEvaluationEditPage })));
+const TeacherResultsPage = lazy(() => import("../pages/TeacherResultsPage").then((m) => ({ default: m.TeacherResultsPage })));
+const TeacherFoldersPage = lazy(() => import("../pages/TeacherFoldersPage").then((m) => ({ default: m.TeacherFoldersPage })));
+const TeacherClassLobbyPage = lazy(() => import("../pages/TeacherClassLobbyPage").then((m) => ({ default: m.TeacherClassLobbyPage })));
+const TeacherFolderDetailPage = lazy(() => import("../pages/TeacherFolderDetailPage").then((m) => ({ default: m.TeacherFolderDetailPage })));
+const PasswordResetPage = lazy(() => import("../pages/PasswordResetPage").then((m) => ({ default: m.PasswordResetPage })));
+const StudentFlow = lazy(() => import("../pages/StudentFlow").then((m) => ({ default: m.StudentFlow })));
+const ViewIndex = lazy(() => import("../pages/ViewIndex").then((m) => ({ default: m.ViewIndex })));
+const StudentDonePage = lazy(() => import("../pages/StudentDonePage").then((m) => ({ default: m.StudentDonePage })));
+const SignupPage = lazy(() => import("../pages/SignupPage").then((m) => ({ default: m.SignupPage })));
+const TeacherGradingPage = lazy(() => import("../pages/TeacherGradingPage"));
+const NotificationsPage = lazy(() => import("../pages/InfoPages").then((m) => ({ default: m.NotificationsPage })));
+const PrivacyPage = lazy(() => import("../pages/InfoPages").then((m) => ({ default: m.PrivacyPage })));
+const SettingsPage = lazy(() => import("../pages/InfoPages").then((m) => ({ default: m.SettingsPage })));
+const TermsPage = lazy(() => import("../pages/InfoPages").then((m) => ({ default: m.TermsPage })));
+
+function RouteFallback() {
+  const { pathname } = useLocation();
+  const layout = getLoadingLayout(pathname);
+  // 선생님 화면은 해당 화면의 스켈레톤을, 그 밖의 화면은 빈 화면을 잠깐 보여줍니다.
+  return pathname.startsWith("/teacher") ? <PageLoading layout={layout} /> : null;
+}
+
 export function AppRoutes() {
   return (
+    <Suspense fallback={<RouteFallback />}>
     <Routes>
       <Route path={paths.home} element={<LandingPage />} />
       <Route path={paths.login} element={<LoginPage />} />
@@ -68,5 +80,6 @@ export function AppRoutes() {
       />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
+    </Suspense>
   );
 }

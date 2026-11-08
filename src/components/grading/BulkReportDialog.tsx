@@ -71,13 +71,20 @@ export function BulkReportDialog({
   const currentKey = current ? `${current.evaluationId}:${current.participantId}` : "";
 
   useEffect(() => {
-    if (!current || requested.current.has(currentKey)) return;
-    requested.current.add(currentKey);
-    loadReportPreview(current)
-      .then((blob) => setBlobs((value) => ({ ...value, [currentKey]: blob })))
-      .catch(() => setFailedKeys((value) => ({ ...value, [currentKey]: true })));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentKey]);
+    // 지금 학생을 먼저 받고, 다음 학생도 미리 받아 둬 넘길 때 바로 보이게 합니다.
+    for (const target of [targets?.[selected], targets?.[selected + 1]]) {
+      if (!target) continue;
+      const key = `${target.evaluationId}:${target.participantId}`;
+      if (requested.current.has(key)) continue;
+      requested.current.add(key);
+      loadReportPreview(target)
+        .then((blob) => setBlobs((value) => ({ ...value, [key]: blob })))
+        .catch((caught) => {
+          console.error("보고서 미리보기 실패", caught);
+          setFailedKeys((value) => ({ ...value, [key]: true }));
+        });
+    }
+  }, [targets, selected]);
   const previewBlob = blobs[currentKey] ?? null;
   const previewFailed = Boolean(failedKeys[currentKey]);
 

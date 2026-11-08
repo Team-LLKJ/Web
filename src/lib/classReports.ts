@@ -87,32 +87,40 @@ async function downloadReportsZip(
   const failed: string[] = [];
   const used = new Map<string, number>();
   onProgress(0, targets.length);
-  for (const [index, student] of targets.entries()) {
-    const { evaluationId } = student;
-    try {
-      let blob: Blob;
-      if (format === "hwp") {
-        try {
-          blob = await getGradingReportHwp(evaluationId, student.participantId);
-        } catch (e) {
-          if (!(e instanceof ApiError && e.status === 404)) throw e;
-          await createGradingReport(evaluationId, student.participantId);
-          blob = await getGradingReportHwp(evaluationId, student.participantId);
-        }
-      } else {
-        blob = await getGradingReportPdf(evaluationId, student.participantId);
+
+  // 한 명씩 받으면 오래 걸리므로 4명씩 동시에 받고, 결과는 원래 순서대로 모읍니다.
+  const received: (Blob | null)[] = new Array(targets.length).fill(null);
+  let next = 0;
+  let done = 0;
+  async function worker() {
+    while (next < targets.length) {
+      const index = next;
+      next += 1;
+      const student = targets[index];
+      try {
+        received[index] = await fetchReport(student, format);
+      } catch {
+        received[index] = null;
       }
-      const base = `${student.folder}${safe(student.nickname) || "학생"}`;
-      const count = (used.get(base) ?? 0) + 1;
-      used.set(base, count);
-      files.push({
-        name: `${base}${count > 1 ? ` (${count})` : ""} 학습 보고서.${format}`,
-        data: new Uint8Array(await blob.arrayBuffer()),
-      });
-    } catch {
-      failed.push(student.nickname);
+      done += 1;
+      onProgress(done, targets.length);
     }
-    onProgress(index + 1, targets.length);
+  }
+  await Promise.all(Array.from({ length: Math.min(4, targets.length) }, worker));
+
+  for (const [index, student] of targets.entries()) {
+    const blob = received[index];
+    if (!blob) {
+      failed.push(student.nickname);
+      continue;
+    }
+    const base = `${student.folder}${safe(student.nickname) || "학생"}`;
+    const count = (used.get(base) ?? 0) + 1;
+    used.set(base, count);
+    files.push({
+      name: `${base}${count > 1 ? ` (${count})` : ""} 학습 보고서.${format}`,
+      data: new Uint8Array(await blob.arrayBuffer()),
+    });
   }
   if (!files.length) throw new Error("보고서를 하나도 받지 못했어요.");
   const url = URL.createObjectURL(createZip(files));
@@ -122,4 +130,16 @@ async function downloadReportsZip(
   link.click();
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   return { saved: files.length, failed };
+}
+
+async function fetchReport(student: ReportTarget, format: ReportFormat): Promise<Blob> {
+  const { evaluationId, participantId } = student;
+  if (format !== "hwp") return getGradingReportPdf(evaluationId, participantId);
+  try {
+    return await getGradingReportHwp(evaluationId, participantId);
+  } catch (e) {
+    if (!(e instanceof ApiError && e.status === 404)) throw e;
+    await createGradingReport(evaluationId, participantId);
+    return getGradingReportHwp(evaluationId, participantId);
+  }
 }
