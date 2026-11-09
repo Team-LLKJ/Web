@@ -17,6 +17,14 @@ export const emptySession: StudentSession = {
 const STORAGE_KEY = "lit:student-session";
 const PARTICIPANT_TOKEN_KEY = "lit:student:participant-token";
 const PARTICIPANT_EVALUATION_ID_KEY = "lit:student:evaluation-id";
+const DRAFT_KEY_PREFIX = "lit:student:draft:";
+const LAST_QUESTION_KEY_PREFIX = "lit:student:last-question:";
+
+export type AnswerDraft = {
+  content: string;
+  /** 이 초안을 쓰기 시작할 때의 서버 답안 버전. 서버 버전과 다르면 충돌로 봅니다. */
+  baseVersion: number;
+};
 
 // 탭을 닫아도 PIN 없이 다시 들어올 수 있도록 같은 토큰을 브라우저에도 한 벌 남겨 둡니다(재접속 API용).
 const RECONNECT_KEY = "lit:student:reconnect";
@@ -133,8 +141,71 @@ export function saveSession(session: StudentSession) {
   }
 }
 
+const draftKey = (evaluationId: string, questionId: string) =>
+  `${DRAFT_KEY_PREFIX}${evaluationId}:${questionId}`;
+
+/** 저장 공간이 부족하거나 저장소를 쓸 수 없으면 false를 돌려줍니다. */
+export function saveAnswerDraft(evaluationId: string, questionId: string, draft: AnswerDraft) {
+  try {
+    localStorage.setItem(draftKey(evaluationId, questionId), JSON.stringify(draft));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function readAnswerDraft(evaluationId: string, questionId: string): AnswerDraft | null {
+  try {
+    const value = JSON.parse(localStorage.getItem(draftKey(evaluationId, questionId)) || "null");
+    if (!value || typeof value.content !== "string" || typeof value.baseVersion !== "number") return null;
+    return { content: value.content, baseVersion: value.baseVersion };
+  } catch {
+    return null;
+  }
+}
+
+export function removeAnswerDraft(evaluationId: string, questionId: string) {
+  try {
+    localStorage.removeItem(draftKey(evaluationId, questionId));
+  } catch {
+    // Ignore disabled browser storage.
+  }
+}
+
+export function saveLastQuestion(evaluationId: string, questionId: string) {
+  try {
+    localStorage.setItem(`${LAST_QUESTION_KEY_PREFIX}${evaluationId}`, questionId);
+  } catch {
+    // The student simply returns to the guide if this cannot be stored.
+  }
+}
+
+export function readLastQuestion(evaluationId: string) {
+  try {
+    return localStorage.getItem(`${LAST_QUESTION_KEY_PREFIX}${evaluationId}`);
+  } catch {
+    return null;
+  }
+}
+
+/** evaluationId를 생략하면 모든 평가의 초안을 지웁니다. */
+export function clearAnswerDrafts(evaluationId = "") {
+  try {
+    const prefixes = [
+      `${DRAFT_KEY_PREFIX}${evaluationId}`,
+      `${LAST_QUESTION_KEY_PREFIX}${evaluationId}`,
+    ];
+    Object.keys(localStorage)
+      .filter((key) => prefixes.some((prefix) => key.startsWith(prefix)))
+      .forEach((key) => localStorage.removeItem(key));
+  } catch {
+    // Ignore disabled browser storage.
+  }
+}
+
 export function clearSession() {
   clearParticipantCredentials();
+  clearAnswerDrafts();
   try {
     localStorage.removeItem(STORAGE_KEY);
   } catch {

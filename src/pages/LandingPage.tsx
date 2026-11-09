@@ -9,6 +9,7 @@ import { StepsSection } from "../components/landing/StepsSection";
 import { CriteriaSection } from "../components/landing/CriteriaSection";
 import { LandingMobileActions } from "../components/landing/LandingMobileActions";
 import { LandingFooter } from "../components/landing/LandingFooter";
+import { ResumeEvaluationPrompt } from "../components/student/ResumeEvaluationPrompt";
 import { Modal } from "../components/ui/Modal";
 import { Button } from "../components/ui/Button";
 import "../components/landing/landing.css";
@@ -66,6 +67,7 @@ export function LandingPage() {
       </main>
       <LandingFooter />
       <LandingMobileActions />
+      <ResumeEvaluationPrompt />
       {notice && (
         <Modal
           title={notice}

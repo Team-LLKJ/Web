@@ -403,7 +403,12 @@ export function NotificationsPage() {
               label: unreadCount > 0 ? `안 읽음 ${unreadCount}` : "안 읽음",
             },
           ]}
-          onChange={setFilter}
+          onChange={(next) => {
+            setFilter(next);
+            // 안 읽음 탭에서 연 알림은 읽음이 돼도 접을 때까지 남겨 두지만,
+            // 전체 탭에서 열어 둔 읽은 알림은 안 읽음 탭으로 넘어갈 때 닫습니다.
+            if (next === "unread" && selected?.read) setParams({});
+          }}
         />
         <div className="notifications-actions">
           <button

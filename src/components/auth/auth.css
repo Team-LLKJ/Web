@@ -632,3 +632,8 @@
 .legal-modal .modal-actions .button {
   width: 100%;
 }
+
+/* 실패 문구(로그인·비밀번호 재설정)는 버튼 아래 자리에서 빨간 글씨로 보여줍니다. */
+.auth-form .auth-notice--error {
+  color: var(--color-danger);
+}

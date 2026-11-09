@@ -115,6 +115,8 @@
   padding: 0 10px;
   margin-top: 6px;
   line-height: 1.4;
+  /* 한 글자만 다음 줄로 넘어가지 않게 낱말 단위로 줄바꿈합니다. */
+  word-break: keep-all;
 }
 
 /* 입력칸에 오류가 있을 때: 안쪽 버튼은 회색, 라벨은 오류 색 */

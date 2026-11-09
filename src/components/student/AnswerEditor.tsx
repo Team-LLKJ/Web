@@ -139,6 +139,8 @@ export function AnswerEditor({
   readOnly,
   savingQuestionId,
   notice,
+  startOnQuestion = false,
+  contentRevision = 0,
   onQuestion,
   onAnswer,
   onSave,
@@ -153,11 +155,15 @@ export function AnswerEditor({
   readOnly: boolean;
   savingQuestionId: string;
   notice: string;
+  /** 다시 들어온 학생은 안내 대신 마지막으로 풀던 문항에서 시작합니다. */
+  startOnQuestion?: boolean;
+  /** 올리면 편집기를 다시 만들어 복원한 답안을 표시합니다. */
+  contentRevision?: number;
   onQuestion: (id: string) => void;
   onAnswer: (id: string, text: string) => void;
   onSave: (id: string) => void;
 }) {
-  const [overview, setOverview] = useState(true);
+  const [overview, setOverview] = useState(!startOnQuestion);
   // Warm the editor chunk while the student reads the overview, so the tab switch is instant.
   useEffect(() => {
     void loadRichAnswerField();
@@ -211,7 +217,7 @@ export function AnswerEditor({
           </section>
           <Suspense fallback={<EditorPlaceholder />}>
             <RichAnswerField
-              key={questionId}
+              key={`${questionId}:${contentRevision}`}
               questionId={questionId}
               questionTitle={question.title}
               content={answers[questionId] ?? ""}
