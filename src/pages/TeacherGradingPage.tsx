@@ -2,8 +2,8 @@ import { PageLoading } from "../components/ui/PageLoading";
 import { StudentWorkspace } from "../components/student/StudentWorkspace";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { useState, type CSSProperties } from "react";
-import { apiErrorMessage } from "../api/client";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { ApiError, apiErrorMessage } from "../api/client";
 import "../App.css";
 import "../components/ui/ui.css";
 import { studentReviews } from "../data/review";
@@ -40,6 +40,28 @@ function TeacherGradingPage() {
   const [query, setQuery] = useState("");
   const [studentsWidth, setStudentsWidth] = useState(readStudentsWidth);
   const [selected, setSelected] = useState(0);
+  // 좁은 화면: 학생 목록에서 학생을 누르면 답안·루브릭 화면으로 넘어갑니다.
+  const [mobileDetail, setMobileDetail] = useState(false);
+  const [mobilePane, setMobilePane] = useState<"answer" | "review">("answer");
+  const workspaceRef = useRef<HTMLDivElement>(null);
+
+  // 모바일에서 답안 ↔ 대화·활동·루브릭을 옆으로 밀면 위쪽 전환 막대도 같이 바뀝니다.
+  useEffect(() => {
+    if (!mobileDetail) return;
+    const content = workspaceRef.current?.querySelector<HTMLElement>(".teacher-content");
+    if (!content) return;
+    const sync = () => {
+      setMobilePane(content.scrollLeft > content.clientWidth / 2 ? "review" : "answer");
+    };
+    content.addEventListener("scroll", sync, { passive: true });
+    return () => content.removeEventListener("scroll", sync);
+  }, [mobileDetail]);
+
+  const showMobilePane = (pane: "answer" | "review") => {
+    const content = workspaceRef.current?.querySelector<HTMLElement>(".teacher-content");
+    setMobilePane(pane);
+    content?.scrollTo({ left: pane === "review" ? content.scrollWidth : 0, behavior: "smooth" });
+  };
   const [mockQuestion, setMockQuestion] = useState(mockQuestions[0]?.id ?? 0);
   const [liveQuestion, setLiveQuestion] = useState(1);
   const [tab, setTab] = useState("AI 대화창");
@@ -155,7 +177,9 @@ function TeacherGradingPage() {
         />
       )}
       <div
+        ref={workspaceRef}
         className="workspace teacher-workspace"
+        data-mobile-view={mobileDetail ? "detail" : "list"}
         style={{ "--students-width": `${studentsWidth}px` } as CSSProperties}
       >
         {listLoading ? (
@@ -178,6 +202,9 @@ function TeacherGradingPage() {
               )
             }
             onSelect={(index) => {
+              setMobileDetail(true);
+              setMobilePane("answer");
+              window.scrollTo({ top: 0 });
               if (isLive) {
                 live.select(students[index].id);
                 setLiveQuestion(1);
@@ -188,6 +215,30 @@ function TeacherGradingPage() {
             }}
           />
         )}
+        <div className="grading-mobile-bar">
+          <button
+            type="button"
+            className="grading-mobile-back"
+            aria-label="뒤로가기"
+            onClick={() => {
+              setMobileDetail(false);
+              window.scrollTo({ top: 0 });
+            }}
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="m15 18-6-6 6-6" />
+            </svg>
+            뒤로가기
+          </button>
+          <div className="grading-mobile-pager" role="group" aria-label="채점 화면 전환">
+            <button type="button" aria-pressed={mobilePane === "answer"} onClick={() => showMobilePane("answer")}>
+              답안
+            </button>
+            <button type="button" aria-pressed={mobilePane === "review"} onClick={() => showMobilePane("review")}>
+              루브릭·대화
+            </button>
+          </div>
+        </div>
         <StudentWorkspace
           className="teacher-content"
           storageKey="lit:teacher-sidebar-width:v2"
@@ -254,7 +305,10 @@ function TeacherGradingPage() {
                 setNotice({ message: `평가 시간을 ${minutes}분 연장했어요.`, tone: "info" });
               } catch (error) {
                 setNotice({
-                  message: apiErrorMessage(error, "평가 시간을 연장하지 못했습니다."),
+                  message:
+                    error instanceof ApiError && error.code === "EVALUATION_NOT_RUNNING"
+                      ? "진행 중인 평가만 시간을 연장할 수 있어요."
+                      : apiErrorMessage(error, "평가 시간을 연장하지 못했습니다."),
                   tone: "error",
                 });
               } finally {

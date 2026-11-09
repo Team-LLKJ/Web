@@ -1,0 +1,1376 @@
+/* 반응형 보강: 태블릿·모바일에서 고정 폭 화면(학생 풀이·교사 채점)을 세로로 쌓고
+   손가락 조작을 고려한 크기를 맞춥니다. 화면별 CSS가 나중에 불러와져도 이기도록
+   :root:root로 우선순위를 올렸습니다. */
+
+/* ───── 공통 ───── */
+:root:root {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+:root:root body {
+  -webkit-tap-highlight-color: transparent;
+}
+:root:root a,
+:root:root button,
+:root:root [role="button"],
+:root:root input,
+:root:root select,
+:root:root textarea {
+  touch-action: manipulation;
+}
+:root:root img,
+:root:root video,
+:root:root canvas {
+  max-width: 100%;
+}
+/* 설치한 웹앱에서는 당겨서 새로고침·끝에서 튕김을 막습니다. */
+@media (display-mode: standalone) {
+  :root:root body {
+    overscroll-behavior-y: none;
+  }
+}
+/* 터치 화면: 아이콘 버튼의 누르는 영역을 키웁니다. */
+@media (pointer: coarse) {
+  :root:root .header .icon-button {
+    position: relative;
+  }
+  :root:root .header .icon-button::after {
+    content: "";
+    position: absolute;
+    inset: -8px;
+  }
+}
+
+/* 데스크톱 전제로 걸려 있던 최소 폭(1200px·750px)을 풉니다. */
+@media (max-width: 1200px) {
+  :root:root .app-shell {
+    min-width: 0;
+  }
+}
+@media (max-width: 900px) {
+  :root:root .student-solving {
+    min-width: 0;
+  }
+}
+
+/* ───── 태블릿·모바일 (≤ 900px) ───── */
+@media (max-width: 900px) {
+  /* 학생 풀이: 위는 작성, 아래는 AI 대화. 가운데 줄은 접기 버튼입니다. */
+  :root:root .compact-workspace > .student-solving-body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) 34px minmax(0, 42%);
+    height: calc(100dvh - 61px);
+    min-height: 0;
+  }
+  :root:root .compact-workspace > .student-solving-body.is-sidebar-collapsed {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) 34px 0;
+  }
+  :root:root .compact-workspace > .student-solving-body.is-sidebar-expanded {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+  }
+  :root:root .compact-workspace .student-sidebar-divider {
+    width: auto;
+    height: 34px;
+    background: var(--color-grey-10);
+    border-top: 1px solid var(--color-grey-20);
+    border-bottom: 1px solid var(--color-grey-20);
+  }
+  :root:root .compact-workspace .student-resize-handle {
+    display: none;
+  }
+  :root:root .compact-workspace .sidebar-collapse-toggle {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    transform: none;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+  :root:root .compact-workspace .sidebar-collapse-toggle svg {
+    transform: rotate(90deg);
+  }
+  :root:root .student-writing {
+    padding: 10px;
+  }
+  :root:root .student-editor,
+  :root:root .student-solving-body.is-sidebar-collapsed .student-editor {
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  /* 교사 채점: 학생 목록 → 답안 → 평가 자료 순으로 쌓고 화면 전체가 스크롤됩니다. */
+  :root:root .grading-workspace .teacher-workspace {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    height: auto;
+    min-height: calc(100dvh - 61px);
+    align-content: start;
+  }
+  :root:root .grading-workspace .teacher-workspace > .students {
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+    padding: 12px;
+  }
+  :root:root .grading-workspace .students > .student-list {
+    margin-top: 12px;
+    overflow: visible;
+  }
+  :root:root .grading-workspace .students .student-row {
+    width: 100%;
+    min-width: 0;
+    min-height: 56px;
+    padding-inline: 16px;
+  }
+  :root:root .students > .evaluation-controls {
+    position: static;
+    margin-top: 12px;
+  }
+  :root:root .students-resize-handle {
+    display: none;
+  }
+  :root:root .students-toggle {
+    display: none;
+  }
+  /* 데스크톱에서 접어 둔 상태여도 좁은 화면에서는 목록을 항상 보여 줍니다. */
+  :root:root .grading-workspace .students.collapsed {
+    padding: 12px;
+    border-right: 0;
+  }
+  :root:root .grading-workspace .students.collapsed > .student-filter,
+  :root:root .grading-workspace .students.collapsed > .student-list,
+  :root:root .grading-workspace .students.collapsed > .evaluation-controls {
+    display: flex;
+  }
+
+  /* 학생 목록 → (학생 선택) → 답안·루브릭 화면 */
+  :root:root .teacher-workspace[data-mobile-view="list"] > .teacher-content,
+  :root:root .teacher-workspace[data-mobile-view="list"] > .grading-mobile-bar {
+    display: none;
+  }
+  :root:root .teacher-workspace[data-mobile-view="detail"] > .students {
+    display: none;
+  }
+  /* 목록 화면은 남는 높이를 흰 배경으로 꽉 채웁니다. */
+  :root:root .teacher-workspace[data-mobile-view="list"] > .students {
+    min-height: calc(100dvh - 61px);
+    border-bottom: 0;
+  }
+  :root:root .grading-mobile-back {
+    position: sticky;
+    top: 61px;
+    z-index: 15;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    min-height: 48px;
+    padding: 0 16px;
+    border: 0;
+    border-bottom: 1px solid var(--border);
+    background: var(--color-white);
+    color: var(--color-grey-70);
+    font-size: 16px;
+    font-weight: var(--weight-semibold);
+    text-align: left;
+  }
+
+  :root:root .grading-workspace .teacher-content {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    height: auto;
+    min-height: 0;
+  }
+  :root:root .grading-workspace .teacher-content.is-sidebar-collapsed {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  :root:root .grading-workspace .teacher-content .student-sidebar-divider {
+    display: none;
+  }
+  :root:root .grading-workspace .teacher-content .answer-area {
+    padding: 14px;
+    overflow: visible;
+    min-height: 0;
+  }
+  :root:root .grading-workspace .teacher-content .workspace-sidebar,
+  :root:root .grading-workspace .teacher-content .details,
+  :root:root .grading-workspace .teacher-content .review-panel-scroll {
+    overflow: visible;
+    min-height: 0;
+  }
+  :root:root .grading-workspace .teacher-content .workspace-sidebar {
+    border-top: 1px solid var(--border);
+  }
+  :root:root .grading-workspace .teacher-content .detail-tabs {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  /* 표·결과 카드가 화면보다 넓으면 카드 안에서만 가로로 밀립니다. */
+  :root:root .teacher-results-card {
+    overflow-x: auto;
+  }
+}
+
+/* ───── 모바일 (≤ 600px) ───── */
+@media (max-width: 600px) {
+  :root:root .header {
+    padding-left: 14px;
+    padding-right: 14px;
+    gap: 8px;
+  }
+  :root:root .student-header .lit-logo-link img {
+    width: 56px;
+  }
+  :root:root .student-header nav {
+    min-width: 0;
+    gap: 6px;
+  }
+  :root:root .student-header .remaining-time {
+    gap: 0;
+    padding: 0;
+    font-size: calc(var(--font-text-sm) * 0.85);
+  }
+  :root:root .student-header .remaining-time-label {
+    display: none;
+  }
+  :root:root .student-header .button {
+    min-height: 36px;
+    padding: 6px 12px;
+  }
+  :root:root .compact-workspace > .student-solving-body {
+    grid-template-rows: minmax(0, 1fr) 34px minmax(0, 46%);
+  }
+  :root:root .grading-workspace .students .student-row {
+    min-width: 132px;
+  }
+  :root:root .teacher-content .student-summary,
+  :root:root .teacher-content .answer-card {
+    max-width: 100%;
+  }
+}
+
+/* ───── 가로로 눕힌 휴대폰(높이가 낮은 화면) ───── */
+@media (max-height: 480px) and (max-width: 900px) {
+  :root:root .compact-workspace > .student-solving-body {
+    grid-template-rows: minmax(0, 1fr) 34px minmax(0, 38%);
+  }
+}
+
+/* ───── 모바일 탭: 화살표 대신 화면 폭을 꽉 채우고 손가락으로 밀어서 넘깁니다 ───── */
+@media (max-width: 900px) {
+  :root:root .segment-tabs-wrap {
+    width: 100%;
+    max-width: 100%;
+    align-self: stretch;
+  }
+  :root:root .segment-tabs-wrap .segment-tabs-arrow {
+    display: none;
+  }
+  :root:root .segment-tabs-wrap.has-arrows,
+  :root:root .student-editor .segment-tabs-wrap.has-arrows {
+    gap: 0;
+    padding: 4px;
+  }
+  :root:root .segment-tabs-wrap > .segment-tabs {
+    width: 100%;
+    flex: 1 1 auto;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: none;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  :root:root .segment-tabs-wrap > .segment-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  :root:root .segment-tabs-wrap.has-arrows > .segment-tabs::after {
+    display: none;
+  }
+  /* 탭이 적으면 칸을 똑같이 나눠 갖고, 많으면 내용 크기대로 두고 옆으로 밉니다. */
+  :root:root .segment-tabs-wrap > .segment-tabs > [role="tab"],
+  :root:root .segment-tabs-wrap > .segment-tabs > button {
+    flex: 1 0 auto;
+    min-height: 44px;
+    white-space: nowrap;
+    scroll-snap-align: none;
+  }
+}
+
+/* ───── 모바일 교사 목록: '수행평가 만들기'를 엄지가 닿는 오른쪽 아래에 고정 ───── */
+@media (max-width: 760px) {
+  :root:root .folder-toolbar {
+    display: block;
+  }
+  :root:root .folder-toolbar > .button {
+    position: fixed;
+    right: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    z-index: 900;
+    width: auto;
+    min-height: 52px;
+    padding: 0 22px;
+    border-radius: 14px;
+  }
+  /* 고정 버튼에 마지막 카드가 가려지지 않도록 아래 여백을 둡니다. */
+  :root:root .teacher-page-content:has(.folder-toolbar) {
+    padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* ───── 모바일: 평가 만들기 단계 표시(1 평가 정보 · 2 평가 설정 · 3 문항 작성)는 숨깁니다 ───── */
+@media (max-width: 600px) {
+  :root:root .teacher-create-stepper {
+    display: none;
+  }
+}
+
+/* 모바일 탭 바: 좌우 여백을 줄여 "내 수행평가 / 공유된 수행평가 (n)"처럼 짧은 탭 묶음이 한 화면에 다 들어오게 합니다.
+   탭이 아주 많으면 그대로 옆으로 밀어서 봅니다. */
+@media (max-width: 600px) {
+  :root:root:root:root:root:root .segment-tabs-wrap > .segment-tabs {
+    gap: 2px;
+  }
+  :root:root:root:root:root:root .segment-tabs-wrap > .segment-tabs > button,
+  :root:root:root:root:root:root .segment-tabs-wrap > .segment-tabs > [role="tab"] {
+    padding-inline: 10px;
+    font-size: calc(var(--font-text-sm) * 0.9);
+  }
+}
+
+/* ───── 모바일 서식 도구 바: 여러 줄로 쌓지 않고 한 줄로 두고 옆으로 밀어서 씁니다 ─────
+   (색·글자 크기 같은 팝업은 body로 따로 띄워서 가로 스크롤에 잘리지 않습니다.) */
+@media (max-width: 760px) {
+  :root:root .ribbon-compact:not(.ribbon-context-row) {
+    flex-wrap: nowrap;
+    gap: 4px;
+    padding: 6px 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent);
+    mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent);
+  }
+  :root:root .ribbon-compact:not(.ribbon-context-row)::-webkit-scrollbar {
+    display: none;
+  }
+  :root:root .ribbon-compact:not(.ribbon-context-row) > * {
+    flex: 0 0 auto;
+  }
+  /* 손가락으로 누르기 편하게 도구 버튼을 키웁니다. */
+  :root:root .ribbon-compact .ribbon-tool {
+    min-width: 36px;
+    height: 36px;
+  }
+  :root:root .ribbon-compact .ribbon-style-trigger,
+  :root:root .ribbon-compact .ribbon-font-size {
+    min-height: 36px;
+  }
+}
+
+/* 한 줄 서식 바가 부모를 밀어 넓히지 않도록, 편집기를 감싸는 칸들이 줄어들 수 있게 합니다. */
+@media (max-width: 760px) {
+  :root:root .teacher-create-card,
+  :root:root .teacher-create-card .teacher-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  :root:root .teacher-create-section,
+  :root:root .teacher-rich-editor,
+  :root:root .answer-rich-editor,
+  :root:root .answer-ribbon,
+  :root:root .answer-ribbon--compact,
+  :root:root .answer-document-viewport {
+    min-width: 0;
+    max-width: 100%;
+  }
+}
+
+/* ───── 모바일 평가 만들기·수정: 카드 테두리를 없애고 입력 요소를 크게 ───── */
+@media (max-width: 600px) {
+  :root:root .teacher-page-content--create {
+    width: calc(100% - 32px);
+  }
+  :root:root .teacher-create-card {
+    gap: 0;
+  }
+  :root:root .teacher-create-card .teacher-create-section,
+  :root:root .teacher-config-card {
+    padding: 22px 0 26px;
+    border: 0;
+    border-bottom: 1px solid #e3e3e8;
+    border-radius: 0;
+    background: transparent;
+  }
+  :root:root .teacher-create-card .teacher-create-section:last-of-type {
+    border-bottom: 0;
+  }
+  :root:root .teacher-create-section-head h2 {
+    font-size: calc(var(--font-text-md) * 1.05);
+  }
+  :root:root .teacher-section-num {
+    width: 32px;
+    height: 32px;
+  }
+
+  /* 입력 요소 키우기 */
+  :root:root .teacher-create-card .text-input-field > label,
+  :root:root .teacher-create-card .teacher-expiry-field legend {
+    margin-bottom: 8px;
+    font-size: calc(var(--font-text-sm) * 0.9);
+  }
+  :root:root .teacher-create-card .text-input {
+    min-height: 58px;
+    padding-inline: 18px;
+    border-radius: 14px;
+  }
+  :root:root .teacher-create-card .text-input input,
+  :root:root .teacher-create-card .text-input textarea {
+    font-size: 17px;
+  }
+  :root:root .teacher-create-card .teacher-expiry-inputs input {
+    height: 58px;
+    font-size: 17px;
+  }
+  :root:root .teacher-create-card .duration-picker-field {
+    min-height: 58px;
+    padding-inline: 18px;
+    border-radius: 14px;
+    font-size: 17px;
+  }
+  :root:root .teacher-section-hint {
+    margin-top: 2px;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  :root:root .teacher-rich-editor .student-answer-content.tiptap {
+    min-height: 240px;
+    font-size: 17px;
+  }
+
+  /* 문항 작성 */
+  :root:root .tq-card textarea {
+    min-height: 120px;
+    font-size: 17px;
+  }
+  :root:root .teacher-limit-toggle,
+  :root:root .teacher-check,
+  :root:root .teacher-option-card {
+    min-height: 52px;
+  }
+
+  :root:root .tq-add {
+    min-height: 54px;
+    font-size: 17px;
+    border-radius: 14px;
+  }
+
+  /* 아래 버튼: 배경 없이 폼 맨 아래에 둡니다. 이전·취소는 작게, 다음·저장은 크게 폭을 나눠 씁니다. */
+  :root:root .teacher-form-actions {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 10px;
+    margin: 0;
+    padding: 12px 0 calc(12px + env(safe-area-inset-bottom, 0px));
+    border: 0;
+    background: transparent;
+  }
+  :root:root .teacher-form-actions--bar > div {
+    display: contents;
+  }
+  :root:root .teacher-form-actions .button {
+    width: 100%;
+    min-width: 0;
+    min-height: 54px;
+    font-size: 17px;
+    border-radius: 14px;
+  }
+  /* 버튼이 하나뿐이면(1단계 '다음') 폭 전체로 */
+  :root:root .teacher-form-actions:has(> .button:only-child),
+  :root:root .teacher-form-actions:has(> div > .button:only-child) {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ───── 모바일 수행평가 상세: 공유·전체 저장·수정·삭제를 같은 크기 칸으로 한 줄에 ───── */
+@media (max-width: 600px) {
+  :root:root .folder-title-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+    gap: 8px;
+    width: 100%;
+    margin-left: 0;
+  }
+  :root:root .folder-action {
+    position: relative;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    min-width: 0;
+    height: auto;
+    min-height: 64px;
+    padding: 10px 4px;
+    font-size: 13px;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+  /* 공유 인원 수는 아이콘 옆 모서리에 작게 붙입니다. */
+  :root:root .folder-action-count {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    margin: 0;
+  }
+}
+
+/* ───── 모바일 알림 화면: 탭은 위에 꽉 차게, '모두 읽음·전체 삭제'는 아래에 같은 크기로 나란히 ───── */
+@media (max-width: 600px) {
+  :root:root .tab-toolbar:has(.notifications-actions) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  :root:root .notifications-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+  }
+  :root:root .notifications-actions .folder-action {
+    flex-direction: row;
+    gap: 8px;
+    min-height: 48px;
+    padding: 0 12px;
+    font-size: 15px;
+  }
+}
+
+/* ───── 모바일 수행평가 상세 '평가 설정': 라벨 위, 값 아래로. 칩은 글자가 꺾이지 않게 칩 단위로 줄바꿈 ───── */
+@media (max-width: 720px) {
+  :root:root .folder-settings > div {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: 10px;
+    padding: 16px 0;
+  }
+  :root:root .folder-chips {
+    gap: 8px;
+  }
+  :root:root .folder-chips li {
+    padding: 7px 14px;
+    white-space: nowrap;
+  }
+}
+
+/* ───── 모바일 수행평가 상세 '평가 정보' 문항 목록: 문항 번호는 위, 내용은 아래 전체 폭 ───── */
+@media (max-width: 600px) {
+  :root:root .folder-questions li {
+    flex-direction: column;
+    gap: 4px;
+    padding: 14px 16px;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+  }
+}
+
+.grading-mobile-back {
+  display: none;
+}
+
+/* ───── 모바일 채점 상단(학생 이름·제출일·저장하기): 버튼을 작게 ───── */
+@media (max-width: 900px) {
+  :root:root .teacher-content .student-summary .button {
+    min-height: 38px;
+    padding: 0 14px;
+    border-radius: 10px;
+    font-size: 15px;
+    width: auto;
+  }
+  :root:root .teacher-content .student-summary {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+}
+
+/* ───── 모바일 문항 탭(4개 이상): ‹ [문항 2   2 / 4 ⌄] › ───── */
+.tabs-stepper {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  height: 46px;
+  margin-bottom: 14px;
+  border: 1px solid var(--color-grey-20);
+  border-radius: 12px;
+  background: var(--color-white);
+}
+.tabs-stepper-arrow {
+  flex: 0 0 46px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-grey-70);
+}
+.tabs-stepper-arrow:first-child {
+  border-radius: 11px 0 0 11px;
+  border-right: 1px solid var(--color-grey-20);
+}
+.tabs-stepper-arrow:last-child {
+  border-radius: 0 11px 11px 0;
+  border-left: 1px solid var(--color-grey-20);
+}
+.tabs-stepper-arrow:active:not(:disabled) {
+  background: var(--color-grey-10);
+}
+.tabs-stepper-arrow:disabled {
+  color: var(--color-grey-30);
+}
+.tabs-stepper-picker {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.tabs-stepper-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  height: 100%;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--color-primary);
+  font: inherit;
+  font-size: 16px;
+  font-weight: var(--weight-semibold);
+}
+.tabs-stepper-trigger:active {
+  background: var(--color-grey-10);
+}
+.tabs-stepper-current {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tabs-stepper-chevron {
+  flex: 0 0 auto;
+  color: var(--color-grey-50);
+  transition: transform 0.15s ease;
+}
+.tabs-stepper-trigger[aria-expanded="true"] .tabs-stepper-chevron {
+  transform: rotate(180deg);
+}
+.tabs-stepper-list {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  max-height: 260px;
+  margin: 0;
+  padding: 6px;
+  overflow-y: auto;
+  list-style: none;
+  border: 1px solid var(--color-grey-20);
+  border-radius: 12px;
+  background: var(--color-white);
+}
+.tabs-stepper-list button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-grey-80);
+  font: inherit;
+  font-size: 16px;
+  text-align: left;
+}
+.tabs-stepper-list button.active {
+  background: var(--color-grey-10);
+  color: var(--color-primary);
+  font-weight: var(--weight-semibold);
+}
+
+/* ───── 채점 화면(모바일): 카드 틀을 걷어내고 배경 위에 바로 놓습니다 ───── */
+@media (max-width: 900px) {
+  :root:root .grading-workspace .teacher-content .answer-area {
+    background: var(--color-white);
+  }
+  :root:root .grading-workspace .teacher-content .student-summary,
+  :root:root .grading-workspace .teacher-content .answer-card {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    padding-left: 0;
+    padding-right: 0;
+  }
+  :root:root .grading-workspace .teacher-content .student-summary {
+    padding-top: 4px;
+    padding-bottom: 14px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--color-grey-20);
+  }
+  :root:root .grading-workspace .teacher-content .answer-card {
+    padding-top: 8px;
+  }
+}
+
+/* ───── 채점 화면(모바일): 답안 → (옆으로 밀면) AI 대화창·활동·루브릭 ───── */
+@media (max-width: 900px) {
+  :root:root .grading-workspace .teacher-content {
+    display: flex;
+    align-items: flex-start;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  :root:root .grading-workspace .teacher-content::-webkit-scrollbar {
+    display: none;
+  }
+  :root:root .grading-workspace .teacher-content > .answer-area,
+  :root:root .grading-workspace .teacher-content > .workspace-sidebar {
+    flex: 0 0 100%;
+    width: 100%;
+    min-width: 0;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    align-self: stretch;
+  }
+  :root:root .grading-workspace .teacher-content > .workspace-sidebar {
+    border-top: 0;
+    border-left: 1px solid var(--border);
+    background: var(--color-white);
+  }
+}
+
+/* 답안 / 루브릭·대화 전환 막대 (모바일 채점 화면) */
+.grading-mobile-pager {
+  display: none;
+}
+@media (max-width: 900px) {
+  :root:root .grading-mobile-pager {
+    position: sticky;
+    top: 109px;
+    z-index: 14;
+    display: flex;
+    gap: 6px;
+    padding: 6px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--color-white);
+  }
+  :root:root .teacher-workspace[data-mobile-view="list"] > .grading-mobile-pager {
+    display: none;
+  }
+  :root:root .grading-mobile-pager button {
+    min-height: 30px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--color-grey-60);
+    font: inherit;
+    font-size: 14px;
+    font-weight: var(--weight-semibold);
+  }
+  :root:root .grading-mobile-pager button[aria-pressed="true"] {
+    background: var(--color-primary-background);
+    color: var(--color-primary);
+  }
+}
+
+/* ───── 모바일 앱 느낌: 누르는 반응, 화면 전환, 선택·확대 방지 ───── */
+@media (max-width: 900px) {
+  /* 버튼·탭·목록을 누르면 살짝 눌리는 반응 */
+  :root:root button:not(:disabled),
+  :root:root a.button,
+  :root:root [role="tab"],
+  :root:root .student-row,
+  :root:root .folder-card,
+  :root:root .folder-action {
+    transition: transform 0.12s ease, background-color 0.12s ease, opacity 0.12s ease;
+  }
+  :root:root button:not(:disabled):active,
+  :root:root a.button:active,
+  :root:root .student-row:active,
+  :root:root .folder-card:active,
+  :root:root .folder-action:active {
+    transform: scale(0.97);
+  }
+
+  /* 화면 UI는 길게 눌러도 글자가 선택되거나 메뉴가 뜨지 않게 (입력·답안 글은 그대로 선택 가능) */
+  :root:root .header,
+  :root:root button,
+  :root:root [role="tab"],
+  :root:root .student-row,
+  :root:root .folder-action,
+  :root:root .grading-mobile-back,
+  :root:root .grading-mobile-pager {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  /* iOS 가 입력칸을 눌렀을 때 화면을 확대하지 않도록 16px 이상 */
+  :root:root input:not([type="checkbox"]):not([type="radio"]),
+  :root:root select,
+  :root:root textarea {
+    font-size: max(16px, 1em);
+  }
+
+  /* 화면이 바뀔 때 아래에서 살짝 올라오며 나타남 */
+  :root:root .page-content,
+  :root:root .teacher-workspace {
+    animation: app-screen-in 0.22s ease-out both;
+  }
+  :root:root .grading-mobile-pager {
+    animation: none;
+  }
+}
+@keyframes app-screen-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root:root .page-content,
+  :root:root .teacher-workspace {
+    animation: none;
+  }
+  :root:root button:active {
+    transform: none;
+  }
+}
+
+/* 채점 화면(모바일): 각 화면이 자기 안에서 스크롤되어 탭이 위에 고정됩니다. */
+@media (max-width: 900px) {
+  :root:root .grading-workspace .teacher-content {
+    height: calc(100dvh - 152px);
+    align-items: stretch;
+  }
+  :root:root .grading-workspace .teacher-content > .answer-area,
+  :root:root .grading-workspace .teacher-content > .workspace-sidebar {
+    height: 100%;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  :root:root .grading-workspace .teacher-content .detail-tabs {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: var(--color-white);
+  }
+}
+
+/* 탭이 고정되려면 .details 가 내용만큼 늘어나야 합니다(패널 높이에 갇히면 탭이 같이 밀려 올라가요). */
+@media (max-width: 900px) {
+  :root:root .grading-workspace .teacher-content > .workspace-sidebar {
+    display: block;
+  }
+  :root:root .grading-workspace .teacher-content > .workspace-sidebar > .details {
+    display: block;
+    height: auto;
+    min-height: 100%;
+    overflow: visible;
+  }
+  :root:root .grading-workspace .teacher-content .review-panel-scroll {
+    overflow: visible;
+    height: auto;
+  }
+}
+
+/* ───── 모바일 헤더: 앱 상단 바처럼 작고 단정하게 ───── */
+@media (max-width: 600px) {
+  :root:root .header {
+    height: 61px;
+    padding: 0 10px 0 14px;
+    gap: 4px;
+  }
+  :root:root .header .lit-logo-link img {
+    width: 56px;
+    height: auto;
+  }
+  :root:root .header nav {
+    gap: 0;
+    align-items: center;
+  }
+  :root:root .header .icon-button {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+  :root:root .header .icon-button:active {
+    background: var(--color-grey-10);
+  }
+  :root:root .header .icon-button svg,
+  :root:root .header .icon-button img {
+    width: 24px;
+    height: 24px;
+  }
+  /* 나가기 같은 헤더 버튼은 글자만 있는 작은 알약 */
+  :root:root .header nav .button {
+    min-height: 34px;
+    margin-left: 6px;
+    padding: 0 14px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: var(--weight-semibold);
+  }
+}
+
+/* ───── 모바일(폰) 글자 크기: 데스크톱보다 한 단계 작게 ───── */
+@media (max-width: 600px) {
+  :root:root {
+    --font-bump: 0px;
+    --font-title-lg: 40px;
+    --font-title-md: 32px;
+    --font-title-sm: 24px;
+    --font-text-lg: 19px;
+    --font-text-md: 17px;
+    --font-text-sm: 15px;
+    --font-caption: 13px;
+    --font-text-xs: 12px;
+  }
+}
+
+/* 헤더 아이콘을 한 단계 더 작게 */
+@media (max-width: 600px) {
+  :root:root .header .icon-button {
+    width: 34px;
+    height: 34px;
+  }
+  :root:root .header .icon-button svg,
+  :root:root .header .icon-button img {
+    width: 20px;
+    height: 20px;
+  }
+  :root:root .header .header-popover-badge {
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    font-size: 10px;
+    line-height: 12px;
+    top: -4px;
+    right: -6px;
+  }
+  :root:root .header nav .button {
+    min-height: 30px;
+    padding: 0 12px;
+    font-size: 13px;
+  }
+}
+
+/* 헤더를 한 번 더 작게 */
+@media (max-width: 600px) {
+  :root:root .header .icon-button {
+    width: 30px;
+    height: 30px;
+  }
+  :root:root .header .icon-button svg,
+  :root:root .header .icon-button img {
+    width: 17px;
+    height: 17px;
+  }
+  :root:root .header .header-popover-badge {
+    min-width: 14px;
+    height: 14px;
+    padding: 0 3px;
+    border-width: 1.5px;
+    font-size: 9px;
+    line-height: 11px;
+    top: -4px;
+    right: -6px;
+  }
+  :root:root .header nav .button {
+    min-height: 27px;
+    margin-left: 4px;
+    padding: 0 10px;
+    font-size: 12px;
+  }
+}
+
+/* 채점 화면(모바일): 위쪽 막대들은 연회색, 내용은 흰색으로 나눠서 구분합니다. */
+@media (max-width: 900px) {
+  :root:root .grading-mobile-back,
+  :root:root .grading-mobile-pager,
+  :root:root .grading-workspace .teacher-content .detail-tabs {
+    background: var(--color-grey-10);
+  }
+  :root:root .grading-mobile-pager button[aria-pressed="true"] {
+    background: var(--color-white);
+  }
+  :root:root .grading-workspace .teacher-content > .workspace-sidebar > .details {
+    background: var(--color-white);
+  }
+  :root:root .grading-workspace .teacher-content .review-panel-scroll {
+    background: var(--color-white);
+  }
+}
+
+/* ───── 채점 상세(모바일): 뒤로가기 + 전환을 한 줄 앱 바로 ───── */
+.grading-mobile-bar {
+  display: none;
+}
+@media (max-width: 900px) {
+  :root:root .grading-mobile-bar {
+    position: sticky;
+    top: 61px;
+    z-index: 15;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 52px;
+    padding: 0 12px 0 6px;
+    border-bottom: 1px solid var(--border);
+    background: var(--color-white);
+  }
+  :root:root .grading-mobile-bar .grading-mobile-back {
+    position: static;
+    flex: 0 0 40px;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    min-height: 40px;
+    height: 40px;
+    padding: 0;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--color-grey-80);
+  }
+  :root:root .grading-mobile-bar .grading-mobile-back:active {
+    background: var(--color-grey-10);
+  }
+  :root:root .grading-mobile-bar .grading-mobile-pager {
+    position: static;
+    flex: 1 1 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    height: 36px;
+    padding: 3px;
+    border: 0;
+    border-radius: 10px;
+    background: var(--color-grey-10);
+  }
+  :root:root .grading-mobile-bar .grading-mobile-pager button {
+    min-height: 0;
+    padding: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--color-grey-60);
+    font-size: 14px;
+  }
+  :root:root .grading-mobile-bar .grading-mobile-pager button[aria-pressed="true"] {
+    background: var(--color-white);
+    color: var(--color-primary);
+  }
+  :root:root .grading-workspace .teacher-content {
+    height: calc(100dvh - 113px);
+  }
+  /* 탭 줄은 흰색, 내용 영역만 연회색으로 살짝 구분 */
+  :root:root .grading-workspace .teacher-content .detail-tabs {
+    background: var(--color-white);
+    border-bottom: 1px solid var(--border);
+  }
+  :root:root .grading-workspace .teacher-content .review-panel-scroll,
+  :root:root .grading-workspace .teacher-content > .workspace-sidebar,
+  :root:root .grading-workspace .teacher-content > .workspace-sidebar > .details {
+    background: var(--color-white);
+  }
+}
+
+/* ───── 모바일 헤더: 회색 알약 없이 깔끔한 앱 바 ───── */
+@media (max-width: 600px) {
+  :root:root .header {
+    background: var(--color-white);
+    border-bottom: 1px solid var(--border);
+  }
+  :root:root .header nav .button:not(.primary) {
+    background: transparent;
+    border: 0;
+    color: var(--color-grey-70);
+    padding: 0 8px;
+  }
+}
+
+/* ───── 대기실(모바일): 카드 틀 없이 PIN·QR을 가운데에 크게 ───── */
+@media (max-width: 600px) {
+  :root:root .teacher-lobby {
+    gap: 0;
+  }
+  :root:root .teacher-lobby > .teacher-card {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+  :root:root .teacher-join-card {
+    align-items: center;
+    gap: 16px;
+    padding: 8px 0 28px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+  }
+  :root:root .teacher-lobby-pin {
+    margin-top: 6px;
+    font-size: 44px;
+    letter-spacing: 0.1em;
+  }
+  :root:root .teacher-join-hint {
+    margin-top: 8px;
+    word-break: keep-all;
+  }
+  :root:root .teacher-lobby-qr {
+    width: 168px;
+    height: 168px;
+    padding: 8px;
+    border-radius: 16px;
+  }
+  :root:root .teacher-lobby-people {
+    min-height: 0;
+    padding: 24px 0 8px;
+  }
+}
+
+/* 대기실(모바일): 한 단계 더 차분하게 */
+@media (max-width: 600px) {
+  :root:root .teacher-page:has(.teacher-lobby) {
+    background: var(--color-white);
+  }
+  :root:root .teacher-join-card {
+    gap: 12px;
+    padding: 4px 0 24px;
+  }
+  :root:root .teacher-join-label {
+    font-size: 14px;
+    color: var(--color-grey-50);
+  }
+  :root:root .teacher-lobby-pin {
+    margin-top: 4px;
+    font-size: 38px;
+    letter-spacing: 0.14em;
+    padding-left: 0.14em;
+  }
+  :root:root .teacher-join-hint {
+    margin-top: 6px;
+    font-size: 13px;
+    color: var(--color-grey-50);
+  }
+  :root:root .teacher-lobby-qr {
+    width: 148px;
+    height: 148px;
+    padding: 10px;
+    border-color: var(--color-grey-20);
+    border-radius: 18px;
+  }
+}
+
+@media (max-width: 600px) {
+  :root:root .teacher-lobby-pin ~ .teacher-join-hint {
+    display: none;
+  }
+}
+
+/* 대기실(모바일): PIN·QR 다음에 참여자 화면이 옆으로 이어집니다. */
+@media (max-width: 600px) {
+  :root:root .teacher-lobby {
+    display: flex;
+    align-items: stretch;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    min-height: calc(100dvh - 200px);
+  }
+  :root:root .teacher-lobby::-webkit-scrollbar {
+    display: none;
+  }
+  :root:root .teacher-lobby > .teacher-card {
+    flex: 0 0 100%;
+    width: 100%;
+    min-width: 0;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+  :root:root .teacher-join-card {
+    justify-content: center;
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+  :root:root .teacher-lobby-people {
+    padding: 8px 0 0;
+  }
+}
+
+/* 대기실 전환 칩: 아래에 떠서 옆 화면이 있다는 걸 알려 줍니다. */
+.teacher-lobby-pager {
+  display: none;
+}
+@media (max-width: 600px) {
+  :root:root .teacher-lobby-pager {
+    position: fixed;
+    left: 50%;
+    bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+    z-index: 20;
+    display: flex;
+    gap: 2px;
+    padding: 3px;
+    border: 1px solid var(--color-grey-20);
+    border-radius: 999px;
+    background: var(--color-white);
+    transform: translateX(-50%);
+  }
+  :root:root .teacher-lobby-pager button {
+    min-width: 76px;
+    height: 34px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--color-grey-60);
+    font: inherit;
+    font-size: 14px;
+    font-weight: var(--weight-semibold);
+  }
+  :root:root .teacher-lobby-pager button[aria-pressed="true"] {
+    background: var(--color-primary);
+    color: var(--color-white);
+  }
+  :root:root .teacher-lobby {
+    padding-bottom: 72px;
+  }
+}
+
+/* 모바일 헤더: 맨 위에서는 투명, 스크롤하면 유리처럼 비치는 흰 배경 */
+@media (max-width: 600px) {
+  :root:root .header,
+  :root:root .header.teacher-header {
+    background: transparent;
+    border-bottom-color: transparent;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  :root:root .header.is-scrolled,
+  :root:root .header.teacher-header.is-scrolled {
+    background: rgba(255, 255, 255, 0.82);
+    border-bottom-color: var(--border);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    backdrop-filter: blur(14px) saturate(140%);
+  }
+}
+
+/* 채점 전환 탭을 대기실 칩과 같은 모양으로 */
+@media (max-width: 900px) {
+  :root:root .grading-mobile-bar .grading-mobile-pager {
+    height: 40px;
+    padding: 3px;
+    gap: 2px;
+    border: 1px solid var(--color-grey-20);
+    border-radius: 999px;
+    background: var(--color-white);
+  }
+  :root:root .grading-mobile-bar .grading-mobile-pager button {
+    border-radius: 999px;
+    color: var(--color-grey-60);
+    font-size: 14px;
+    font-weight: var(--weight-semibold);
+  }
+  :root:root .grading-mobile-bar .grading-mobile-pager button[aria-pressed="true"] {
+    background: var(--color-primary);
+    color: var(--color-white);
+  }
+}
+
+/* 헤더: 맨 위에서는 완전히 투명, 내리면 글래스. 뒤 배경색도 화면과 같게 맞춥니다. */
+@media (max-width: 900px) {
+  :root:root .header:not(.is-scrolled),
+  :root:root .header.teacher-header:not(.is-scrolled),
+  :root:root .grading-workspace .header.teacher-header:not(.is-scrolled) {
+    background: transparent;
+    border-bottom-color: transparent;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  :root:root .header.is-scrolled,
+  :root:root .header.teacher-header.is-scrolled,
+  :root:root .grading-workspace .header.teacher-header.is-scrolled {
+    background: rgba(255, 255, 255, 0.7);
+    border-bottom-color: rgba(0, 0, 0, 0.06);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    backdrop-filter: blur(18px) saturate(160%);
+  }
+  :root:root body:has(.teacher-lobby),
+  :root:root body:has(.teacher-lobby) #root {
+    background: var(--color-white);
+  }
+}
+
+/* 채점 전환 탭: 대기실처럼 화면 아래에 띄웁니다. */
+@media (max-width: 900px) {
+  :root:root .grading-mobile-bar {
+    height: 48px;
+    padding: 0 6px;
+  }
+  :root:root .grading-mobile-bar .grading-mobile-pager {
+    position: fixed;
+    top: auto;
+    right: auto;
+    left: 50%;
+    bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+    z-index: 20;
+    display: flex;
+    flex: none;
+    width: auto;
+    height: 42px;
+    transform: translateX(-50%);
+  }
+  :root:root .grading-mobile-bar .grading-mobile-pager button {
+    min-width: 96px;
+    height: 34px;
+    padding: 0 14px;
+  }
+  :root:root .grading-workspace .teacher-content {
+    height: calc(100dvh - 109px);
+  }
+  :root:root .grading-workspace .teacher-content > .answer-area,
+  :root:root .grading-workspace .teacher-content > .workspace-sidebar {
+    padding-bottom: 76px;
+  }
+}
+
+@media (max-width: 900px) {
+  :root:root .grading-mobile-bar .grading-mobile-back {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    width: auto;
+    padding: 0 12px 0 6px;
+    font-size: 16px;
+    font-weight: var(--weight-semibold);
+  }
+}

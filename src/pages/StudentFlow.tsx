@@ -11,7 +11,6 @@ import { ApiError, apiErrorMessage } from "../api/client";
 import {
   askQuestion,
   confirmSubmission,
-  getAiDisclosure,
   getConversations,
   getStudentLearningEvents,
   getStudentAnswer,
@@ -23,7 +22,6 @@ import {
   joinEvaluation,
   leaveEvaluation,
   reconnectParticipant,
-  saveAiDisclosure,
   saveStudentAnswer,
   sendClientEvent,
   sendHeartbeat,
@@ -176,8 +174,6 @@ export function StudentFlow({ route }: { route: string }) {
   const [submitting, setSubmitting] = useState(false);
   const [chatExpanded, setChatExpanded] = useState(false);
   // 제출 창에서 적는 AI 사용 기록(선택). saved는 서버에 저장된 값과 비교해 바뀐 경우에만 저장하려고 둡니다.
-  const [disclosure, setDisclosure] = useState({ tools: "", usedParts: "", reason: "" });
-  const savedDisclosure = useRef({ tools: "", usedParts: "", reason: "" });
 
   const isSolving = route === "/student/solve";
   const isWaiting = route === "/student/wait";
@@ -549,6 +545,56 @@ export function StudentFlow({ route }: { route: string }) {
     };
   }, [isSolving, session.evaluationId]);
 
+  // 교사가 켠 경우에만 전체 화면 이탈과 개발자 도구 열림을 기록합니다.
+  const antiCheatKey = (workspace?.antiCheat ?? []).join(",");
+  useEffect(() => {
+    if (!isSolving || !session.evaluationId) return;
+    const enabled = antiCheatKey.split(",");
+    const evaluationId = session.evaluationId;
+    const send = (type: "FULLSCREEN_EXIT" | "DEVTOOLS_OPEN") => {
+      void sendClientEvent(evaluationId, {
+        type,
+        occurredAt: new Date().toISOString(),
+        questionId: questionIdRef.current || null,
+      }).catch(() => undefined);
+      setDialog("warning");
+    };
+    const cleanups: (() => void)[] = [];
+    if (enabled.includes("FULLSCREEN_LEAVE")) {
+      let wasFullscreen = false;
+      // 전체 화면은 사용자 동작이 있어야 켤 수 있어 첫 클릭 때 켭니다.
+      const enter = () => {
+        if (!document.fullscreenElement) void document.documentElement.requestFullscreen?.().catch(() => undefined);
+      };
+      const onChange = () => {
+        if (document.fullscreenElement) wasFullscreen = true;
+        else if (wasFullscreen) {
+          wasFullscreen = false;
+          send("FULLSCREEN_EXIT");
+        }
+      };
+      document.addEventListener("pointerdown", enter, { once: true });
+      document.addEventListener("fullscreenchange", onChange);
+      cleanups.push(() => {
+        document.removeEventListener("pointerdown", enter);
+        document.removeEventListener("fullscreenchange", onChange);
+      });
+    }
+    if (enabled.includes("DEVTOOLS")) {
+      // 창 안팎 크기 차이로 개발자 도구가 붙어 있는지 추정합니다(정확하지 않을 수 있어요).
+      let open = false;
+      const check = () => {
+        const docked =
+          window.outerWidth - window.innerWidth > 200 || window.outerHeight - window.innerHeight > 260;
+        if (docked && !open) send("DEVTOOLS_OPEN");
+        open = docked;
+      };
+      const timer = window.setInterval(check, 2000);
+      cleanups.push(() => window.clearInterval(timer));
+    }
+    return () => cleanups.forEach((cleanup) => cleanup());
+  }, [isSolving, session.evaluationId, antiCheatKey]);
+
   // Autosave: a few seconds after the last edit, without waiting for focus to leave the editor.
   const saveLatest = useRef<(id: string) => Promise<boolean>>(
     async () => true,
@@ -788,18 +834,12 @@ export function StudentFlow({ route }: { route: string }) {
         setNotice(
           `${questions.length === 1 ? "문항" : `문항 ${index + 1}`}은 최소 ${item.minChars.toLocaleString()}자 이상 작성해야 제출할 수 있어요. (현재 ${length.toLocaleString()}자)`,
         );
+        setDialog("notice");
         return;
       }
     }
     try {
       setPreview(await getSubmissionPreview(session.evaluationId));
-      void getAiDisclosure(session.evaluationId)
-        .then((saved) => {
-          const value = { tools: saved.tools ?? "", usedParts: saved.usedParts ?? "", reason: saved.reason ?? "" };
-          savedDisclosure.current = value;
-          setDisclosure(value);
-        })
-        .catch(() => undefined);
       setDialog("submit");
     } catch (error) {
       setDialogError(
@@ -815,25 +855,6 @@ export function StudentFlow({ route }: { route: string }) {
     setSubmitting(true);
     setDialogError("");
     try {
-      const changed = (Object.keys(disclosure) as (keyof typeof disclosure)[]).some(
-        (key) => disclosure[key].trim() !== savedDisclosure.current[key].trim(),
-      );
-      if (changed) {
-        try {
-          await saveAiDisclosure(session.evaluationId, {
-            tools: disclosure.tools.trim(),
-            usedParts: disclosure.usedParts.trim(),
-            reason: disclosure.reason.trim(),
-          });
-        } catch (error) {
-          // 기록 API가 없는 서버면 제출은 그대로 진행합니다.
-          const missing = error instanceof ApiError && (error.status === 404 || error.status === 405);
-          if (!missing) {
-            setDialogError(apiErrorMessage(error, "AI 사용 기록을 저장하지 못했습니다. 다시 시도해주세요."));
-            return;
-          }
-        }
-      }
       await confirmSubmission(session.evaluationId, preview.reviewToken);
       setPreview(null);
       // 제출하면 평가에서 자동으로 나가 처음 화면으로 돌아갑니다.
@@ -983,8 +1004,6 @@ export function StudentFlow({ route }: { route: string }) {
           onClose={closeDialog}
           onLeave={() => void leave()}
           onSubmit={() => void submitFinalAnswer()}
-          disclosure={disclosure}
-          onDisclosure={setDisclosure}
         />
       </main>
     );
@@ -1178,8 +1197,6 @@ export function StudentFlow({ route }: { route: string }) {
         onClose={closeDialog}
         onLeave={() => void leave()}
         onSubmit={() => void submitFinalAnswer()}
-        disclosure={disclosure}
-        onDisclosure={setDisclosure}
       />
       {selectedQuestion && (
         <span className="sr-only" aria-live="polite">

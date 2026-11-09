@@ -14,11 +14,13 @@ export function toEndInfo(endsAt?: string | null, serverNow?: string | null): En
 /** 남은 시간(ms). 종료 시각이 없으면 null이고, 매초 갱신합니다. */
 export function useRemainingMs(info: EndInfo | null) {
   const [now, setNow] = useState(() => Date.now());
+  const active = info !== null;
   useEffect(() => {
-    if (!info) return;
+    if (!active) return;
+    // 폴링으로 info 객체가 계속 새로 만들어져도 타이머는 다시 만들지 않습니다.
     const timer = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(timer);
-  }, [info]);
+  }, [active]);
   return info ? Math.max(0, info.endsAt - (now + info.offset)) : null;
 }
 

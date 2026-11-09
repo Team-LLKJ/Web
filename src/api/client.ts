@@ -263,3 +263,71 @@ export function apiErrorMessage(
     return "API 서버에 연결할 수 없습니다. 서버가 실행 중인지 확인해주세요.";
   return fallback;
 }
+
+export type StreamEvent = { id: string; event: string; data: string };
+
+/**
+ * 서버가 보내는 SSE를 Bearer 헤더로 구독합니다(EventSource는 헤더를 못 보내서 fetch를 씁니다).
+ * 연결이 끝나거나 실패하면 Promise가 끝나며, 다시 연결할지는 호출하는 쪽이 정합니다.
+ * 응답 상태가 2xx가 아니면 ApiError를 던집니다.
+ */
+export async function readEventStream(
+  path: string,
+  options: {
+    signal: AbortSignal;
+    lastEventId?: string;
+    onOpen?: () => void;
+    onEvent: (event: StreamEvent) => void;
+  },
+): Promise<void> {
+  const open = async (token: string | null) =>
+    fetch(`${API_BASE_URL}${path}`, {
+      headers: {
+        Accept: "text/event-stream",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(options.lastEventId ? { "Last-Event-ID": options.lastEventId } : {}),
+      },
+      signal: options.signal,
+    });
+  let token = accessToken;
+  if (!token) token = await refreshAccessToken();
+  let response = await open(token);
+  if (response.status === 401) {
+    const refreshed = await refreshAccessToken();
+    if (refreshed) response = await open(refreshed);
+  }
+  if (!response.ok || !response.body) {
+    throw new ApiError(response.status, `HTTP_${response.status}`, "실시간 연결을 열지 못했습니다.");
+  }
+  options.onOpen?.();
+  const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
+  let buffer = "";
+  let id = "";
+  let event = "";
+  let data: string[] = [];
+  const flush = () => {
+    if (data.length || event) options.onEvent({ id, event: event || "message", data: data.join("\n") });
+    event = "";
+    data = [];
+  };
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) return;
+    buffer += value;
+    let index: number;
+    while ((index = buffer.search(/\r\n|\n|\r/)) >= 0) {
+      const line = buffer.slice(0, index);
+      buffer = buffer.slice(index + (buffer.startsWith("\r\n", index) ? 2 : 1));
+      if (line === "") flush();
+      else if (line.startsWith(":")) continue;
+      else {
+        const colon = line.indexOf(":");
+        const field = colon < 0 ? line : line.slice(0, colon);
+        const content = colon < 0 ? "" : line.slice(colon + 1).replace(/^ /, "");
+        if (field === "id") id = content;
+        else if (field === "event") event = content;
+        else if (field === "data") data.push(content);
+      }
+    }
+  }
+}

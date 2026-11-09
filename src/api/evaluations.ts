@@ -1,4 +1,4 @@
-import { apiRequest } from "./client";
+import { apiRequest, readEventStream } from "./client";
 import type {
   ApiAnswer,
   ApiMessage,
@@ -305,21 +305,11 @@ export function getMyReportFile(evaluationId: string, participantToken: string, 
   );
 }
 
-/** 학생 AI 사용 기록 조회·저장(시작 후 제출 전). tools≤500, usedParts·reason≤4000자. */
+/** 학생 AI 사용 기록 조회. 서버가 제출·종료 시 자동으로 만들며 학생은 수정할 수 없습니다(PUT은 호환용이라 쓰지 않습니다). */
 export function getAiDisclosure(evaluationId: string) {
   return apiRequest<AiDisclosure>(
     `/api/evaluations/${idPath(evaluationId)}/ai-disclosure`,
     participantRequest(evaluationId),
-  );
-}
-
-export function saveAiDisclosure(
-  evaluationId: string,
-  body: { tools: string; usedParts: string; reason: string },
-) {
-  return apiRequest<AiDisclosure>(
-    `/api/evaluations/${idPath(evaluationId)}/ai-disclosure`,
-    { method: "PUT", body, ...participantRequest(evaluationId) },
   );
 }
 
@@ -667,3 +657,59 @@ export const confirmProcessReview = (
     `${processRunPath(evaluationId, participantId)}/${idPath(jobId)}/confirm`,
     { method: "POST", body: { expectedRevision } },
   );
+
+/** 교사 화면용 제출·경고 실시간(SSE) 스트림. 연결이 끝나면 Promise가 끝납니다. */
+export function streamLiveEvents(
+  evaluationId: string,
+  options: Parameters<typeof readEventStream>[1],
+) {
+  return readEventStream(
+    `/api/teacher/evaluations/${encodeURIComponent(evaluationId)}/live-events`,
+    options,
+  );
+}
+
+/** 교사: 참여자 내보내기(204). 대기·진행 중에만 가능하고, 반복 요청해도 같은 결과입니다(409 EVALUATION_ENDED). */
+export function expelParticipant(evaluationId: string, participantId: string) {
+  return apiRequest<void>(
+    `/api/teacher/evaluations/${idPath(evaluationId)}/participants/${idPath(participantId)}`,
+    { method: "DELETE" },
+  );
+}
+
+/** 학생: 내 평가 세션 상태와 안내 동의 상태. 내보내진 학생은 403 PARTICIPANT_EXPELLED. */
+export type StudentSession = {
+  status?: "WAITING" | "IN_PROGRESS" | "SUBMITTED" | "ENDED" | "EXPIRED" | string;
+  readOnly?: boolean;
+  submitted?: boolean;
+  policy?: { policyVersion?: string; accepted?: boolean; acceptedAt?: string | null } & Record<string, unknown>;
+} & Record<string, unknown>;
+export function getStudentSession(evaluationId: string) {
+  return apiRequest<StudentSession>(`/api/student/evaluations/${idPath(evaluationId)}/me`, {
+    participantEvaluationId: evaluationId,
+  });
+}
+
+/** 학생: 평가 안내 동의. policyVersion 은 /me 의 policy.policyVersion 을 그대로 보냅니다. */
+export function acceptEvaluationPolicy(evaluationId: string, policyVersion: string) {
+  return apiRequest<Record<string, unknown>>(
+    `/api/student/evaluations/${idPath(evaluationId)}/policy-acceptance`,
+    { method: "POST", body: { policyVersion }, participantEvaluationId: evaluationId },
+  );
+}
+
+export type ReportArchiveFormat = "PDF" | "HWP";
+const archiveQuery = (format: ReportArchiveFormat, includeConversations: boolean) =>
+  new URLSearchParams({ format, includeConversations: String(includeConversations) }).toString();
+
+/** 교사: 보고서 ZIP 바로 내려받기(최대 200명·100MiB, 넘으면 413 REPORT_ARCHIVE_LIMIT). 결과는 manifest.json 포함. */
+export function getEvaluationReportsArchive(
+  evaluationId: string,
+  format: ReportArchiveFormat = "PDF",
+  includeConversations = false,
+) {
+  return apiRequest<Blob>(
+    `/api/teacher/evaluations/${idPath(evaluationId)}/reports/archive?${archiveQuery(format, includeConversations)}`,
+    { responseType: "blob", accept: "application/zip, */*" },
+  );
+}

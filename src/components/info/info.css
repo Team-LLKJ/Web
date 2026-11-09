@@ -695,3 +695,27 @@
   color: var(--color-danger, #d93025);
   font-size: var(--font-text-sm);
 }
+
+/* 긴 이메일·이름·아이디는 줄바꿈 대신 한 줄에서 ...으로 줄입니다. */
+.settings-name-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.settings-info-list dd:not(.settings-name-value) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.settings-profile-name strong,
+.settings-profile-sub {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.settings-profile-name {
+  flex-wrap: nowrap;
+  min-width: 0;
+}
