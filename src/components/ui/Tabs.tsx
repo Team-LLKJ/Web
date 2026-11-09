@@ -1,4 +1,15 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
+
+// 좁은 화면(600px 이하)인지. 탭이 많을 때 셀렉트로 바꾸는 데 씁니다.
+const NARROW = "(max-width: 600px)";
+function subscribeNarrow(callback: () => void) {
+  const query = window.matchMedia(NARROW);
+  query.addEventListener("change", callback);
+  return () => query.removeEventListener("change", callback);
+}
+const isNarrow = () => window.matchMedia(NARROW).matches;
+/** 좁은 화면에서 세그먼트 탭이 이 개수 이상이면 '이전 · 셀렉트 · 다음' 으로 바꿉니다. */
+const COMPACT_MIN_TABS = 4;
 
 type Props<T extends string | number> = {
   label: string;
@@ -24,7 +35,11 @@ export function Tabs<T extends string | number>({
   const [thumb, setThumb] = useState<Thumb>(null);
   const [ready, setReady] = useState(false);
   const [overflow, setOverflow] = useState({ prev: false, next: false });
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const pickerRef = useRef<HTMLDivElement>(null);
   const segment = variant === "segment";
+  const narrow = useSyncExternalStore(subscribeNarrow, isNarrow, () => false);
+  const compact = segment && narrow && items.length >= COMPACT_MIN_TABS;
   // 선택 표시가 탭 사이를 미끄러지듯 이동하는 변형 (세그먼트, 알약)
   const slider = segment || variant === "pill";
 
@@ -65,7 +80,7 @@ export function Tabs<T extends string | number>({
       cancelAnimationFrame(frame);
       observer.disconnect();
     };
-  }, [slider, value, items]);
+  }, [slider, value, items, compact]);
 
   // 탭이 너무 많아 넘칠 때만 좌우 화살표를 보여줍니다 (세그먼트 변형).
   useLayoutEffect(() => {
@@ -96,7 +111,25 @@ export function Tabs<T extends string | number>({
       list.removeEventListener("scroll", update);
       observer.disconnect();
     };
-  }, [segment, items]);
+  }, [segment, items, compact]);
+
+  // 문항 목록(셀렉트)을 연 상태에서 바깥을 누르거나 Esc 를 누르면 닫습니다.
+  useEffect(() => {
+    if (!pickerOpen) return;
+    const close = (event: Event) => {
+      if (event instanceof KeyboardEvent) {
+        if (event.key === "Escape") setPickerOpen(false);
+        return;
+      }
+      if (!pickerRef.current?.contains(event.target as Node)) setPickerOpen(false);
+    };
+    document.addEventListener("pointerdown", close);
+    document.addEventListener("keydown", close);
+    return () => {
+      document.removeEventListener("pointerdown", close);
+      document.removeEventListener("keydown", close);
+    };
+  }, [pickerOpen]);
 
   // 마지막 탭까지 한 화면에 다 들어오는 가장 앞쪽 탭의 위치. 이보다 더 넘기면 빈 화면만 늘어나요.
   const maxStart = (list: HTMLElement) => {
@@ -122,7 +155,7 @@ export function Tabs<T extends string | number>({
         left: active.offsetLeft < 8 ? 0 : Math.min(active.offsetLeft, maxStart(list)),
         behavior: "smooth",
       });
-  }, [segment, value]);
+  }, [segment, value, compact]);
 
   // 탭이 중간에 잘린 채로 멈추지 않도록, 한 번에 보이는 만큼을 탭 단위로 넘깁니다.
   const scrollTabs = (direction: -1 | 1) => {
@@ -184,6 +217,69 @@ export function Tabs<T extends string | number>({
   );
 
   if (!segment) return tablist;
+  if (compact) {
+    const index = items.findIndex((item) => item.value === value);
+    const move = (offset: number) => {
+      const target = items[index + offset];
+      if (target) onChange(target.value);
+    };
+    const arrow = (direction: -1 | 1) => (
+      <button
+        type="button"
+        className="tabs-stepper-arrow"
+        aria-label={direction < 0 ? "이전" : "다음"}
+        disabled={direction < 0 ? index <= 0 : index >= items.length - 1}
+        onClick={() => move(direction)}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d={direction < 0 ? "M15 6l-6 6 6 6" : "M9 6l6 6-6 6"} />
+        </svg>
+      </button>
+    );
+    return (
+      <div className="tabs-stepper" role="group" aria-label={label}>
+        {arrow(-1)}
+        <div className="tabs-stepper-picker" ref={pickerRef}>
+          <button
+            type="button"
+            className="tabs-stepper-trigger"
+            aria-haspopup="listbox"
+            aria-expanded={pickerOpen}
+            aria-label={label}
+            onClick={() => setPickerOpen((open) => !open)}
+          >
+            <span className="tabs-stepper-current">{items[index]?.label}</span>
+          </button>
+          {pickerOpen && (
+            <ul className="tabs-stepper-list" role="listbox" aria-label={label}>
+              {items.map((item) => (
+                <li key={String(item.value)} role="presentation">
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={item.value === value}
+                    className={item.value === value ? "active" : ""}
+                    onClick={() => {
+                      setPickerOpen(false);
+                      onChange(item.value);
+                    }}
+                  >
+                    <span>{item.label}</span>
+                    {item.value === value && (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d="m5 12 5 5 9-10" />
+                      </svg>
+                    )}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        {arrow(1)}
+      </div>
+    );
+  }
   const showArrows = overflow.prev || overflow.next;
   return (
     <div className={`segment-tabs-wrap${showArrows ? " has-arrows" : ""}${overflow.prev ? " can-prev" : ""}${overflow.next ? " can-next" : ""}`}>

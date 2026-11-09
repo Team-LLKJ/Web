@@ -64,7 +64,19 @@ const antiCheatOptions = [
     label: "프린트 금지",
     description: "평가 화면 인쇄(Ctrl+P)를 막습니다.",
   },
+  {
+    id: "FULLSCREEN_LEAVE",
+    label: "전체 화면 이탈 감지",
+    description: "학생이 전체 화면을 벗어나면 기록합니다.",
+  },
+  {
+    id: "DEVTOOLS",
+    label: "개발자 도구 감지",
+    description: "개발자 도구가 열린 것으로 보이면 기록합니다.",
+  },
 ] as const;
+// 새 항목은 서버 배포 전일 수 있어 기본으로 켜 두지 않습니다.
+const DEFAULT_ANTI_CHEAT: readonly string[] = ["TAB_LEAVE", "PRINT_BLOCK"];
 type AntiCheatOption = (typeof antiCheatOptions)[number]["id"];
 const toggleInOrder = <T,>(
   order: readonly T[],
@@ -125,7 +137,7 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
   const [revision, setRevision] = useState<number | undefined>(undefined);
   const [questionErrorKey, setQuestionErrorKey] = useState<string | null>(null);
   const [antiCheat, setAntiCheat] = useState<AntiCheatOption[]>(
-    antiCheatOptions.map((option) => option.id),
+    antiCheatOptions.map((option) => option.id).filter((id) => DEFAULT_ANTI_CHEAT.includes(id)),
   );
   const [criteria, setCriteria] = useState<string[]>(
     evaluationCriteria.map((criterion) => criterion.title),
@@ -313,8 +325,8 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
     setNotice("");
     window.scrollTo({ top: 0, behavior: "smooth" });
     if (!title.trim() || title.trim().length > 100) {
-      setTitleError("평가 제목을 공백 없이 100자 이내로 입력해주세요.");
-      setNotice("평가 제목을 공백 없이 100자 이내로 입력해주세요.");
+      setTitleError("제목을 입력해주세요. (100자 이내)");
+      setNotice("제목을 입력해주세요. (100자 이내)");
       return;
     }
     setTitleError("");
@@ -342,8 +354,8 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
     event.preventDefault();
     setNotice("");
     if (!title.trim() || title.trim().length > 100) {
-      setTitleError("평가 제목을 공백 없이 100자 이내로 입력해주세요.");
-      setNotice("평가 제목을 공백 없이 100자 이내로 입력해주세요.");
+      setTitleError("제목을 입력해주세요. (100자 이내)");
+      setNotice("제목을 입력해주세요. (100자 이내)");
       return;
     }
     setTitleError("");

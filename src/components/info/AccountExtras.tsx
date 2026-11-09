@@ -99,7 +99,7 @@ export function EmailChangeRow({ email }: { email: string }) {
     <div>
       <dt>이메일</dt>
       <dd className="settings-name-value">
-        {email}
+        <span className="settings-name-text" title={email}>{email}</span>
         <button type="button" className="settings-icon-button" aria-label="이메일 수정" title="이메일 수정" onClick={() => setOpen(true)}>
           <PencilIcon />
         </button>

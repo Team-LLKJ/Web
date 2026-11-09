@@ -34,10 +34,28 @@ export function signupStudent(payload: StudentSignup) {
   });
 }
 
-export function signupTeacher(payload: TeacherSignup) {
+/** 로그인 전에 가입 화면에서 쓰는 현재 약관·개인정보 처리방침 버전. */
+export function getCurrentPolicies() {
+  return apiRequest<{ termsVersion: string; privacyVersion: string }>(
+    "/api/policies/current",
+    { auth: false },
+  );
+}
+
+export async function signupTeacher(payload: TeacherSignup) {
+  // 새 서버는 가입 요청에 약관 동의 버전을 함께 받습니다. 아직 지원하지 않는 서버면 기존 본문 그대로 보냅니다.
+  const policies = await getCurrentPolicies().catch(() => null);
   return apiRequest<User>("/api/auth/signup/teacher", {
     method: "POST",
-    body: payload,
+    body: policies
+      ? {
+          ...payload,
+          termsVersion: policies.termsVersion,
+          termsAccepted: true,
+          privacyVersion: policies.privacyVersion,
+          privacyAccepted: true,
+        }
+      : payload,
     auth: false,
   });
 }

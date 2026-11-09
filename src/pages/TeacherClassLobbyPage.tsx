@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ApiError, apiErrorMessage } from "../api/client";
-import { extendEvaluation, getEvaluationQr, getParticipants } from "../api/evaluations";
+import { expelParticipant, extendEvaluation, getEvaluationQr, getParticipants } from "../api/evaluations";
 import type { Participant } from "../api/types";
 import { TeacherHeader } from "../components/teacher/TeacherHeader";
 import { Toast } from "../components/teacher/Toast";
@@ -69,6 +69,23 @@ export function TeacherClassLobbyPage() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [timeToast, setTimeToast] = useState("");
+  const [expelTarget, setExpelTarget] = useState<Participant | null>(null);
+  const [expelling, setExpelling] = useState(false);
+  const lobbyRef = useRef<HTMLDivElement>(null);
+  const [lobbyPane, setLobbyPane] = useState<0 | 1>(0);
+  const showLobbyPane = (pane: 0 | 1) => {
+    const lobby = lobbyRef.current;
+    setLobbyPane(pane);
+    lobby?.scrollTo({ left: pane === 1 ? lobby.scrollWidth : 0, behavior: "smooth" });
+  };
+  // 모바일: 옆으로 밀면 아래 전환 칩도 같이 바뀝니다.
+  useEffect(() => {
+    const lobby = lobbyRef.current;
+    if (!lobby) return;
+    const sync = () => setLobbyPane(lobby.scrollLeft > lobby.clientWidth / 2 ? 1 : 0);
+    lobby.addEventListener("scroll", sync, { passive: true });
+    return () => lobby.removeEventListener("scroll", sync);
+  });
   const [endInfo, setEndInfo] = useState<EndInfo | null>(null);
   const lastEndsAt = useRef<number | null>(null);
   const [extendOpen, setExtendOpen] = useState(false);
@@ -361,7 +378,7 @@ export function TeacherClassLobbyPage() {
             onEnd={() => setEnding(true)}
           />
         )}
-        <div className="teacher-lobby">
+        <div className="teacher-lobby" ref={lobbyRef}>
           <section className="teacher-card teacher-join-card">
             {live ? (
               <>
@@ -428,6 +445,16 @@ export function TeacherClassLobbyPage() {
                   <li key={person.id} className="teacher-lobby-pill">
                     <ParticipantAvatar name={person.nickname} />
                     <span>{person.nickname}</span>
+                    {live && (
+                      <button
+                        type="button"
+                        className="teacher-lobby-expel"
+                        aria-label={`${person.nickname} 내보내기`}
+                        onClick={() => setExpelTarget(person)}
+                      >
+                        내보내기
+                      </button>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -447,6 +474,22 @@ export function TeacherClassLobbyPage() {
             )}
           </section>
         </div>
+        <div className="teacher-lobby-pager" role="group" aria-label="대기실 화면 전환">
+          <button
+            type="button"
+            aria-pressed={lobbyPane === 0}
+            onClick={() => showLobbyPane(0)}
+          >
+            PIN
+          </button>
+          <button
+            type="button"
+            aria-pressed={lobbyPane === 1}
+            onClick={() => showLobbyPane(1)}
+          >
+            참여자{people.length > 0 ? ` ${people.length}` : ""}
+          </button>
+        </div>
       </div>
       {qrOpen && qrUrl && (
         <Modal
@@ -460,6 +503,46 @@ export function TeacherClassLobbyPage() {
             src={qrUrl}
             alt="학생 참가용 QR 코드 (확대)"
           />
+        </Modal>
+      )}
+      {expelTarget && (
+        <Modal
+          title="참여자 내보내기"
+          onClose={() => !expelling && setExpelTarget(null)}
+          actions={
+            <>
+              <Button variant="secondary" disabled={expelling} onClick={() => setExpelTarget(null)}>
+                취소
+              </Button>
+              <Button
+                disabled={expelling}
+                onClick={async () => {
+                  const target = expelTarget;
+                  setExpelling(true);
+                  try {
+                    await expelParticipant(session.id, target.id);
+                    setPeopleResult((current) =>
+                      current?.sessionId === sessionId && current.items
+                        ? { ...current, items: current.items.filter((item) => item.id !== target.id) }
+                        : current,
+                    );
+                    setNotice(`${target.nickname} 학생을 내보냈어요.`);
+                    setExpelTarget(null);
+                  } catch (caught) {
+                    setNotice(apiErrorMessage(caught));
+                  } finally {
+                    setExpelling(false);
+                  }
+                }}
+              >
+                {expelling ? "내보내는 중…" : "내보내기"}
+              </Button>
+            </>
+          }
+        >
+          <p className="folder-start-desc">
+            {expelTarget.nickname} 학생을 내보낼까요? 다시 들어올 수 없고, 이미 쓴 기록은 채점 화면에 남아요.
+          </p>
         </Modal>
       )}
       {starting && (
@@ -535,7 +618,11 @@ export function TeacherClassLobbyPage() {
                 await extendEvaluation(session.id, extendMinutes);
                 setExtendOpen(false);
               } catch (caught) {
-                setNotice(apiErrorMessage(caught, "평가 시간을 연장하지 못했습니다."));
+                setNotice(
+                  caught instanceof ApiError && caught.code === "EVALUATION_NOT_RUNNING"
+                    ? "진행 중인 평가만 시간을 연장할 수 있어요."
+                    : apiErrorMessage(caught, "평가 시간을 연장하지 못했습니다."),
+                );
               } finally {
                 setExtending(false);
               }

@@ -18,6 +18,7 @@ import {
   getRubricScores,
   saveCriterionScore,
   saveRubricScore,
+  streamLiveEvents,
 } from "../api/evaluations";
 import type {
   AssessmentAnalysis,
@@ -277,13 +278,49 @@ export function useGradingData(evaluationId: string | undefined) {
         busy = false;
       });
     };
-    const timer = window.setInterval(tick, POLL_MS);
+    // 실시간(SSE)이 연결돼 있으면 목록 조회는 가끔만 하고, 이벤트가 오면 바로 갱신합니다.
+    let liveConnected = false;
+    let skipped = 0;
+    const timer = window.setInterval(() => {
+      if (liveConnected && ++skipped % 5 !== 0) return;
+      tick();
+    }, POLL_MS);
     document.addEventListener("visibilitychange", tick);
+    const controller = new AbortController();
+    void (async () => {
+      let lastEventId = "";
+      let delay = 2000;
+      while (!controller.signal.aborted && !endedRef.current) {
+        try {
+          await streamLiveEvents(evaluationId, {
+            signal: controller.signal,
+            lastEventId,
+            onOpen: () => {
+              liveConnected = true;
+              delay = 2000;
+            },
+            onEvent: (event) => {
+              if (event.id) lastEventId = event.id;
+              tick();
+              if (selectedRef.current) void loadDetail(selectedRef.current);
+            },
+          });
+        } catch (e) {
+          if (controller.signal.aborted) return;
+          // 서버가 아직 지원하지 않거나 권한이 없으면 기존 주기 조회만 씁니다.
+          if (e instanceof ApiError && [400, 401, 403, 404].includes(e.status)) return;
+        }
+        liveConnected = false;
+        await new Promise((resolve) => window.setTimeout(resolve, delay));
+        delay = Math.min(delay * 2, 30_000);
+      }
+    })();
     return () => {
+      controller.abort();
       window.clearInterval(timer);
       document.removeEventListener("visibilitychange", tick);
     };
-  }, [evaluationId, loadList]);
+  }, [evaluationId, loadList, loadDetail]);
 
   useEffect(() => {
     if (!selectedId) return;

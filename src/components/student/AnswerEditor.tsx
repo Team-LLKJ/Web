@@ -39,6 +39,8 @@ const OVERVIEW = "__overview__";
 const ANTI_CHEAT_COPY: Record<string, string> = {
   TAB_LEAVE: "창이나 탭을 벗어나면 이탈로 기록됩니다.",
   PRINT_BLOCK: "인쇄(프린트)는 사용할 수 없습니다.",
+  FULLSCREEN_LEAVE: "전체 화면을 벗어나면 이탈로 기록됩니다.",
+  DEVTOOLS: "개발자 도구를 열면 기록됩니다.",
 };
 
 function OverviewPanel({
