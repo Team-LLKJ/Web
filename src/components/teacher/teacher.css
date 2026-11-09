@@ -2977,3 +2977,19 @@
 .extend-form .duration-picker-pop {
   z-index: 30;
 }
+
+.teacher-lobby-expel {
+  margin-left: 4px;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-grey-60);
+  font: inherit;
+  font-size: var(--font-caption);
+  font-weight: 500;
+}
+.teacher-lobby-expel:hover {
+  background: var(--color-grey-20);
+  color: var(--color-grey-90);
+}

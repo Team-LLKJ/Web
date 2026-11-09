@@ -2,8 +2,6 @@ import type { AiPolicy, Review } from "../../api/types";
 import { Modal } from "../ui/Modal";
 import { Button } from "../ui/Button";
 
-export type DisclosureDraft = { tools: string; usedParts: string; reason: string };
-
 export type StudentDialog = "" | "submit" | "leave" | "warning" | "policy" | "submitted" | "notice";
 
 export function StudentDialogs({
@@ -26,8 +24,6 @@ export function StudentDialogs({
   onClose: () => void;
   onLeave: () => void;
   onSubmit: () => void;
-  disclosure?: DisclosureDraft;
-  onDisclosure?: (next: DisclosureDraft) => void;
 }) {
   if (!kind) return null;
   const title = kind === "submit"
@@ -40,7 +36,9 @@ export function StudentDialogs({
           ? "AI 사용 정책"
         : kind === "submitted"
           ? "제출 완료"
-          : notice;
+          : notice.length > 24
+            ? "알림"
+            : notice;
 
   return (
     <Modal

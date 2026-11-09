@@ -126,6 +126,8 @@ export type Participant = {
   nickname: string;
   presence: "CONNECTED" | "DISCONNECTED" | string;
 };
+/** 교사가 내보낸 학생. 내보내도 채점 기록은 남습니다. */
+export type ExpelledInfo = { expelled?: boolean; expelledAt?: string | null };
 
 export type Lobby = {
   evaluationId: string;
@@ -222,6 +224,13 @@ export type Review = {
   reviewToken: string;
   canConfirm: boolean;
   blankQuestionIds: string[];
+  /** 글자 수 제한을 어긴 문항(있으면 제출할 수 없습니다). */
+  answerValidationErrors?: {
+    questionId: string;
+    actualChars: number;
+    minChars: number | null;
+    maxChars: number | null;
+  }[];
   content: ReviewContent;
 };
 
@@ -233,7 +242,11 @@ export type Submission = {
   submissionMode?: SubmissionMode;
 };
 
-export type ClientEventType = "WINDOW_LEAVE" | "SHORTCUT_CAPTURE";
+export type ClientEventType =
+  | "WINDOW_LEAVE"
+  | "SHORTCUT_CAPTURE"
+  | "FULLSCREEN_EXIT"
+  | "DEVTOOLS_OPEN";
 export type ClientEventRequest = {
   type: ClientEventType;
   occurredAt: string;
@@ -250,6 +263,8 @@ export type GradingStudent = {
   submissionStatus: "NOT_SUBMITTED" | "SUBMITTED" | "CLOSED_UNSUBMITTED" | string;
   submittedAt: string | null;
   presence?: string;
+  expelled?: boolean;
+  expelledAt?: string | null;
 };
 export type GradingStudentList = PageResponse<GradingStudent> & {
   students: GradingStudent[];
@@ -403,13 +418,24 @@ export type AssessmentAnalysis = {
   limitations?: string[];
 };
 
-/** 학생이 직접 적는 AI 사용 기록. 제출 전까지 본인이 수정할 수 있습니다. */
+/** 서버가 제출·종료 시 자동으로 만드는 AI 사용 기록. 학생이 고칠 수 없습니다. */
 export type AiDisclosure = {
+  evaluationId?: string;
+  participantId?: string;
+  /** 사용한 AI(provider/model) 목록, 줄바꿈으로 구분. */
   tools: string;
   usedParts: string;
   reason: string;
   updatedAt: string | null;
   editable: boolean;
+  /** 제출 전 PENDING, 완료 READY, 실패 FAILED. */
+  status?: "PENDING" | "READY" | "FAILED";
+  source?: "SYSTEM_GENERATED" | string;
+  errorCode?: string | null;
+  failureReason?: string | null;
+  /** 판단 근거가 된 대화 id. */
+  conversationIds?: number[];
+  evidence?: unknown[];
 };
 
 export type ApiMessage = { message: string };

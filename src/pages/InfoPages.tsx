@@ -166,7 +166,7 @@ function NameRow({ name }: { name: string }) {
     <div>
       <dt>이름</dt>
       <dd className="settings-name-value">
-        {name}
+        <span className="settings-name-text" title={name}>{name}</span>
         <button
           type="button"
           className="settings-icon-button"
