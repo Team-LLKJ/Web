@@ -1,6 +1,49 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { paths } from "../../router/paths";
+// Screens shown one after another in the hero preview. Add more captures here.
+const PREVIEW_SLIDES = [
+  {
+    src: "/landing-assets/solving-preview.png",
+    alt: "LIT 학생 풀이 화면 미리보기",
+  },
+  {
+    src: "/landing-assets/solving-preview.png",
+    alt: "LIT 학생 풀이 화면 미리보기",
+  },
+  {
+    src: "/landing-assets/solving-preview.png",
+    alt: "LIT 학생 풀이 화면 미리보기",
+  },
+];
+const SLIDE_INTERVAL = 3500;
+
 export function LandingHero() {
+  const [active, setActive] = useState(0);
+  const [rotated, setRotated] = useState(false);
+
+  useEffect(() => {
+    const desktopMotion = window.matchMedia(
+      "(min-width: 901px) and (prefers-reduced-motion: no-preference)",
+    );
+    let timer: number | undefined;
+    const updateRotation = () => {
+      window.clearInterval(timer);
+      timer = undefined;
+      if (!desktopMotion.matches) return;
+      timer = window.setInterval(() => {
+        setRotated(true);
+        setActive((current) => (current + 1) % PREVIEW_SLIDES.length);
+      }, SLIDE_INTERVAL);
+    };
+    updateRotation();
+    desktopMotion.addEventListener("change", updateRotation);
+    return () => {
+      window.clearInterval(timer);
+      desktopMotion.removeEventListener("change", updateRotation);
+    };
+  }, []);
+
   return (
     <section className="landing-hero">
       <div className="landing-hero-inner">
@@ -27,6 +70,26 @@ export function LandingHero() {
               수행평가 만들기
             </Link>
           </div>
+        </div>
+        <div
+          className={`landing-preview${rotated ? " is-rotating" : ""}`}
+          aria-label="LIT 화면 미리보기"
+        >
+          {PREVIEW_SLIDES.map((slide, index) => (
+            <div
+              className="landing-preview-slide"
+              data-pos={
+                (index - active + PREVIEW_SLIDES.length) % PREVIEW_SLIDES.length
+              }
+              key={slide.src + index}
+            >
+              <img
+                src={slide.src}
+                alt={index === active ? slide.alt : ""}
+                aria-hidden={index === active ? undefined : true}
+              />
+            </div>
+          ))}
         </div>
       </div>
     </section>

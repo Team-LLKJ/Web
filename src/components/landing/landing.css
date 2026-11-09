@@ -711,3 +711,174 @@ html:has(.landing-page) {
     display: none;
   }
 }
+
+.landing-preview {
+  position: relative;
+  width: 520px;
+  aspect-ratio: 448 / 291;
+  /* room for the cards stacked behind to peek out right and below */
+  margin: 0 20px 18px 0;
+  flex-shrink: 0;
+}
+.landing-preview-slide {
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 10px 28px rgba(20, 40, 80, 0.18);
+  overflow: hidden;
+  transition: transform 0.9s cubic-bezier(0.45, 0, 0.25, 1);
+}
+.landing-preview-slide img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* black veil that lifts as a card moves to the front */
+.landing-preview-slide:after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.9s ease;
+}
+.landing-preview-slide[data-pos="0"] {
+  z-index: 3;
+  transform: none;
+}
+.landing-preview-slide[data-pos="1"] {
+  z-index: 2;
+  transform: translate(10px, 9px);
+}
+.landing-preview-slide[data-pos="1"]:after {
+  opacity: 0.22;
+}
+.landing-preview-slide[data-pos="2"] {
+  z-index: 1;
+  transform: translate(20px, 18px);
+}
+.landing-preview-slide[data-pos="2"]:after {
+  opacity: 0.42;
+}
+/* the card that was in front is slid out a little to the left, then tucked behind the stack */
+.landing-preview.is-rotating .landing-preview-slide[data-pos="2"] {
+  animation: landing-card-pass 0.9s cubic-bezier(0.45, 0, 0.25, 1);
+}
+@keyframes landing-card-pass {
+  0% {
+    z-index: 3;
+    transform: none;
+  }
+  38% {
+    z-index: 3;
+    transform: translate(-15%, 2%) rotate(-2.5deg);
+  }
+  39% {
+    z-index: 0;
+    transform: translate(-15%, 2%) rotate(-2.5deg);
+  }
+  100% {
+    z-index: 1;
+    transform: translate(20px, 18px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html:has(.landing-page) {
+    scroll-snap-type: none;
+  }
+  .landing-preview-slide,
+  .landing-preview-slide:after {
+    transition: none;
+  }
+  .landing-preview.is-rotating .landing-preview-slide[data-pos="2"] {
+    animation: none;
+  }
+}
+
+/* Keep the stacked screen preview on desktop; use the copy and actions on mobile. */
+@media (max-width: 900px) {
+  .landing-preview {
+    display: none;
+  }
+
+  .landing-hero-inner {
+    gap: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .landing-feature-grid,
+  .landing-step-grid {
+    width: 100%;
+  }
+
+  .landing-footer {
+    padding: 48px 24px 32px;
+  }
+
+  .landing-footer-main {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 32px 24px;
+  }
+
+  .landing-footer-brand {
+    grid-column: 1 / -1;
+    min-width: 0;
+  }
+
+  .landing-footer-brand small {
+    line-height: 1.7;
+  }
+
+  .landing-footer-links h4 {
+    margin-block: 0 4px;
+  }
+
+  .landing-footer-links div {
+    min-width: 0;
+    gap: 12px;
+  }
+
+  .landing-footer-links a {
+    font-size: 16px;
+  }
+
+  .landing-footer-bottom {
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 32px;
+    padding-top: 24px;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .landing-footer-legal {
+    flex-wrap: wrap;
+    gap: 8px 20px;
+  }
+
+  .landing-footer-info {
+    text-align: left;
+    font-size: 13px;
+  }
+}
+
+@media (min-width: 901px) {
+  .landing-hero-copy {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+  }
+
+  .landing-preview {
+    flex: 0 1 520px;
+    max-width: 45%;
+  }
+
+  .landing-actions {
+    flex-wrap: wrap;
+  }
+}
