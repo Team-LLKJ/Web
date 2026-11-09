@@ -1,0 +1,356 @@
+/* Default uses the existing LIT tokens and desktop composition at every width. */
+html:has(.landing-page) {
+  scroll-snap-type: y proximity;
+  scroll-padding-top: 72px;
+}
+
+.landing-page {
+  overflow-x: clip;
+  overflow-wrap: anywhere;
+}
+
+.landing-page a:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 4px;
+}
+
+.landing-hero-inner {
+  width: 1160px;
+  min-width: 0;
+  justify-content: center;
+}
+
+.landing-hero-copy {
+  flex: none;
+  width: 100%;
+  max-width: 760px;
+  min-width: 0;
+  align-items: center;
+  text-align: center;
+}
+
+.landing-lead {
+  max-width: 680px;
+}
+
+.landing-mobile-actions {
+  display: none;
+}
+
+@media (max-width: 1100px) and (min-width: 901px) {
+  .landing-actions {
+    flex-wrap: wrap;
+  }
+
+  .landing-actions .button {
+    font-size: 16px;
+    padding-inline: 18px;
+  }
+}
+
+@media (max-width: 900px) {
+  html:has(.landing-page) {
+    scroll-snap-type: none;
+  }
+
+  .landing-hero,
+  .landing-features,
+  .landing-steps,
+  .landing-criteria {
+    min-height: auto;
+  }
+
+  .landing-hero {
+    padding: 120px 32px 80px;
+  }
+
+  .landing-hero-copy {
+    flex: none;
+    width: 100%;
+  }
+
+  .landing-lead {
+    max-width: 560px;
+  }
+
+  .landing-features,
+  .landing-steps,
+  .landing-criteria {
+    padding: 80px 32px;
+    gap: 36px;
+  }
+
+  .landing-feature-grid,
+  .landing-step-grid,
+  .landing-criteria-grid {
+    width: 100%;
+    max-width: 560px;
+  }
+
+  .landing-feature-card {
+    display: grid;
+    grid-template-columns: 60px minmax(0, 1fr);
+    column-gap: 20px;
+  }
+
+  .landing-icon-tile {
+    grid-row: span 2;
+    width: 60px;
+    height: 60px;
+    margin: 0;
+    border-radius: 18px;
+  }
+
+  .landing-feature-card p {
+    grid-column: 2;
+    margin-top: 8px;
+  }
+
+  .landing-step-grid {
+    gap: 0;
+  }
+
+  .landing-step-card {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    column-gap: 20px;
+    padding: 0 0 36px;
+  }
+
+  .landing-step-card:last-child {
+    padding-bottom: 0;
+  }
+
+  .landing-step-number {
+    grid-row: span 2;
+    box-sizing: border-box;
+    margin: 0;
+    border: 0;
+  }
+
+  .landing-step-card h3 {
+    margin-top: 6px;
+  }
+
+  .landing-step-card p {
+    grid-column: 2;
+    margin-top: 8px;
+  }
+
+  .landing-step-card:not(:last-child)::after {
+    display: block;
+    top: 52px;
+    bottom: 8px;
+    left: 21px;
+    right: auto;
+    width: 2px;
+    height: auto;
+  }
+
+  .landing-criteria .landing-section-heading > p:last-child {
+    max-width: 480px;
+  }
+}
+
+@media (max-width: 600px) {
+  .landing-header {
+    height: calc(64px + env(safe-area-inset-top, 0px));
+    padding: calc(8px + env(safe-area-inset-top, 0px)) 20px 8px;
+  }
+
+  .landing-header .lit-logo-link img {
+    display: block;
+    width: 80px;
+    height: 40px;
+    object-fit: contain;
+  }
+
+  .landing-header nav {
+    gap: 8px;
+  }
+
+  .landing-header .button {
+    min-height: 44px;
+    padding: 8px 12px;
+    font-size: 14px;
+    border-radius: 12px;
+  }
+
+  .landing-header .landing-outline {
+    border: 0;
+  }
+
+  .landing-hero {
+    padding: calc(112px + env(safe-area-inset-top, 0px)) 24px 56px;
+  }
+
+  .landing-hero-inner {
+    gap: 40px;
+  }
+
+  .landing-hero h1 {
+    font-size: clamp(30px, 7.8vw, 40px);
+    line-height: 1.28;
+  }
+
+  .landing-lead {
+    margin-top: 20px;
+    font-size: 16px;
+    line-height: 1.75;
+    text-wrap: pretty;
+  }
+
+  .landing-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-top: 28px;
+  }
+
+  .landing-actions .button {
+    width: 100%;
+    min-height: 52px;
+    padding: 14px 16px;
+    font-size: 16px;
+    border-radius: 14px;
+  }
+
+  .landing-features,
+  .landing-steps,
+  .landing-criteria {
+    padding: 64px 24px;
+    gap: 32px;
+  }
+
+  .landing-eyebrow {
+    font-size: 12px;
+  }
+
+  .landing-section-heading h2,
+  .landing-criteria .landing-section-heading h2 {
+    font-size: clamp(25px, 6.4vw, 32px);
+    line-height: 1.4;
+    word-break: keep-all;
+  }
+
+  .landing-section-heading > p:last-child:not(.landing-eyebrow),
+  .landing-criteria
+    .landing-section-heading
+    > p:last-child:not(.landing-eyebrow) {
+    font-size: 16px;
+    line-height: 1.7;
+  }
+
+  .landing-feature-card,
+  .landing-feature-card:first-child,
+  .landing-feature-card:last-child {
+    padding-block: 24px;
+    grid-template-columns: 48px minmax(0, 1fr);
+    column-gap: 16px;
+  }
+
+  .landing-icon-tile {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+  }
+
+  .landing-icon-tile img {
+    height: 26px;
+    max-width: 32px;
+  }
+
+  .landing-feature-card h3,
+  .landing-step-card h3,
+  .landing-criterion-card h3 {
+    font-size: 19px;
+    line-height: 1.45;
+    word-break: keep-all;
+  }
+
+  .landing-feature-card p,
+  .landing-step-card p,
+  .landing-criterion-card p {
+    font-size: 15px;
+    line-height: 1.75;
+  }
+
+  .landing-criteria-grid {
+    gap: 0;
+  }
+
+  .landing-criterion-card {
+    grid-template-columns: 40px minmax(0, 1fr);
+    column-gap: 12px;
+    padding-block: 22px;
+  }
+
+  .landing-criterion-card .criterion-number {
+    font-size: 22px;
+    line-height: 1.45;
+  }
+
+  .landing-footer {
+    padding: 40px 24px calc(120px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .landing-footer-main {
+    gap: 32px 20px;
+  }
+
+  .landing-footer-brand p,
+  .landing-footer-links h4 {
+    font-size: 16px;
+  }
+
+  .landing-footer-brand small,
+  .landing-footer-bottom,
+  .landing-footer-info {
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  .landing-footer-links div {
+    gap: 4px;
+  }
+
+  .landing-footer-links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-size: 14px;
+  }
+
+  .landing-footer-legal {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .landing-mobile-actions {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 900;
+    display: grid;
+    grid-template-columns: 1fr 1.25fr;
+    gap: 10px;
+    padding: 12px 20px calc(12px + env(safe-area-inset-bottom, 0px));
+    background: var(--color-white);
+    border-top: 1px solid #dfe8f5;
+    box-shadow: 0 -4px 24px rgb(0 59 125 / 5%);
+  }
+
+  .landing-mobile-actions .button {
+    min-width: 0;
+    min-height: 48px;
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 15px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:has(.landing-page) {
+    scroll-snap-type: none;
+  }
+}

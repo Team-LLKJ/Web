@@ -7,11 +7,13 @@ import { LandingHero } from "../components/landing/LandingHero";
 import { FeatureSection } from "../components/landing/FeatureSection";
 import { StepsSection } from "../components/landing/StepsSection";
 import { CriteriaSection } from "../components/landing/CriteriaSection";
+import { LandingMobileActions } from "../components/landing/LandingMobileActions";
 import { LandingFooter } from "../components/landing/LandingFooter";
 import { ResumeEvaluationPrompt } from "../components/student/ResumeEvaluationPrompt";
 import { Modal } from "../components/ui/Modal";
 import { Button } from "../components/ui/Button";
 import "../components/landing/landing.css";
+import "../components/landing/landing-responsive.css";
 export function LandingPage() {
   const { user, loading } = useAuth();
   const location = useLocation();
@@ -64,14 +66,14 @@ export function LandingPage() {
         <CriteriaSection />
       </main>
       <LandingFooter />
+      <LandingMobileActions />
       <ResumeEvaluationPrompt />
       {notice && (
         <Modal
           title={notice}
           onClose={() => setNotice("")}
           actions={<Button onClick={() => setNotice("")}>확인</Button>}
-        >
-        </Modal>
+        ></Modal>
       )}
     </div>
   );
