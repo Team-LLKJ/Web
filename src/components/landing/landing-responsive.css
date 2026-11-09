@@ -354,3 +354,23 @@ html:has(.landing-page) {
     scroll-snap-type: none;
   }
 }
+
+/* Desktop keeps the preview alongside the introduction; mobile keeps its existing layout. */
+@media (min-width: 901px) {
+  .landing-hero-inner {
+    justify-content: space-between;
+  }
+
+  .landing-hero-copy {
+    flex: 1 1 0;
+    width: auto;
+    max-width: none;
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .landing-preview {
+    flex: 0 1 520px;
+    max-width: 45%;
+  }
+}
