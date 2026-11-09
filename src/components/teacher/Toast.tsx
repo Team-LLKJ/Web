@@ -20,9 +20,12 @@ export function Toast({
     closeRef.current = onClose;
   });
   // 메시지가 비면 닫힘 기록을 지워, 같은 문구가 다시 와도 새로 뜨게 한다.
-  useEffect(() => {
+  // 효과 대신 렌더 중에 이전 메시지와 비교해 바로 맞춘다.
+  const [previousMessage, setPreviousMessage] = useState(message);
+  if (message !== previousMessage) {
+    setPreviousMessage(message);
     if (!message) setHiddenFor("");
-  }, [message]);
+  }
   useEffect(() => {
     if (!message) return;
     const timer = window.setTimeout(() => {

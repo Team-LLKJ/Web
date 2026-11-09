@@ -264,6 +264,8 @@ export function useGradingData(evaluationId: string | undefined) {
 
   useEffect(() => {
     if (!evaluationId) return;
+    // 목록을 처음 불러오는 외부 요청이라 효과 안에서 시작합니다.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadList();
     void getEvaluation(evaluationId)
       .then((e) => setEnded(e.state === "ENDED" || e.state === "EXPIRED"))
@@ -287,6 +289,8 @@ export function useGradingData(evaluationId: string | undefined) {
 
   useEffect(() => {
     if (!selectedId) return;
+    // 다른 학생을 고르면 이전 학생 자료를 바로 비워, 잘못된 학생 자료가 보이지 않게 합니다.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDetail((current) => (current?.id === selectedId ? current : null));
     void loadDetail(selectedId);
     // 작성 중인 학생은 답안·대화가 바뀌므로 주기적으로 갱신합니다.
