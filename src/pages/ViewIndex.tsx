@@ -3,9 +3,9 @@ export function ViewIndex() {
   return (
     <main className="view-index">
       <Link
-        to="/views"
+        to="/"
         className="lit-logo-link"
-        aria-label="LIT 화면 목록으로 이동"
+        aria-label="처음 화면으로 이동"
       >
         <img src="/lit-logo.png" width="100" height="50" alt="LIT" />
       </Link>

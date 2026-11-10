@@ -12,7 +12,7 @@ export function WaitingRoom({
     <main className="student-join waiting-room">
       <Button
         variant="white-danger"
-        size="large"
+        size="small"
         className="waiting-leave"
         onClick={onLeave}
         icon={

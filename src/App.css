@@ -680,6 +680,11 @@ h3 {
   font-size: calc(var(--font-text-md) * 0.85);
   line-height: calc(var(--line-text-md) * 0.85);
 }
+.grading-workspace .header .grading-end-nav {
+  min-height: 34px;
+  padding: 4px 12px;
+  font-size: var(--font-text-sm);
+}
 .landing-header {
   height: 60px;
   padding: 11px 38px;

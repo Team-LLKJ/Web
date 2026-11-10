@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { paths } from "../../router/paths";
+import { CreateEvaluationLink } from "./CreateEvaluationLink";
 // Screens shown one after another in the hero preview. Add more captures here.
 const PREVIEW_SLIDES = [
   {
@@ -63,12 +64,9 @@ export function LandingHero() {
             <Link to={paths.join} className="button button--large primary">
               수행평가 참여하기
             </Link>
-            <Link
-              to={paths.login}
-              className="button button--large landing-outline"
-            >
+            <CreateEvaluationLink className="button button--large landing-outline">
               수행평가 만들기
-            </Link>
+            </CreateEvaluationLink>
           </div>
         </div>
         <div

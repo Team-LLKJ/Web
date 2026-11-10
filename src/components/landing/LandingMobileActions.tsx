@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { paths } from "../../router/paths";
+import { CreateEvaluationLink } from "./CreateEvaluationLink";
 
 /** Keep the main entry points reachable after the hero scrolls out of view. */
 export function LandingMobileActions() {
@@ -26,9 +27,9 @@ export function LandingMobileActions() {
 
   return (
     <nav className="landing-mobile-actions" aria-label="수행평가 시작">
-      <Link className="button landing-outline" to={paths.login}>
+      <CreateEvaluationLink className="button landing-outline">
         평가 만들기
-      </Link>
+      </CreateEvaluationLink>
       <Link className="button primary" to={paths.join}>
         평가 참여하기
       </Link>

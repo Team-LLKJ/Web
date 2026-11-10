@@ -254,7 +254,7 @@ export function TeacherClassLobbyPage() {
       setSession(next);
       setStarting(false);
       // 시작하면 대기실에 남지 않고 바로 채점 현황 화면으로 이동합니다.
-      navigate(`/teacher/grading/${encodeURIComponent(next.id)}`);
+      navigate(`/teacher/grading/${encodeURIComponent(next.id)}`, { state: { folderId } });
     } catch (caught) {
       const message = apiErrorMessage(caught, "평가를 시작하지 못했습니다.");
       setError(message);
@@ -291,18 +291,20 @@ export function TeacherClassLobbyPage() {
   async function finish() {
     setBusy(true);
     try {
-      await endSession(folder!.id, session!.id);
-      navigate(`/teacher/grading/${encodeURIComponent(session!.id)}`, {
-        replace: true,
-      });
+      const next = await endSession(folderId, sessionId);
+      setSession(next);
+      setEnding(false);
     } catch (caught) {
       setEnding(false);
       setNotice(apiErrorMessage(caught, "평가를 종료하지 못했습니다."));
+    } finally {
       setBusy(false);
     }
   }
 
   const ended = session.state === "ENDED";
+  const openGrading = () =>
+    navigate(`/teacher/grading/${encodeURIComponent(session.id)}`, { state: { folderId } });
 
   return (
     <main className="teacher-page">
@@ -311,21 +313,21 @@ export function TeacherClassLobbyPage() {
           <>
             <Button
               variant="secondary"
-              onClick={() =>
-                navigate(`/teacher/grading/${encodeURIComponent(session.id)}`)
-              }
+              onClick={openGrading}
             >
               학생 현황 보기
             </Button>
           </>
         ) : ended ? (
-          <Button
-            onClick={() =>
-              navigate(`/teacher/grading/${encodeURIComponent(session.id)}`)
-            }
-          >
-            채점 결과 보기
-          </Button>
+          <>
+            <Link
+              className="button button--secondary neutral button--small"
+              to={`/teacher/folders/${encodeURIComponent(folder.id)}`}
+            >
+              이전
+            </Link>
+            <Button onClick={openGrading}>채점 결과 보기</Button>
+          </>
         ) : lobbyOpen ? (
           <Button
             onClick={() => {
@@ -413,11 +415,18 @@ export function TeacherClassLobbyPage() {
             ) : (
               <div>
                 <p className="teacher-join-label">참여 PIN</p>
-                <p className="teacher-join-hint">
-                  {ended
-                    ? "종료된 평가입니다."
-                    : "대기실을 열면 PIN과 QR 코드가 만들어져요. 학생이 모두 들어오면 평가를 시작하세요."}
-                </p>
+                {ended ? (
+                  <div>
+                    <p className="teacher-join-hint">평가가 종료되어 참여 PIN이 닫혔어요.</p>
+                    <p className="teacher-join-hint">
+                      참여 {session.participants}명 · 제출 {session.submitted}명
+                    </p>
+                  </div>
+                ) : (
+                  <p className="teacher-join-hint">
+                    대기실을 열면 PIN과 QR 코드가 만들어져요. 학생이 모두 들어오면 평가를 시작하세요.
+                  </p>
+                )}
               </div>
             )}
           </section>
@@ -652,7 +661,7 @@ export function TeacherClassLobbyPage() {
       {ending && (
         <Modal
           title="평가를 종료할까요?"
-          onClose={() => setEnding(false)}
+          onClose={() => !busy && setEnding(false)}
           actions={
             <>
               <Button
@@ -662,7 +671,7 @@ export function TeacherClassLobbyPage() {
               >
                 종료
               </Button>
-              <Button variant="secondary" onClick={() => setEnding(false)}>
+              <Button variant="secondary" disabled={busy} onClick={() => setEnding(false)}>
                 취소
               </Button>
             </>
