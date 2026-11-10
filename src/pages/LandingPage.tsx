@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "../auth/useAuth";
-import { homePathFor } from "../router/paths";
+import { useLocation } from "react-router-dom";
 import { LandingHeader } from "../components/landing/LandingHeader";
 import { LandingHero } from "../components/landing/LandingHero";
 import { FeatureSection } from "../components/landing/FeatureSection";
@@ -15,7 +13,6 @@ import { Button } from "../components/ui/Button";
 import "../components/landing/landing.css";
 import "../components/landing/landing-responsive.css";
 export function LandingPage() {
-  const { user, loading } = useAuth();
   const location = useLocation();
   // 학생이 답안을 제출하고 돌아왔을 때 같은 안내를 보여 줍니다.
   const [notice, setNotice] = useState(
@@ -53,12 +50,9 @@ export function LandingPage() {
     };
   }, []);
 
-  // 이미 로그인되어 있으면 소개 화면 대신 기본 페이지로 바로 이동합니다.
-  if (!loading && user) return <Navigate to={homePathFor(user.role)} replace />;
-
   return (
     <div className="landing-page" ref={pageRef}>
-      <LandingHeader onNotice={setNotice} showUtilities={false} />
+      <LandingHeader />
       <main>
         <LandingHero />
         <FeatureSection />

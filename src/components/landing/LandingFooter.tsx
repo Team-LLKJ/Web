@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { paths } from "../../router/paths";
+import { CreateEvaluationLink } from "./CreateEvaluationLink";
 import { useAuth } from "../../auth/useAuth";
 export function LandingFooter() {
   const { user } = useAuth();
@@ -15,7 +16,7 @@ export function LandingFooter() {
           <div>
             <h4>서비스</h4>
             <Link to={paths.join}>수행평가 참여하기</Link>
-            <Link to={paths.login}>수행평가 만들기</Link>
+            <CreateEvaluationLink>수행평가 만들기</CreateEvaluationLink>
             {user?.role === "TEACHER" && (
               <Link to={paths.evaluations}>내 수행평가</Link>
             )}

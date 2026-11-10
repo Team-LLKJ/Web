@@ -294,22 +294,40 @@ export function createMyReport(evaluationId: string, participantToken: string) {
   );
 }
 
-export function getMyReportFile(evaluationId: string, participantToken: string, format: "pdf" | "hwp") {
+export function getMyReport(evaluationId: string, participantToken: string) {
+  return apiRequest<{ version: number }>(
+    `/api/evaluations/${idPath(evaluationId)}/report`,
+    myReportRequest(participantToken),
+  );
+}
+
+export function getMyReportFile(
+  evaluationId: string,
+  participantToken: string,
+  format: "pdf" | "hwp",
+  version?: number,
+) {
+  const query = new URLSearchParams({ includeConversations: "false" });
+  if (version !== undefined) query.set("version", String(version));
   return apiRequest<Blob>(
-    `/api/evaluations/${idPath(evaluationId)}/report/${format}?includeConversations=false`,
+    `/api/evaluations/${idPath(evaluationId)}/report/${format}?${query}`,
     {
       responseType: "blob",
-      accept: format === "pdf" ? "application/pdf, */*" : "application/x-hwp, */*",
+      accept:
+        format === "pdf" ? "application/pdf, */*" : "application/x-hwp, */*",
       ...myReportRequest(participantToken),
     },
   );
 }
 
 /** 학생 AI 사용 기록 조회. 서버가 제출·종료 시 자동으로 만들며 학생은 수정할 수 없습니다(PUT은 호환용이라 쓰지 않습니다). */
-export function getAiDisclosure(evaluationId: string) {
+export function getAiDisclosure(
+  evaluationId: string,
+  participantToken: string,
+) {
   return apiRequest<AiDisclosure>(
     `/api/evaluations/${idPath(evaluationId)}/ai-disclosure`,
-    participantRequest(evaluationId),
+    myReportRequest(participantToken),
   );
 }
 

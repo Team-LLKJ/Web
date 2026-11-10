@@ -16,7 +16,7 @@ export function PageLoading({
     >
       {/* 실제 화면 헤더(TeacherHeader)와 같은 구조·클래스로 그려 크기가 바뀌지 않게 합니다. */}
       <header className="header teacher-header page-loading-real-header">
-        <a href="/teacher/folders" className="lit-logo-link" aria-label="내 수행평가로 이동">
+        <a href="/" className="lit-logo-link" aria-label="처음 화면으로 이동">
           <img src="/lit-logo.png" width="100" height="50" alt="LIT" />
         </a>
         <nav aria-label="선생님 도구">

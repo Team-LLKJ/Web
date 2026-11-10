@@ -450,6 +450,7 @@ export function TeacherFolderDetailPage() {
                     session.state === "ENDED"
                       ? `/teacher/grading/${encodeURIComponent(session.id)}`
                       : `/teacher/folders/${encodeURIComponent(folder.id)}/classes/${encodeURIComponent(session.id)}`,
+                    { state: { folderId: folder.id } },
                   )
                 }
               />

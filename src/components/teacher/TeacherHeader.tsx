@@ -19,9 +19,9 @@ export function TeacherHeader({ children, className = "" }: Props) {
         className={`header teacher-header${scrolled ? " is-scrolled" : ""} ${className}`}
       >
         <Link
-          to="/teacher/evaluations"
+          to="/"
           className="lit-logo-link"
-          aria-label="내 수행평가로 이동"
+          aria-label="처음 화면으로 이동"
         >
           <img src="/lit-logo.png" width="100" height="50" alt="LIT" />
         </Link>

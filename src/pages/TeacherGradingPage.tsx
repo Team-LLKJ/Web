@@ -1,7 +1,7 @@
 import { PageLoading } from "../components/ui/PageLoading";
 import { StudentWorkspace } from "../components/student/StudentWorkspace";
 import { EmptyState } from "../components/ui/EmptyState";
-import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { ApiError, apiErrorMessage } from "../api/client";
 import "../App.css";
@@ -32,11 +32,18 @@ import {
 } from "../components/grading/GradingSkeleton";
 function TeacherGradingPage() {
   const navigate = useNavigate();
+  const { state } = useLocation();
   // 실제 API 연결 전까지는 ?loading=1 로 스켈레톤 화면을 미리 볼 수 있다.
   const loading = useSearchParams()[0].get("loading") === "1";
   const { evaluationId } = useParams();
   const live = useGradingData(evaluationId);
   const isLive = Boolean(evaluationId);
+  const folderId = typeof state?.folderId === "string" ? state.folderId : "";
+  const previousPath = evaluationId
+    ? folderId
+      ? `/teacher/folders/${encodeURIComponent(folderId)}/classes/${encodeURIComponent(evaluationId)}`
+      : `/teacher/evaluations/${encodeURIComponent(evaluationId)}`
+    : "/views";
   const [query, setQuery] = useState("");
   const [studentsWidth, setStudentsWidth] = useState(readStudentsWidth);
   const [selected, setSelected] = useState(0);
@@ -68,6 +75,7 @@ function TeacherGradingPage() {
   // 활동 탭의 기여도 범례를 눌러 답안에 줄을 쳐 보는 종류
   const [authorMark, setAuthorMark] = useState<"student" | "ai" | "paste" | null>(null);
   const [dialog, setDialog] = useState("");
+  const [ending, setEnding] = useState(false);
   const [extendOpen, setExtendOpen] = useState(false);
   const [extendCustom, setExtendCustom] = useState("");
   const [extending, setExtending] = useState(false);
@@ -109,18 +117,25 @@ function TeacherGradingPage() {
       },
     }));
   };
-  const endNow = () => {
-    if (isLive) {
-      // 종료에 성공하면 이 화면에서 나갑니다.
-      void live.finishEvaluation().then((done) => {
-        if (done) navigate("/teacher/evaluations");
-      });
-    } else setMockEnded(true);
+  const endNow = async () => {
+    if (ending) return;
+    setEnding(true);
+    try {
+      const done = isLive ? await live.finishEvaluation() : true;
+      if (done) {
+        if (!isLive) setMockEnded(true);
+        setTab("루브릭");
+        if (mobileDetail) showMobilePane("review");
+      }
+      setDialog("");
+    } finally {
+      setEnding(false);
+    }
   };
   if (!student && !showLoading) {
     return (
       <div className="app-shell grading-workspace">
-        <Header ended={ended} />
+        <Header ended={ended} previousPath={previousPath} />
         <div className="workspace teacher-workspace">
           {live.error ? (
             <EmptyState
@@ -162,7 +177,7 @@ function TeacherGradingPage() {
   };
   return (
     <div className="app-shell grading-workspace">
-      <Header ended={ended} />
+      <Header ended={ended} previousPath={previousPath} />
       {notice ? (
         <Toast message={notice.message} tone={notice.tone} onClose={() => setNotice(null)} />
       ) : null}
@@ -340,16 +355,14 @@ function TeacherGradingPage() {
       {dialog && (
         <Modal
           title={dialog}
-          onClose={() => setDialog("")}
+          onClose={() => !ending && setDialog("")}
           actions={
             <>
               {dialog === "평가를 종료하시겠습니까?" && (
                 <Button
                   variant="white-danger"
-                  onClick={() => {
-                    endNow();
-                    setDialog("");
-                  }}
+                  loading={ending}
+                  onClick={() => void endNow()}
                 >
                   평가 종료하기
                 </Button>
@@ -359,7 +372,7 @@ function TeacherGradingPage() {
                   나가기
                 </Button>
               )}
-              <Button variant="secondary" onClick={() => setDialog("")}>
+              <Button variant="secondary" disabled={ending} onClick={() => setDialog("")}>
                 닫기
               </Button>
             </>
