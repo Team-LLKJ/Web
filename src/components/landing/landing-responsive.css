@@ -1,7 +1,10 @@
 /* Default uses the existing LIT tokens and desktop composition at every width. */
 html:has(.landing-page) {
   scroll-snap-type: y proximity;
-  scroll-padding-top: 72px;
+}
+
+html:has(.landing-page[data-keyboard-scrolling]) {
+  scroll-snap-type: none;
 }
 
 .landing-page {

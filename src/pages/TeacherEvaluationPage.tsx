@@ -33,6 +33,7 @@ import {
   questionLimitError,
   type DraftQuestion,
 } from "../components/teacher/questionDraft";
+import { EvaluationStartedScreen } from "../components/teacher/EvaluationStartedScreen";
 import { TeacherHeader } from "../components/teacher/TeacherHeader";
 import { RichTextEditor } from "../components/teacher/RichTextEditor";
 import {
@@ -156,6 +157,7 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
   const [qrUrl, setQrUrl] = useState("");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
+  const [startedEvaluationId, setStartedEvaluationId] = useState("");
   const [qrOpen, setQrOpen] = useState(false);
   const [loading, setLoading] = useState(Boolean(evaluationId || editFolderId));
 
@@ -527,7 +529,7 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
       setEvaluation((current) =>
         current ? { ...current, state: next.state } : current,
       );
-      if (action === "start") navigate(`/teacher/grading/${encodeURIComponent(evaluationId)}`);
+      if (action === "start") setStartedEvaluationId(evaluationId);
     } catch (error) {
       setNotice(apiErrorMessage(error, "평가 상태를 변경하지 못했습니다."));
     } finally {
@@ -535,6 +537,14 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
     }
   }
 
+  if (startedEvaluationId && startedEvaluationId === evaluationId) {
+    return (
+      <EvaluationStartedScreen
+        evaluationId={startedEvaluationId}
+        title={evaluation?.title}
+      />
+    );
+  }
   if (loading) return <PageLoading layout={editFolderId ? "assessment-edit" : "lobby"} />;
 
   return (
@@ -542,13 +552,23 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
       <TeacherHeader>
         {evaluationId &&
           (evaluation?.state === "STARTED" ? (
-          <Button
-            variant="white-danger"
-            disabled={busy}
-            onClick={() => void changeEvaluationState("end")}
-          >
-            평가 종료하기
-          </Button>
+            <>
+              <Button
+                variant="secondary"
+                onClick={() =>
+                  navigate(`/teacher/grading/${encodeURIComponent(evaluationId)}`)
+                }
+              >
+                학생 현황 보기
+              </Button>
+              <Button
+                variant="white-danger"
+                disabled={busy}
+                onClick={() => void changeEvaluationState("end")}
+              >
+                평가 종료하기
+              </Button>
+            </>
         ) : (
           <Button
             disabled={
@@ -903,6 +923,11 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
           <div className="teacher-lobby">
             <section className="teacher-card teacher-join-card">
               <div>
+                {evaluation.state === "STARTED" && (
+                  <p className="teacher-join-hint" role="status">
+                    평가가 시작됐어요. 이 화면에서 참여자를 확인할 수 있어요.
+                  </p>
+                )}
                 <p className="teacher-join-label">참여 PIN</p>
                 <p className="teacher-lobby-pin">{evaluation.pin}</p>
                 <p className="teacher-join-hint">

@@ -1,0 +1,63 @@
+.evaluation-started-content {
+  max-width: 820px;
+}
+
+.evaluation-started-content > h1 {
+  margin-bottom: 8px;
+  overflow-wrap: anywhere;
+}
+
+.evaluation-started-class {
+  margin: 0;
+  color: var(--color-grey-60);
+  overflow-wrap: anywhere;
+}
+
+.evaluation-started-screen {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  margin-top: 24px;
+  padding: clamp(24px, 6vw, 52px);
+  text-align: center;
+}
+
+.evaluation-started-icon {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-deep);
+  font-size: 26px;
+  font-weight: var(--weight-bold);
+}
+
+.evaluation-started-screen h2 {
+  margin: 0;
+  font-size: var(--font-title-sm);
+  line-height: var(--line-title-sm);
+}
+
+.evaluation-started-description {
+  max-width: 420px;
+  margin: 0;
+  color: var(--color-grey-70);
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.evaluation-started-notice {
+  margin: 4px 0 2px;
+}
+
+.evaluation-started-screen > .button {
+  min-width: 140px;
+}
+
+@media (max-width: 480px) {
+  .evaluation-started-screen > .button {
+    width: 100%;
+  }
+}

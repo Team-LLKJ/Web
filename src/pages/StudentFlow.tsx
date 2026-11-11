@@ -1131,6 +1131,7 @@ export function StudentFlow({ route }: { route: string }) {
         ) : (
           <PinJoinForm
             initialPin={queryPin || session.pin}
+            onLeave={() => navigate("/", { replace: true })}
             onJoin={async (pin) => {
               const evaluation = await verifyPin(pin);
               // 참가 중인 평가의 PIN을 다시 넣으면 새로 참가하지 않고 작성하던 곳으로 돌아갑니다.
