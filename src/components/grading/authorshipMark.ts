@@ -62,9 +62,9 @@ export function markAuthorship(
   for (const match of full.matchAll(/[^.!?。\n]+[.!?。]?/g)) {
     const text = match[0];
     if (text.replace(/\s/g, "").length < 8) continue;
-    // 0.8 이상이면 AI 답변을 거의 그대로 옮긴 문장(복사 붙여넣기 추정), 0.4 이상이면 AI 답변을 활용한 문장
+    // 0.4 이상이면 AI 답변을 사용한 문장(그대로 옮긴 문장 포함)
     const score = overlap(text, aiGrams);
-    const own: AuthorKind = score >= 0.8 ? "paste" : score >= 0.4 ? "ai" : "student";
+    const own: AuthorKind = score >= 0.4 ? "ai" : "student";
     if (own !== kind) continue;
     const lead = text.length - text.trimStart().length;
     const from = locate(match.index + lead);

@@ -32,16 +32,14 @@ export function ActivityAnalysis({
               description: "답안이 너무 짧아 신뢰할 수 있는 분석을 할 수 없어요.",
             }
           : null;
-  // 구간별 비율(%): 학생 / AI 활용 / 복사 붙여넣기(나머지)
+  // 구간별 비율(%): 학생 직접 작성 / AI 답변 사용(나머지 전부)
   const student = review.studentContribution;
-  const partial = review.analysisDetail?.contribution?.aiReferenced;
   const shares =
     student === null
       ? null
       : {
           student: Math.round(student),
-          ai: Math.round(partial ?? 100 - student),
-          paste: partial === undefined ? null : Math.max(0, 100 - Math.round(student) - Math.round(partial)),
+          ai: 100 - Math.round(student),
         };
   return (
     <div className="review-cards">
@@ -55,10 +53,7 @@ export function ActivityAnalysis({
       <section className="review-card contribution-card contribution-card--titled">
         <h3 className="contribution-title">답안 기여도 분석</h3>
         <div className="contribution-body">
-        <ContributionChart
-          value={review.studentContribution}
-          partial={review.analysisDetail?.contribution?.aiReferenced}
-        />
+        <ContributionChart value={review.studentContribution} />
         <div className="contribution-legend">
           <button
             type="button"
@@ -81,17 +76,6 @@ export function ActivityAnalysis({
             <i className="ai-dot" />
             <span className="legend-name">AI의 답변을 사용함</span>
             {shares && <span className="legend-share">{shares.ai}%</span>}
-          </button>
-          <button
-            type="button"
-            className={`legend-toggle${authorMark === "paste" ? " is-on" : ""}`}
-            aria-pressed={authorMark === "paste"}
-            title="AI 답변을 거의 그대로 옮긴 것으로 보이는 부분 보기 (추정)"
-            onClick={() => onAuthorMark?.(authorMark === "paste" ? null : "paste")}
-          >
-            <i className="paste-dot" />
-            <span className="legend-name">복사 붙여넣기</span>
-            {shares && shares.paste !== null && <span className="legend-share">{shares.paste}%</span>}
           </button>
         </div>
         </div>

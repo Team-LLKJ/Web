@@ -1,6 +1,9 @@
 /* each section snaps to the top of the screen so none is left half-visible */
 html:has(.landing-page) {
   scroll-snap-type: y mandatory;
+  /* 섹션 맨 위가 화면 맨 위에 딱 맞도록(헤더는 섹션 위에 겹쳐 보입니다) */
+  scroll-padding-top: 0;
+  overflow-anchor: none;
 }
 .landing-hero,
 .landing-features,
@@ -8,6 +11,7 @@ html:has(.landing-page) {
 .landing-criteria,
 .landing-footer {
   scroll-snap-align: start;
+  scroll-margin-top: 0;
 }
 /* scroll reveal: only hidden once the observer is running, so no-JS stays visible */
 .landing-page.reveal-ready [data-reveal] {
