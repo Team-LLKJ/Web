@@ -7,6 +7,7 @@ import { Avatar } from "./Avatar";
 import { Icon } from "./Icon";
 import { Skeleton, SkeletonStatus } from "./Skeleton";
 import { IconButton } from "./IconButton";
+import { LogoutButton } from "./LogoutButton";
 import {
   toNotificationRow,
   type AppNotification,
@@ -266,12 +267,21 @@ function SettingsPopover() {
       icon="settings"
       title="설정"
       footer={
-        <Link
-          className="button button--secondary button--small neutral header-popover-cta"
-          to={paths.settings}
-        >
-          전체 설정 보기
-        </Link>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <Link
+            className="button button--secondary button--small neutral header-popover-cta"
+            to={paths.settings}
+          >
+            전체 설정 보기
+          </Link>
+          {user && (
+            <LogoutButton
+              variant="white-danger"
+              size="small"
+              className="header-popover-cta"
+            />
+          )}
+        </div>
       }
     >
       {user ? (
