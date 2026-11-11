@@ -50,6 +50,38 @@ export function LandingPage() {
     };
   }, []);
 
+  // 스크롤이 멈췄을 때 섹션 맨 위에서 조금 어긋나 있으면(위 섹션이 헤더 아래로 비쳐 보이면)
+  // 가장 가까운 섹션 맨 위로 맞춥니다. CSS 스냅만으로는 트랙패드 관성 스크롤에서 어긋날 때가 있습니다.
+  useEffect(() => {
+    const page = pageRef.current;
+    if (!page || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let timer = 0;
+    const settle = () => {
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      // 맨 아래(푸터)에서는 맞추지 않습니다.
+      if (window.scrollY >= maxScroll - 2) return;
+      const tops = Array.from(
+        page.querySelectorAll<HTMLElement>(".landing-hero, .landing-features, .landing-steps, .landing-criteria"),
+      ).map((section) => section.getBoundingClientRect().top + window.scrollY);
+      let nearest = tops[0] ?? 0;
+      for (const top of tops) if (Math.abs(top - window.scrollY) < Math.abs(nearest - window.scrollY)) nearest = top;
+      const gap = Math.abs(nearest - window.scrollY);
+      if (gap > 1 && gap < window.innerHeight * 0.3) window.scrollTo({ top: nearest, behavior: "smooth" });
+    };
+    const onScroll = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(settle, 160);
+    };
+    const supportsScrollEnd = "onscrollend" in window;
+    if (supportsScrollEnd) window.addEventListener("scrollend", settle);
+    else window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("scrollend", settle);
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, []);
+
   return (
     <div className="landing-page" ref={pageRef}>
       <LandingHeader />
