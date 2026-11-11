@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useRef, type FormEvent, type TextareaHTMLAttributes } from "react";
+import { useCallback, useLayoutEffect, useRef, type TextareaHTMLAttributes } from "react";
 
 /** 글 줄 수에 맞춰 높이가 늘고 줄어드는 입력칸. 안에는 스크롤이 생기지 않습니다. */
 export function AutoGrowTextarea({
@@ -44,7 +44,7 @@ export function AutoGrowTextarea({
       rows={1}
       value={value}
       // 한글 입력 중(조합 중)에도 키를 누를 때마다 바로 높이를 맞춥니다.
-      onInput={(event: FormEvent<HTMLTextAreaElement>) => {
+      onInput={(event) => {
         grow();
         onInput?.(event);
       }}
