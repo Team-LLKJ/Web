@@ -311,7 +311,36 @@ export type GradingActivity = {
   hasMoreWarnings: boolean;
   summary: string;
   analysisMethod: string;
+  /** 질문 용도 분류(Gemini 3번 → 엇갈리면 Haiku) 결과. */
+  usageAnalysis?: PurposeUsageView | null;
 };
+
+/** 질문 용도 6종. OTHER는 비율에서 빼고, UNDECIDED는 판단 보류입니다. */
+export type PurposeType = "UNDERSTAND" | "PLAN" | "REVIEW" | "EDIT" | "DRAFT" | "OTHER";
+export type PurposeQuestion = {
+  conversationId: number;
+  questionId: string | null;
+  quote: string;
+  purpose: PurposeType | "UNDECIDED";
+  votes: string[];
+  haikuPurpose: PurposeType | null;
+  needsReview: boolean;
+  teacherPurpose: PurposeType | null;
+  method: string;
+};
+export type PurposeUsageView = {
+  method: string;
+  status: string;
+  questionCount: number;
+  usage: { purpose: string; name: string; percentage: number; count: number }[];
+  questions: PurposeQuestion[];
+  limitations?: string[];
+  reviewCount: number;
+  otherCount: number;
+  undecidedCount: number;
+  pendingCount: number;
+};
+
 export type RubricCriterion = {
   id: string;
   criterion: string;
@@ -363,6 +392,26 @@ export type RubricScoreCriterion = {
   ai: RubricScoreAi | null;
   teacher: RubricScoreTeacher | null;
   adjusted: boolean;
+  /** 아래는 AI 루브릭 판정(과정 채점)에서만 채웁니다. */
+  /** RECOMMENDED | HOLD | NOT_APPLICABLE | TEACHER_REVIEWED */
+  status?: string;
+  /** 지금 반영된 점수(교사 수정 포함). 없으면 미채점 */
+  currentScore?: number | null;
+  /** 교사 직접 입력이 필요한 이유 */
+  reviewReason?: "DISAGREEMENT" | "INSUFFICIENT_DATA" | null;
+  needsReview?: boolean;
+  /** 참고용 판정: Gemini 회차별 단계와 Haiku 단계(0~4로 바꾼 값, 무효는 null) */
+  votes?: (number | "NA" | "HOLD" | null)[];
+  haikuLevel?: number | "NA" | "HOLD" | null;
+  /** 바로 위 단계로 가지 못한 이유 */
+  unmetNextLevel?: string | null;
+  /** AI 판정의 가점·감점 이유와 원문 인용(대화 id가 있으면 대화로 이동) */
+  reasons?: {
+    kind: "가점" | "감점";
+    title: string;
+    explanation: string;
+    quotes: { text: string; conversationId: number | null }[];
+  }[];
 };
 export type RubricScores = {
   criteria: RubricScoreCriterion[];
@@ -377,6 +426,11 @@ export type RubricScores = {
   participantId?: string;
   recommendedMaxScore: number | null;
   missingAiCriteria: string[];
+  /** AI 루브릭 판정(과정 채점)에서 왔으면 true */
+  process?: boolean;
+  /** 보류 칸 배점 합(교사가 채울 때까지 비움), 해당 없음 칸의 원래 배점 합 */
+  heldMaxScore?: number;
+  notApplicableMaxScore?: number;
 };
 
 /** 기준별 점수 변경 이력 한 줄. level은 0~4, null이면 지운 기록입니다. */
@@ -416,6 +470,27 @@ export type AssessmentAnalysis = {
   analyzedAt?: string | null;
   model?: string;
   limitations?: string[];
+  /** 답안 문장별 출처 판정과 교사 확인이 필요한 문장 수 */
+  sentences?: AnalysisSentence[];
+  reviewCount?: number;
+  semanticStatus?: string | null;
+};
+
+export type AnalysisSentence = {
+  id: string;
+  questionId: string;
+  text: string;
+  /** 판정 출처(교사 확정 전) */
+  source: "DIRECT" | "AI";
+  reason: string | null;
+  needsReview: boolean;
+  /** 교사가 확정한 출처 */
+  teacherSource: "AI" | "DIRECT" | null;
+  closestAiSentence: string | null;
+  /** 이 문장이 가져온 AI 답변의 대화 번호 */
+  conversationId?: number | null;
+  start: number;
+  end: number;
 };
 
 /** 서버가 제출·종료 시 자동으로 만드는 AI 사용 기록. 학생이 고칠 수 없습니다. */

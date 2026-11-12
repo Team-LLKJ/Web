@@ -1,25 +1,17 @@
-/* Shared geometry for real folder cards and initial/loading placeholders. */
-.folder-tabs {
-  display: inline-flex;
-  gap: 4px;
-  margin: 0 0 20px;
-  padding: 4px;
-  border-radius: 12px;
-  background: var(--color-grey-10, #f4f4f4);
-}
+
 
 .folder-tabs a {
   padding: 8px 18px;
   border-radius: 9px;
-  color: var(--color-grey-60, #48484a);
+  color: var(--color-grey-60, var(--color-grey-60));
   font-size: var(--font-text-sm, 16px);
   font-weight: var(--weight-semibold, 600);
   text-decoration: none;
 }
 
 .folder-tabs a.is-active {
-  background: var(--color-white, #fff);
-  color: var(--color-primary, #007bff);
+  background: var(--color-white, var(--color-white));
+  color: var(--color-primary, var(--color-primary));
 }
 
 .folder-grid {
@@ -32,10 +24,9 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 22px;
-  border: 1px solid var(--color-grey-20, #c6c6c6);
+  border: 1px solid var(--color-grey-20, var(--color-grey-20));
   border-radius: 16px;
-  background: var(--color-white, #fff);
+  background: var(--color-white, var(--color-white));
   color: inherit;
   text-decoration: none;
   transition:
@@ -44,8 +35,8 @@
 }
 
 .folder-card:hover {
-  border-color: var(--color-primary-light, #52a6ff);
-  background: var(--color-primary-background, #f6faff);
+  border-color: var(--color-primary-light, var(--color-primary-light));
+  background: var(--color-primary-background, var(--color-primary-background));
 }
 
 .folder-card-icon {
@@ -55,8 +46,8 @@
   height: 48px;
   margin-bottom: 6px;
   border-radius: 12px;
-  background: var(--color-primary-soft, #e2f0ff);
-  color: var(--color-primary, #007bff);
+  background: var(--color-primary-soft, var(--color-primary-soft));
+  color: var(--color-primary, var(--color-primary));
 }
 
 .folder-card strong {
@@ -67,7 +58,7 @@
 
 .folder-card-meta {
   line-height: var(--line-text-sm, 1.4);
-  color: var(--color-grey-50, #636366);
+  color: var(--color-grey-50, var(--color-grey-50));
   font-size: var(--font-text-sm, 16px);
 }
 
@@ -75,8 +66,8 @@
   align-self: flex-start;
   padding: 3px 10px;
   border-radius: 999px;
-  background: var(--color-primary-soft, #e2f0ff);
-  color: var(--color-primary, #007bff);
+  background: var(--color-primary-soft, var(--color-primary-soft));
+  color: var(--color-primary, var(--color-primary));
   font-size: calc(12px + var(--font-bump));
   font-weight: var(--weight-semibold, 600);
 }
@@ -106,7 +97,7 @@
   gap: 24px;
   margin: 0 0 20px;
   padding: 0;
-  border-bottom: 1px solid var(--color-grey-20, #c6c6c6);
+  border-bottom: 1px solid var(--color-grey-20, var(--color-grey-20));
   border-radius: 0;
   background: none;
 }
@@ -114,7 +105,7 @@
 .folder-tabs button {
   position: relative;
   padding: 10px 2px 12px;
-  color: var(--color-grey-50, #636366);
+  color: var(--color-grey-50, var(--color-grey-50));
   font-size: var(--font-text-md, 18px);
   line-height: var(--line-text-md, 1.4);
   font-weight: var(--weight-semibold, 600);
@@ -126,11 +117,11 @@
 }
 
 .folder-tabs button:hover {
-  color: var(--color-grey-70, #48484a);
+  color: var(--color-grey-70, var(--color-grey-60));
 }
 
 .folder-tabs button.is-active {
-  color: var(--color-primary, #007bff);
+  color: var(--color-primary, var(--color-primary));
 }
 
 .folder-tabs button.is-active::after {
@@ -139,7 +130,7 @@
   bottom: -1px;
   left: 0;
   height: 2px;
-  background: var(--color-primary, #007bff);
+  background: var(--color-primary, var(--color-primary));
   content: "";
 }
 
@@ -157,7 +148,7 @@
 }
 .folder-list-heading {
   margin: 0;
-  color: var(--color-grey-90, #1c1c1e);
+  color: var(--color-grey-90, var(--color-grey-90));
   font-size: var(--font-title-md, 38px);
   font-weight: var(--weight-bold, 700);
   line-height: var(--line-title-md, 1.2);
@@ -192,17 +183,17 @@
   font-size: var(--font-text-md, 18px);
   font-weight: var(--weight-semibold, 600);
   line-height: var(--line-text-md, 1.4);
-  color: var(--color-grey-50, #636366);
+  color: var(--color-grey-50, var(--color-grey-50));
 }
 .folder-tab-placeholder.is-active {
-  color: var(--color-primary, #007bff);
+  color: var(--color-primary, var(--color-primary));
 }
 .folder-tab-placeholder.is-active::after {
   position: absolute;
   inset: auto 0 -1px;
   height: 2px;
   content: "";
-  background: var(--color-primary, #007bff);
+  background: var(--color-primary, var(--color-primary));
 }
 .folder-list-count-placeholder {
   width: 1ch;

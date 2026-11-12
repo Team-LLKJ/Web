@@ -1,6 +1,8 @@
 import { EmptyState } from "../ui/EmptyState";
 import type { StudentReview } from "../../data/review";
 import { ContributionChart } from "./ContributionChart";
+import { PurposeReviewList, SentenceReviewList } from "./AnalysisReviewList";
+import type { PurposeType } from "../../api/types";
 import "./grading-extras.css";
 /** 이보다 짧은 답안은 유사도 분석이 의미가 없어 분석하지 않습니다. */
 const MIN_ANSWER_CHARS = 100;
@@ -10,7 +12,13 @@ export function ActivityAnalysis({
   answerChars,
   authorMark = null,
   onAuthorMark,
+  onSentenceSource,
+  onPurpose,
 }: {
+  /** 확인이 필요한 답안 문장의 출처를 교사가 정합니다. */
+  onSentenceSource?: (sentenceId: string, source: "AI" | "DIRECT") => void;
+  /** 판정이 엇갈린 질문의 용도를 교사가 정합니다. */
+  onPurpose?: (conversationId: number, purpose: PurposeType) => void;
   review: StudentReview;
   /** 답안에 줄을 쳐 보여주는 중인 종류 */
   authorMark?: "student" | "ai" | "paste" | null;
@@ -70,7 +78,7 @@ export function ActivityAnalysis({
             type="button"
             className={`legend-toggle${authorMark === "ai" ? " is-on" : ""}`}
             aria-pressed={authorMark === "ai"}
-            title="답안에서 AI 답변과 비슷한 부분 보기"
+            title="답안에서 AI 답변을 사용한 부분 보기"
             onClick={() => onAuthorMark?.(authorMark === "ai" ? null : "ai")}
           >
             <i className="ai-dot" />
@@ -79,6 +87,7 @@ export function ActivityAnalysis({
           </button>
         </div>
         </div>
+        <SentenceReviewList sentences={review.sentences ?? []} onSource={onSentenceSource} />
       </section>
       )}
       {!warningsOnly && (
@@ -105,8 +114,8 @@ export function ActivityAnalysis({
                     }}
                   />
                 </div>
-                <span className="usage-level" data-level={metric.level}>
-                  {metric.percent}% · {metric.level}
+                <span className="usage-level" data-level={metric.level || undefined}>
+                  {metric.percent}%{metric.level ? ` · ${metric.level}` : ""}
                 </span>
               </div>
             ))
@@ -114,6 +123,7 @@ export function ActivityAnalysis({
             <EmptyState size="inline" icon="doc" title="분석 자료가 없어요" />
           )}
         </div>
+        <PurposeReviewList questions={review.purposeQuestions ?? []} onPurpose={onPurpose} />
       </section>
       )}
       <section className="review-card warnings-card">

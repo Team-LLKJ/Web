@@ -355,8 +355,8 @@
     overscroll-behavior-x: contain;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
-    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent);
-    mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent);
+    -webkit-mask-image: linear-gradient(to right, var(--color-black) calc(100% - 24px), transparent);
+    mask-image: linear-gradient(to right, var(--color-black) calc(100% - 24px), transparent);
   }
   :root:root .ribbon-compact:not(.ribbon-context-row)::-webkit-scrollbar {
     display: none;

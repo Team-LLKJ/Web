@@ -34,6 +34,8 @@ type Props = {
   aiTexts?: string[];
   /** 학생이 AI에게 보낸 질문들. AI가 되풀이한 학생 글을 AI의 글로 잘못 세지 않는 데 씁니다. */
   userTexts?: string[];
+  /** 서버가 판정한 문장별 출처. 있으면 겹침 추정 대신 씁니다. question은 문항 번호입니다. */
+  knownSentences?: { question: number; text: string; kind: "ai" | "student" }[];
 };
 export function SubmissionPanel({
   student,
@@ -47,12 +49,14 @@ export function SubmissionPanel({
   authorMark = null,
   aiTexts = [],
   userTexts = [],
+  knownSentences = [],
 }: Props) {
-  const [markCount, setMarkCount] = useState<number | null>(null);
   const userKey = userTexts.join("\u0001");
   const [saveOpen, setSaveOpen] = useState(false);
   const answerRef = useRef<HTMLDivElement>(null);
   const aiKey = aiTexts.join("\u0001");
+  const known = knownSentences.filter((sentence) => sentence.question === question);
+  const knownKey = known.map((sentence) => `${sentence.kind}:${sentence.text}`).join("\u0001");
   // 인쇄 창의 기본 파일 이름과 제목이 보고서 이름이 되도록 잠시 문서 제목을 바꾼다.
   const savePdf = () => {
     const previous = document.title;
@@ -69,13 +73,17 @@ export function SubmissionPanel({
     if (!root || !authorMark) return clearAuthorMark();
     const apply = () => {
       const text = root.querySelector<HTMLElement>(".tiptap") ?? root;
-      setMarkCount(
-        markAuthorship(
+      markAuthorship(
           text,
           aiKey ? aiKey.split("\u0001") : [],
           authorMark,
           userKey ? userKey.split("\u0001") : [],
-        ),
+          knownKey
+            ? knownKey.split("\u0001").map((item) => ({
+                kind: item.startsWith("ai:") ? ("ai" as const) : ("student" as const),
+                text: item.slice(item.indexOf(":") + 1),
+              }))
+            : [],
       );
     };
     apply();
@@ -84,7 +92,7 @@ export function SubmissionPanel({
       timers.forEach((timer) => window.clearTimeout(timer));
       clearAuthorMark();
     };
-  }, [authorMark, aiKey, userKey, question, student.name]);
+  }, [authorMark, aiKey, userKey, knownKey, question, student.name]);
   const answer = answers.find((item) => item.questionId === question);
   const answerContent =
     answer?.html ?? answer?.paragraphs.filter((text) => text.trim()).join("\n\n") ?? "";
@@ -127,11 +135,6 @@ export function SubmissionPanel({
             <section className="question-box teacher-question">
               <p>{questionText(currentQuestion.content, currentQuestion.minChars, currentQuestion.maxChars)}</p>
             </section>
-            {authorMark && markCount === 0 && answerContent.trim() && (
-              <p className="author-mark-note">
-                표시할 문장이 없어요. 이 문항의 문장이 모두 다른 구분으로 분류됐어요.
-              </p>
-            )}
             <div ref={answerRef}>
             <Suspense
               fallback={

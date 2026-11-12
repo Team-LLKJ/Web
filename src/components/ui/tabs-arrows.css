@@ -41,7 +41,7 @@
   background: transparent;
 }
 .segment-tabs-wrap.has-arrows .segment-tabs-arrow:hover:not(:disabled) {
-  background: #fff;
+  background: var(--color-white);
 }
 
 /* 화살표는 자리를 유지한 채 부드럽게 나타나고 사라져서 탭 목록이 출렁이지 않습니다. */
@@ -62,16 +62,16 @@
   scroll-snap-align: start;
 }
 .segment-tabs-wrap.has-arrows.can-next > .segment-tabs {
-  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 20px), transparent);
-  mask-image: linear-gradient(to right, #000 calc(100% - 20px), transparent);
+  -webkit-mask-image: linear-gradient(to right, var(--color-black) calc(100% - 20px), transparent);
+  mask-image: linear-gradient(to right, var(--color-black) calc(100% - 20px), transparent);
 }
 .segment-tabs-wrap.has-arrows.can-prev > .segment-tabs {
-  -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 20px), transparent);
-  mask-image: linear-gradient(to left, #000 calc(100% - 20px), transparent);
+  -webkit-mask-image: linear-gradient(to left, var(--color-black) calc(100% - 20px), transparent);
+  mask-image: linear-gradient(to left, var(--color-black) calc(100% - 20px), transparent);
 }
 .segment-tabs-wrap.has-arrows.can-prev.can-next > .segment-tabs {
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 20px, #000 calc(100% - 20px), transparent);
-  mask-image: linear-gradient(to right, transparent, #000 20px, #000 calc(100% - 20px), transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, var(--color-black) 20px, var(--color-black) calc(100% - 20px), transparent);
+  mask-image: linear-gradient(to right, transparent, var(--color-black) 20px, var(--color-black) calc(100% - 20px), transparent);
 }
 
 /* 마지막 탭도 맨 앞으로 올 수 있게 끝에 빈 공간을 둡니다. 그래서 어느 페이지에서도 탭이 반쯤 잘려 시작하지 않아요. */

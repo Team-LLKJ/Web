@@ -253,13 +253,7 @@
   gap: 26px;
   align-items: center;
 }
-:root .grading-workspace .contribution-chart {
-  width: 96px;
-  height: 96px;
-}
-:root .grading-workspace .dynamic-donut:after {
-  inset: 10px;
-}
+
 :root .grading-workspace .contribution-legend h3 {
   margin-bottom: 12px;
 }
@@ -270,8 +264,6 @@
   margin-top: 6px;
 }
 :root .grading-workspace .contribution-legend i {
-  width: 9px;
-  height: 9px;
   flex: none;
 }
 :root .grading-workspace .contribution-legend .contribution-breakdown {
@@ -461,4 +453,93 @@
 :root .grading-workspace .contribution-legend .legend-toggle {
   font-size: calc(var(--font-text-sm) * var(--ui-scale, 0.75) * 1.1);
   line-height: 1.4;
+}
+
+/* 교사 확인이 필요한 문장·질문 목록 */
+.analysis-review {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--color-grey-10);
+}
+.analysis-review h4 {
+  margin: 0;
+  font-size: var(--font-body-sm, 14px);
+  font-weight: var(--weight-semibold);
+  color: var(--color-black);
+}
+.analysis-review h4 span {
+  color: var(--color-danger);
+}
+.analysis-review-hint,
+.analysis-review-ref {
+  margin: 4px 0 0;
+  font-size: var(--font-caption);
+  line-height: var(--line-caption);
+  color: var(--color-grey-50);
+}
+.analysis-review ul {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.analysis-review li {
+  padding: 10px 12px;
+  border: 1px solid var(--color-grey-20);
+  border-radius: 10px;
+  background: var(--color-white);
+}
+.analysis-review q {
+  display: block;
+  color: var(--color-grey-90);
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+.analysis-review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* 종합 평가: 한 줄에 한 가지씩 */
+.review-summary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding-left: 18px;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+/* 대화창: 답안이 가져간 AI 답변 문장 (답안의 AI 문장과 같은 색) */
+::highlight(author-ai-source) {
+  background-color: rgba(255, 149, 0, 0.35);
+}
+/* 종합 평가: 잘한 점·아쉬운 점 문단 */
+.review-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+.review-summary h4 {
+  margin: 0 0 4px;
+  font-weight: var(--weight-semibold);
+}
+.review-summary p {
+  margin: 0;
+  line-height: 1.7;
+}
+.review-summary-good {
+  color: var(--color-primary-dark);
+}
+.review-summary-bad {
+  color: var(--color-danger-dark);
+}
+.review-summary-check {
+  color: var(--color-grey-60);
 }

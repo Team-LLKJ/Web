@@ -10,7 +10,7 @@ import {
 import { Tabs } from "../ui/Tabs";
 import { ChatHistorySkeleton } from "../grading/ChatHistorySkeleton";
 import { StudentWorkspace } from "../student/StudentWorkspace";
-import { RichTextEditor } from "./RichTextEditor";
+import { LazyRichTextEditor as RichTextEditor } from "./LazyRichTextEditor";
 import { TextInput } from "../ui/TextInput";
 import { Skeleton } from "../ui/Skeleton";
 import { DownloadIcon } from "./folderIcons";

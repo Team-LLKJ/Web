@@ -24,6 +24,7 @@ import { StudentSidebar } from "../components/grading/StudentSidebar";
 import { readStudentsWidth } from "../components/grading/sidebarWidth";
 import { SubmissionPanel } from "../components/grading/SubmissionPanel";
 import { ReviewPanel } from "../components/grading/ReviewPanel";
+import { estimateAiSentences } from "../components/grading/authorshipMark";
 import { PrintReport } from "../components/grading/PrintReport";
 import {
   ReviewSkeleton,
@@ -275,6 +276,7 @@ function TeacherGradingPage() {
                 authorMark={authorMark}
                 aiTexts={current.messages.filter((m) => m.role === "ai").map((m) => m.content)}
                 userTexts={current.messages.filter((m) => m.role === "user").map((m) => m.content)}
+                knownSentences={isLive ? live.authorSentences : undefined}
               />
             )
           }
@@ -296,6 +298,21 @@ function TeacherGradingPage() {
                 onTab={setTab}
                 authorMark={authorMark}
                 onAuthorMark={setAuthorMark}
+                onSentenceSource={isLive ? (id, source) => void live.setSentenceSource(id, source) : undefined}
+                aiAnswerSentences={(() => {
+                  // 지금 보는 문항에서 AI 답변을 사용한 문장: 서버 판정이 있으면 그것을, 없으면 화면 추정과 같은 기준으로 고릅니다.
+                  const server = isLive ? live.authorSentences.filter((s) => s.question === question) : [];
+                  if (server.length) {
+                    return server.filter((s) => s.kind === "ai").map((s) => ({ text: s.text, closest: s.closest }));
+                  }
+                  const answer = current.answers.find((a) => a.questionId === question);
+                  return estimateAiSentences(
+                    answer?.paragraphs.join("\n") ?? "",
+                    current.messages.filter((m) => m.role === "ai").map((m) => m.content),
+                    current.messages.filter((m) => m.role === "user").map((m) => m.content),
+                  ).map((text) => ({ text }));
+                })()}
+                onPurpose={isLive ? (id, purpose) => void live.setPurpose(id, purpose) : undefined}
               />
             )
           }

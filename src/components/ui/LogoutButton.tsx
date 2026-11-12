@@ -12,6 +12,7 @@ export function LogoutButton({
   className = "",
   onDone,
   asRow = false,
+  asText = false,
 }: {
   variant?: ButtonVariant;
   size?: "small" | "medium" | "large";
@@ -20,6 +21,8 @@ export function LogoutButton({
   onDone?: () => void;
   /** 설정 목록의 한 줄(화살표가 있는 행) 모양으로 보여줍니다. */
   asRow?: boolean;
+  /** 버튼 모양 없이 글씨만 보여줍니다(팝오버 제목 옆 등). */
+  asText?: boolean;
 }) {
   const { logout } = useAuth();
   const navigate = useNavigate();
@@ -40,7 +43,11 @@ export function LogoutButton({
 
   return (
     <>
-      {asRow ? (
+      {asText ? (
+        <button type="button" className="header-popover-link header-popover-link--danger" onClick={() => setConfirming(true)}>
+          로그아웃
+        </button>
+      ) : asRow ? (
         <button type="button" className="settings-link-row settings-link-button settings-link-button--danger" onClick={() => setConfirming(true)}>
           <span>로그아웃</span>
           <svg className="info-chevron" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">

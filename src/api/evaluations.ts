@@ -16,6 +16,8 @@ import type {
   Joined,
   AiDisclosure,
   AssessmentAnalysis,
+  PurposeType,
+  PurposeUsageView,
   ComplianceDecision,
   ScoreChange,
   Reconnected,
@@ -480,6 +482,32 @@ export function getAssessmentAnalysis(evaluationId: string, participantId: strin
   );
 }
 
+/** 답안 문장 하나의 출처를 교사가 확정합니다. 갱신된 분석을 돌려줍니다. */
+export function labelSentence(
+  evaluationId: string,
+  participantId: string,
+  sentenceId: string,
+  source: "AI" | "DIRECT",
+) {
+  return apiRequest<AssessmentAnalysis>(
+    `/api/teacher/evaluations/${idPath(evaluationId)}/participants/${idPath(participantId)}/sentences/${idPath(sentenceId)}`,
+    { method: "PATCH", body: { source, label: source } },
+  );
+}
+
+/** 질문 하나의 용도를 교사가 확정합니다. 갱신된 용도 분석을 돌려줍니다. */
+export function setQuestionPurpose(
+  evaluationId: string,
+  participantId: string,
+  conversationId: number,
+  purpose: PurposeType,
+) {
+  return apiRequest<PurposeUsageView>(
+    `${studentPath(evaluationId, participantId)}/conversations/${conversationId}/purpose`,
+    { method: "PATCH", body: { purpose } },
+  );
+}
+
 /** 제출한 학생 전체의 분석을 다시 예약합니다(비동기, 202). */
 export function rerunAnalysis(evaluationId: string) {
   return apiRequest<{ evaluationId: string; queued: number; status: string }>(
@@ -558,16 +586,45 @@ export type ProcessPolicy = {
   questionWeights: { questionId: string; weight: number }[];
 };
 
-/** 결과 한 칸(문항별 4영역 + GLOBAL 투명성). 명세에 모양이 자세히 없어 선택 필드로 받습니다. */
+export type ProcessCriterion = "PURPOSE" | "SELF_DIRECTION" | "CRITICAL_REVIEW" | "CONTRIBUTION" | "TRANSPARENCY";
+
+/** AI 루브릭 판정 정보(학생 단위 칸에만). votes: Gemini 회차별 단계(1~5, "NA", "HOLD", 무효 null) */
+export type ProcessJudge = {
+  votes: (number | "NA" | "HOLD" | null)[];
+  haikuLevel: number | "NA" | "HOLD" | null;
+  needsReview: boolean;
+  reviewReason: "DISAGREEMENT" | "INSUFFICIENT_DATA" | null;
+  method: string;
+};
+
+/** 결과 한 칸. 학생 단위(AI 루브릭) 칸은 questionId가 null이고 항목마다 한 칸입니다. */
 export type ProcessCell = {
-  questionId: string;
-  criterion: string;
+  questionId: string | null;
+  criterion: ProcessCriterion;
+  criterionName?: string;
+  /** 단계 1~5(확정 전·HOLD·NA는 null) */
   level?: number | null;
   score?: number | null;
   maxScore?: number | null;
+  /** NA 재분배 후 배점(정수, NA 칸은 0) */
+  adjustedMaxScore?: number | null;
+  /** RECOMMENDED | HOLD | NOT_APPLICABLE | TEACHER_REVIEWED */
   status?: string;
   reason?: string;
+  unmetNextLevel?: string | null;
+  judge?: ProcessJudge | null;
   evidence?: unknown[];
+  /** 가점(credits)·감점(deductions) 이유와 원문 인용 */
+  details?: {
+    credits?: ProcessBehaviorReason[];
+    deductions?: ProcessBehaviorReason[];
+  } | null;
+};
+
+export type ProcessBehaviorReason = {
+  title: string;
+  explanation: string;
+  evidence?: { quote?: string; location?: { conversationId?: number | null } | null }[];
 };
 
 export type ProcessResult = {
@@ -577,6 +634,13 @@ export type ProcessResult = {
   /** 모든 항목이 유효할 때만 숫자. 근거가 부족하면 null(0점 아님). */
   total: number | null;
   limitations?: string[];
+  summary?: string | null;
+  partialScore?: {
+    assessedScore: number;
+    assessedMaxScore: number;
+    heldMaxScore: number;
+    notApplicableMaxScore: number;
+  } | null;
 };
 
 export type ProcessJob = {
@@ -594,7 +658,14 @@ export type ProcessJob = {
   errorCode: string | null;
 };
 
-export type ProcessOverride = { questionId: string; criterion: string; level: number; reason: string };
+/** 교사 검토 한 칸. 학생 단위 결과는 questionId를 null로 보냅니다. level(0~5)이나 score 중 하나만 보냅니다. */
+export type ProcessOverride = {
+  questionId: string | null;
+  criterion: ProcessCriterion;
+  level?: number | null;
+  score?: number | null;
+  reason: string;
+};
 
 export type ProcessReview = {
   revision: number;

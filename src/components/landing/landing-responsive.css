@@ -9,7 +9,7 @@ html:has(.landing-page[data-keyboard-scrolling]) {
 
 .landing-page {
   overflow-x: clip;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .landing-page a:focus-visible {
@@ -335,7 +335,7 @@ html:has(.landing-page[data-keyboard-scrolling]) {
     inset: auto 0 0;
     z-index: 900;
     display: grid;
-    grid-template-columns: 1fr 1.25fr;
+    grid-template-columns: 1fr 1fr;
     gap: 10px;
     padding: 12px 20px calc(12px + env(safe-area-inset-bottom, 0px));
     background: var(--color-white);

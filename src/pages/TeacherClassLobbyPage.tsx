@@ -1,3 +1,4 @@
+import { ensureProcessPolicy } from "../lib/processRubric";
 import { ClassParticipantsSkeleton } from "../components/teacher/ClassParticipantsSkeleton";
 import { Skeleton } from "../components/ui/Skeleton";
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -254,6 +255,9 @@ export function TeacherClassLobbyPage() {
   async function startWith(total: number) {
     setBusy(true);
     try {
+      // AI 루브릭 판정은 시작 전에 저장한 사전 정책이 있어야 돌아가므로, 없으면 먼저 만들어 둡니다.
+      // 실패해도 평가 시작은 막지 않습니다(그 경우 루브릭은 교사가 직접 채점).
+      await ensureProcessPolicy(session!.id).catch(() => undefined);
       let next;
       try {
         next = await startSession(folder!.id, session!.id, total);

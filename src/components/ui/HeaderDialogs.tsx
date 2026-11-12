@@ -8,6 +8,9 @@ import { Icon } from "./Icon";
 import { Skeleton, SkeletonStatus } from "./Skeleton";
 import { IconButton } from "./IconButton";
 import { LogoutButton } from "./LogoutButton";
+import { Modal } from "./Modal";
+import { Button } from "./Button";
+import { apiErrorMessage } from "../../api/client";
 import {
   toNotificationRow,
   type AppNotification,
@@ -201,30 +204,64 @@ function NotificationsPopover() {
   const { user } = useAuth();
   const settings = useUserSettings();
   const enabled = user?.role === "TEACHER";
-  const { items, unread, loading, error, markRead, markAllRead } =
+  const { items, unread, loading, error, markRead, markAllRead, removeAll } =
     useNotifications(enabled, () => {
       if (settings.notify && settings.sound) playAlertSound();
     });
   const rows = items.map(toNotificationRow);
   const unreadCount = enabled ? unread : 0;
+  const [clearOpen, setClearOpen] = useState(false);
+  const [clearing, setClearing] = useState(false);
+  const [clearError, setClearError] = useState<string | null>(null);
+
+  async function clearAll() {
+    setClearing(true);
+    setClearError(null);
+    try {
+      await removeAll();
+      setClearOpen(false);
+    } catch (caught) {
+      setClearError(apiErrorMessage(caught, "알림을 삭제하지 못했습니다."));
+    } finally {
+      setClearing(false);
+    }
+  }
+
   return (
+    <>
     <HeaderPopover
       label={unreadCount > 0 ? `알림, 읽지 않은 알림 ${unreadCount}개` : "알림"}
       icon="bell"
       badge={unreadCount}
       title="알림"
       action={
-        <button
-          type="button"
-          className="header-popover-link"
-          disabled={unreadCount === 0}
-          onClick={() => void markAllRead()}
-        >
-          모두 읽음
-        </button>
+        <div className="header-popover-actions">
+          <button
+            type="button"
+            className="header-popover-link"
+            disabled={unreadCount === 0}
+            onClick={() => void markAllRead()}
+          >
+            모두 읽음
+          </button>
+          <button
+            type="button"
+            className="header-popover-link header-popover-link--danger"
+            disabled={!enabled || rows.length === 0}
+            onClick={() => {
+              setClearError(null);
+              setClearOpen(true);
+            }}
+          >
+            모두 삭제
+          </button>
+        </div>
       }
       footer={
-        <Link className="header-popover-link" to={paths.notifications}>
+        <Link
+          className="button button--secondary button--small neutral header-popover-cta"
+          to={paths.notifications}
+        >
           전체 알림 보기
         </Link>
       }
@@ -255,6 +292,28 @@ function NotificationsPopover() {
         </ul>
       )}
     </HeaderPopover>
+    {clearOpen && (
+      <Modal
+        title="알림을 모두 삭제할까요?"
+        onClose={() => {
+          if (!clearing) setClearOpen(false);
+        }}
+        actions={
+          <>
+            <Button variant="white-danger" loading={clearing} onClick={() => void clearAll()}>
+              삭제
+            </Button>
+            <Button variant="secondary" disabled={clearing} onClick={() => setClearOpen(false)}>
+              취소
+            </Button>
+          </>
+        }
+      >
+        <p>읽은 알림까지 모두 지워지고, 지운 알림은 되돌릴 수 없어요.</p>
+        {clearError && <p role="alert">{clearError}</p>}
+      </Modal>
+    )}
+    </>
   );
 }
 
@@ -266,22 +325,14 @@ function SettingsPopover() {
       label="설정"
       icon="settings"
       title="설정"
+      action={user ? <LogoutButton asText /> : undefined}
       footer={
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <Link
-            className="button button--secondary button--small neutral header-popover-cta"
-            to={paths.settings}
-          >
-            전체 설정 보기
-          </Link>
-          {user && (
-            <LogoutButton
-              variant="white-danger"
-              size="small"
-              className="header-popover-cta"
-            />
-          )}
-        </div>
+        <Link
+          className="button button--secondary button--small neutral header-popover-cta"
+          to={paths.settings}
+        >
+          전체 설정 보기
+        </Link>
       }
     >
       {user ? (
