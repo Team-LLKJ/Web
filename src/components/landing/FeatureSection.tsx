@@ -19,7 +19,7 @@ export function FeatureSection() {
             data-reveal
           >
             <div className="landing-icon-tile">
-              <img src={feature.icon} alt="" />
+              <img src={feature.icon} alt="" loading="lazy" decoding="async" />
             </div>
             <h3>{feature.title}</h3>
             <p>{feature.description}</p>

@@ -39,8 +39,8 @@ html:has(.landing-page) {
 }
 .landing-page {
   min-height: 100vh;
-  background: #fff;
-  color: #000;
+  background: var(--color-white);
+  color: var(--color-black);
 }
 .landing-page a.button {
   text-decoration: none;
@@ -129,6 +129,14 @@ html:has(.landing-page) {
 .landing-hero h1 span {
   color: var(--color-primary);
 }
+.landing-page {
+  /* 소개 화면의 한글은 어절(띄어쓰기) 중간에서 줄이 바뀌지 않게 합니다. */
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+.landing-page p {
+  text-wrap: pretty;
+}
 .landing-lead {
   margin: 24px 0 0;
   font-size: var(--font-test-lg);
@@ -136,6 +144,10 @@ html:has(.landing-page) {
   font-weight: 500;
   letter-spacing: -0.01em;
   color: #5b6575;
+  /* 한글 단어(어절) 중간에서 줄이 바뀌지 않게 합니다. */
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  text-wrap: pretty;
 }
 .landing-actions {
   display: flex;
@@ -209,15 +221,12 @@ html:has(.landing-page) {
   align-items: flex-start;
 }
 .landing-feature-card {
-  padding: 40px 34px 42px;
-  background: var(--color-primary-background);
   border-color: #e6eefa;
 }
 .landing-icon-tile {
   width: 72px;
   height: 72px;
   border-radius: 20px;
-  background: #e8f2ff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -247,12 +256,8 @@ html:has(.landing-page) {
 }
 .landing-step-card {
   position: relative;
-  padding: 34px 32px 38px;
-  background: #fff;
 }
-.landing-step-card h3 {
-  margin-top: 22px;
-}
+
 .landing-step-card:not(:last-child):after {
   content: "";
   position: absolute;
@@ -267,7 +272,7 @@ html:has(.landing-page) {
   height: 44px;
   border-radius: 50%;
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-white);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -275,17 +280,10 @@ html:has(.landing-page) {
   font-weight: 800;
 }
 .landing-criteria-grid {
-  width: 1160px;
   max-width: 100%;
-  display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 24px;
 }
-.landing-criterion-card {
-  grid-column: span 2;
-  padding: 32px 30px 36px;
-  background: #fff;
-}
+
 .landing-criterion-card:nth-child(4) {
   grid-column: 2 / span 2;
 }
@@ -293,13 +291,9 @@ html:has(.landing-page) {
   grid-column: 4 / span 2;
 }
 .landing-criterion-card h3 {
-  margin-top: 10px;
   font-size: calc(21px + var(--font-bump));
 }
-.landing-criterion-card p {
-  margin-top: 10px;
-  font-size: calc(16px + var(--font-bump));
-}
+
 .criterion-number {
   font-size: calc(34px + var(--font-bump));
   font-weight: 800;
@@ -411,7 +405,7 @@ html:has(.landing-page) {
   padding-right: 0;
 }
 .landing-icon-tile {
-  background: #fff;
+  background: var(--color-white);
 }
 
 .landing-step-grid {
@@ -728,7 +722,7 @@ html:has(.landing-page) {
   position: absolute;
   inset: 0;
   border-radius: 20px;
-  background: #fff;
+  background: var(--color-white);
   box-shadow: 0 10px 28px rgba(20, 40, 80, 0.18);
   overflow: hidden;
   transition: transform 0.9s cubic-bezier(0.45, 0, 0.25, 1);
@@ -744,7 +738,7 @@ html:has(.landing-page) {
   content: "";
   position: absolute;
   inset: 0;
-  background: #000;
+  background: var(--color-black);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.9s ease;

@@ -11,8 +11,6 @@ a {
   position: fixed;
   inset: 0 0 auto;
   z-index: 1000;
-  height: 81px;
-  padding: 15px 50px;
   background: var(--color-white);
   border-bottom: 1px solid var(--border);
   display: flex;
@@ -25,7 +23,6 @@ a {
 }
 .header nav {
   display: flex;
-  gap: 20px;
   align-items: center;
 }
 .icon-button {
@@ -563,7 +560,6 @@ h3 {
   }
 }
 
-
 /* Scale the two assessment workspaces while keeping them viewport-height. */
 /* 채점 화면은 zoom 없이 직접 줄인 크기를 사용합니다. */
 @media screen {
@@ -662,10 +658,7 @@ h3 {
 .header nav {
   gap: 15px;
 }
-.header .icon-button {
-  width: 22px;
-  height: 30px;
-}
+
 .header > img,
 .header .lit-logo-link img {
   width: 75px;

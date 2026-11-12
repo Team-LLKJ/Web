@@ -1,8 +1,8 @@
 .teacher-page {
   min-height: 100vh;
   padding-top: 61px;
-  background: #f6faff;
-  color: #1c1c1e;
+  background: var(--color-primary-background);
+  color: var(--color-grey-90);
 }
 .teacher-loading-header-actions {
   display: flex;
@@ -78,9 +78,7 @@
 }
 .teacher-page-content > h1 {
   margin: 0 0 20px;
-  font-size: var(--font-title-md);
   font-weight: var(--weight-bold);
-  line-height: var(--line-title-lg);
   letter-spacing: 0;
 }
 .teacher-notice {
@@ -98,12 +96,8 @@
   border: 1px solid var(--color-grey-20);
   border-radius: 18px;
   background: var(--color-white);
-  box-shadow: 0 12px 35px rgba(37, 69, 105, 0.045);
 }
-.teacher-create-card {
-  display: grid;
-  gap: 22px;
-}
+
 .teacher-create-stepper {
   display: flex;
   align-items: center;
@@ -131,7 +125,7 @@
   color: var(--color-primary-dark);
 }
 .teacher-create-stepper > span.is-complete {
-  color: #007bff;
+  color: var(--color-primary);
 }
 .teacher-step-number {
   width: 26px;
@@ -512,9 +506,7 @@
 .teacher-card-heading h2 {
   margin: 0;
   font-size: var(--font-test-lg);
-  font-weight: var(--weight-medium);
   line-height: var(--line-test-lg);
-  letter-spacing: 0;
 }
 .teacher-card-heading h2 span {
   margin-left: 4px;
@@ -543,7 +535,7 @@
   font: var(--font-caption)/1.6 var(--font-family-base);
 }
 .teacher-live-dot {
-  color: #007bff;
+  color: var(--color-primary);
   font-size: var(--font-caption);
 }
 .teacher-live-dot::before {
@@ -552,7 +544,7 @@
   height: 6px;
   margin-right: 6px;
   border-radius: 50%;
-  background: #52a6ff;
+  background: var(--color-primary-light);
   content: "";
 }
 .teacher-participant-list {
@@ -587,7 +579,7 @@
   line-height: var(--line-caption);
 }
 .presence-connected {
-  color: #007bff;
+  color: var(--color-primary);
 }
 .presence-disconnected {
   color: var(--color-grey-40);
@@ -733,7 +725,7 @@
 }
 .teacher-results-limits p {
   margin: 8px 0 0;
-  color: #636366;
+  color: var(--color-grey-50);
   font-size: var(--font-caption);
   line-height: var(--line-text-md);
 }
@@ -746,9 +738,7 @@
 }
 .teacher-list-title-row h1 {
   margin: 0;
-  font-size: var(--font-title-sm, 26px);
   font-weight: var(--weight-bold);
-  line-height: var(--line-title-sm, 1.3);
   letter-spacing: 0;
 }
 .teacher-list-title-row p {
@@ -775,8 +765,8 @@
   padding: 0 14px;
   border: 1px solid #cfd7e4;
   border-radius: 999px;
-  color: #636366;
-  background: #fff;
+  color: var(--color-grey-50);
+  background: var(--color-white);
   font: inherit;
   font-size: var(--font-text-sm);
   cursor: pointer;
@@ -797,7 +787,7 @@
 }
 .teacher-list-count {
   margin: 0;
-  color: #636366;
+  color: var(--color-grey-50);
   font-size: var(--font-caption);
 }
 .teacher-list-count b {
@@ -817,7 +807,7 @@
   padding: 20px;
   border: 1px solid #e3e8f0;
   border-radius: 20px;
-  background: #fff;
+  background: var(--color-white);
 }
 .teacher-evaluation-list .teacher-evaluation-item--done {
   background: #fafbfd;
@@ -875,7 +865,7 @@
   justify-content: center;
   min-height: 42px;
   border-radius: 12px;
-  color: #fff;
+  color: var(--color-white);
   background: var(--color-primary);
   font-size: var(--font-text-sm);
   font-weight: var(--weight-semibold);
@@ -1085,7 +1075,7 @@
 
 /* Evaluation management: a tidy two-column dashboard (details | invite + participants). */
 .teacher-card {
-  border-color: #c6c6c6;
+  border-color: var(--color-grey-20);
   box-shadow: none;
 }
 .teacher-dashboard-grid:not([aria-hidden]) {
@@ -1170,7 +1160,7 @@
 .teacher-lobby > .teacher-card {
   border: 1px solid #e3e8f0;
   border-radius: 28px;
-  background: #fff;
+  background: var(--color-white);
 }
 .teacher-join-card {
   display: flex;
@@ -1212,7 +1202,7 @@
   padding: 4px;
   border: 1px solid #e3e8f0;
   border-radius: 14px;
-  background: #fff;
+  background: var(--color-white);
   object-fit: contain;
 }
 .teacher-lobby-qr-button {
@@ -1258,7 +1248,6 @@
   display: flex;
   flex-wrap: wrap;
   align-content: flex-start;
-  gap: 10px;
   margin: 18px 0 0;
   padding: 0;
   list-style: none;
@@ -1266,12 +1255,8 @@
 .teacher-lobby-pill {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  height: 46px;
-  padding: 0 18px 0 7px;
   border-radius: 999px;
-  background: #f4f4f4;
-  font-size: calc(17px + var(--font-bump));
+  background: var(--color-grey-10);
   font-weight: 500;
   letter-spacing: -0.01em;
 }
@@ -1279,7 +1264,7 @@
   opacity: 0.55;
 }
 .teacher-lobby-pill small {
-  color: #636366;
+  color: var(--color-grey-50);
   font-size: var(--font-caption);
   font-weight: 500;
 }
@@ -1287,8 +1272,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
   border-radius: 50%;
   background: #e2eeff;
 }
@@ -1325,37 +1308,6 @@
     height: 42px;
     font-size: calc(16px + var(--font-bump));
   }
-}
-
-/* 평가 카드의 수정·삭제 */
-.evaluation-card-actions {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-.evaluation-card-actions > a,
-.evaluation-card-actions > button {
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: #aeaeb2;
-  cursor: pointer;
-  transition:
-    background-color 0.15s ease,
-    color 0.15s ease;
-}
-.evaluation-card-actions > a:hover,
-.evaluation-card-actions > button:hover {
-  background: var(--color-grey-10);
-  color: #8e8e93;
-}
-.evaluation-card-actions > button:hover {
-  color: var(--color-danger);
 }
 
 /* ───── 새 평가 만들기: 섹션 카드 폼 ───── */
@@ -1621,7 +1573,6 @@
 /* 문항별 글자 수 제한(선택): 체크하면 최소·최대 입력칸이 나타난다 */
 .teacher-question-limits {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   gap: 10px 16px;
   min-width: 0;
@@ -1650,7 +1601,7 @@
   width: 20px;
   height: 20px;
   margin: 0;
-  border: 1.5px solid var(--color-grey-30, #c6c6c6);
+  border: 1.5px solid var(--color-grey-30, var(--color-grey-20));
   border-radius: 6px;
   background: var(--color-white) center / 12px no-repeat;
   cursor: pointer;
@@ -1672,7 +1623,6 @@
 }
 .teacher-limit-fields {
   display: inline-flex;
-  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
 }
@@ -1688,10 +1638,8 @@
 .teacher-limit-input {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
   box-sizing: border-box;
   height: 36px;
-  padding: 0 12px;
   border: 1px solid var(--color-grey-20);
   border-radius: 10px;
   background: var(--color-white);
@@ -1705,7 +1653,6 @@
   font-weight: 500;
 }
 .teacher-limit-input input {
-  width: 72px;
   min-width: 0;
   height: 100%;
   padding: 0;
@@ -1714,11 +1661,8 @@
   background: transparent;
   font: inherit;
   font-size: var(--font-text-sm);
-  text-align: right;
 }
-.teacher-limit-input input::placeholder {
-  color: var(--color-grey-40);
-}
+
 .teacher-limit-input em {
   color: var(--color-grey-50);
   font-size: var(--font-text-sm);
@@ -1740,7 +1684,7 @@
 }
 .tq-intro p {
   margin: 6px 0 0;
-  color: var(--color-grey-60, #636366);
+  color: var(--color-grey-60, var(--color-grey-50));
   font-size: var(--font-text-sm);
 }
 .tq-count {
@@ -1756,7 +1700,6 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  margin-top: 16px;
 }
 .tq-card {
   box-sizing: border-box;
@@ -1787,7 +1730,7 @@
   height: 28px;
   border-radius: 50%;
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-white);
   font-size: calc(15px + var(--font-bump));
   font-weight: 600;
 }
@@ -1809,7 +1752,7 @@
 }
 .tq-handle:hover {
   background: var(--color-grey-10);
-  color: var(--color-grey-60, #636366);
+  color: var(--color-grey-60, var(--color-grey-50));
 }
 .tq-handle:active {
   cursor: grabbing;
@@ -1824,7 +1767,6 @@
   padding: 12px 14px;
   border: 1px solid var(--color-grey-20);
   border-radius: 12px;
-  background: var(--color-grey-10, #f7f7f8);
   font: inherit;
   font-size: var(--font-text-sm);
   line-height: 1.6;
@@ -1832,8 +1774,7 @@
   outline: 0;
 }
 .tq-card textarea:focus {
-  border-color: var(--color-primary);
-  background: #fff;
+  background: var(--color-white);
 }
 .tq-foot {
   display: flex;
@@ -1978,7 +1919,7 @@
   padding: 3px 10px;
   border-radius: 999px;
   background: var(--color-grey-10);
-  color: var(--color-grey-60, #636366);
+  color: var(--color-grey-60, var(--color-grey-50));
   font-size: calc(12px + var(--font-bump));
   font-weight: 500;
   line-height: 1.4;
@@ -1998,7 +1939,7 @@
 /* 문항 입력칸: 기본 상태를 흰 배경과 옅은 테두리로 밝게 */
 .tq-card textarea {
   border-color: #e3e3e8;
-  background: #fff;
+  background: var(--color-white);
 }
 .tq-card textarea::placeholder {
   color: var(--color-grey-30);
@@ -2033,7 +1974,6 @@
 
 /* 글자 수 입력: "최소/최대" 바로 뒤에서 왼쪽부터 입력되도록 */
 .teacher-limit-input input {
-  width: 88px;
   text-align: left;
 }
 
@@ -2132,7 +2072,6 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 22px;
   border: 1px solid var(--color-grey-20);
   border-radius: 16px;
   background: var(--color-white);
@@ -2193,7 +2132,6 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 14px;
 }
 .folder-section-head h2 {
   margin: 0;
@@ -2206,7 +2144,7 @@
 }
 .folder-desc {
   margin: 0 0 14px;
-  color: var(--color-grey-70, #48484a);
+  color: var(--color-grey-70, var(--color-grey-60));
   font-size: var(--font-text-sm);
   line-height: 1.6;
 }
@@ -2341,9 +2279,6 @@
 }
 .folder-settings > div {
   display: grid;
-  grid-template-columns: 120px minmax(0, 1fr);
-  gap: 16px;
-  padding: 14px 0;
   border-top: 1px solid var(--color-grey-10);
 }
 .folder-settings > div:first-child {
@@ -2354,12 +2289,10 @@
   padding-bottom: 0;
 }
 .folder-settings dt {
-  color: var(--color-grey-50);
   font-size: var(--font-text-sm);
   line-height: 1.6;
 }
 .folder-settings dd {
-  display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   gap: 4px 12px;
@@ -2382,12 +2315,10 @@
   list-style: none;
 }
 .folder-chips li {
-  padding: 5px 12px;
   border-radius: 999px;
   background: var(--color-primary-soft);
   color: var(--color-primary);
   font-size: calc(13px + var(--font-bump));
-  font-weight: var(--weight-semibold);
 }
 @media (max-width: 720px) {
   .folder-settings > div {
@@ -2412,11 +2343,9 @@
 }
 .folder-policy {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
 }
 .folder-policy strong {
-  color: var(--color-black, #1c1c1e);
+  color: var(--color-black, var(--color-grey-90));
   font-size: var(--font-text-sm);
 }
 .folder-policy small {
@@ -2444,10 +2373,6 @@
 }
 .folder-section .folder-desc {
   margin-top: 0;
-}
-
-.folder-filter {
-  margin-bottom: 16px;
 }
 
 /* 반별 평가: 제목과 상태 태그 사이는 좁게 */
@@ -2482,7 +2407,7 @@
 .teacher-lobby-avatar {
   width: 38px;
   height: 38px;
-  color: #fff;
+  color: var(--color-white);
   font-size: calc(17px + var(--font-bump));
   font-weight: 600;
 }
@@ -2558,7 +2483,7 @@
   border: 0;
   border-radius: 8px;
   background: transparent;
-  color: #aeaeb2;
+  color: var(--color-grey-30);
   cursor: pointer;
   transition:
     background-color 0.15s ease,
@@ -2567,7 +2492,7 @@
 .evaluation-card-actions > a:hover,
 .evaluation-card-actions > button:hover {
   background: var(--color-grey-10);
-  color: #8e8e93;
+  color: var(--color-grey-40);
 }
 .evaluation-card-actions > button:hover {
   color: var(--color-danger);
@@ -2686,7 +2611,6 @@
   border-top: 1px solid var(--color-grey-20);
 }
 
-
 /* 비어 있는 문항 오류 */
 .tq-card textarea[aria-invalid="true"] {
   border-color: var(--color-danger);
@@ -2740,7 +2664,7 @@
 
 /* 선생님 화면 헤더: 맨 위에서는 배경색과 같게, 스크롤하면 유리처럼 비치게 */
 :root .header.teacher-header {
-  background: #f6faff;
+  background: var(--color-primary-background);
   border-bottom-color: transparent;
   transition:
     background-color 0.3s ease,
@@ -2765,9 +2689,7 @@
   min-width: 0;
   max-width: 100%;
 }
-:root .teacher-list-title-row .folder-title-actions {
-  margin-left: auto;
-}
+
 :root .teacher-list-title-row h1 {
   word-break: keep-all;
   overflow-wrap: break-word;
@@ -2795,11 +2717,16 @@
   overflow: visible;
 }
 
-/* 평가 내용 편집기 포커스: 다른 입력칸과 같은 파란색 테두리 한 줄, 아래쪽 모서리도 둥글게 */
+/* 평가 내용 편집기: 포커스돼도 테두리 색이 바뀌지 않고 평소 모습 그대로 보입니다. */
+:root .teacher-rich-editor,
 :root .teacher-rich-editor:focus-within {
-  border-color: var(--color-primary);
-  outline: 0;
+  border-color: var(--color-grey-20);
+  outline: none;
   box-shadow: none;
+  transition: none;
+}
+:root .teacher-rich-editor[data-error="true"] {
+  border-color: var(--color-danger);
 }
 :root .teacher-rich-editor .answer-ribbon--compact {
   border-bottom: 1px solid var(--color-grey-10);
@@ -2809,7 +2736,6 @@
 :root .teacher-rich-editor .student-answer-content.tiptap {
   border-radius: 0 0 11px 11px;
 }
-
 
 /* 풀이 시간 선택: 시·분 목록 */
 .duration-picker {
@@ -2857,29 +2783,19 @@
 }
 .duration-picker-pop ul {
   position: relative;
-  width: 92px;
-  max-height: 220px;
   margin: 0;
-  padding: 0;
   overflow-y: auto;
   list-style: none;
 }
 .duration-picker-pop li {
-  padding: 8px 10px;
   border-radius: 6px;
-  color: var(--color-grey-90);
-  font-size: var(--font-text-sm);
   text-align: center;
   cursor: pointer;
 }
 .duration-picker-pop li:hover {
   background: var(--color-grey-10);
 }
-.duration-picker-pop li[aria-selected="true"] {
-  background: var(--color-primary);
-  color: var(--color-white);
-  font-weight: var(--weight-semibold);
-}
+
 .duration-picker-pop li[aria-disabled="true"] {
   color: var(--color-grey-20);
   cursor: not-allowed;
@@ -2926,8 +2842,6 @@
   color: var(--color-grey-60);
 }
 .duration-picker-pop li[aria-selected="true"] {
-  background: var(--color-primary-soft);
-  color: var(--color-primary-dark);
   font-weight: var(--weight-semibold);
 }
 .duration-picker-pop li + li {

@@ -4,10 +4,31 @@ import { Button } from "../ui/Button";
 import { Modal } from "../ui/Modal";
 import "../info/info.css";
 import {
-  CONSENT_ITEMS as ITEMS,
+  SIGNUP_PRIVACY_CONSENT,
+  TERMS_DOCUMENT,
+  type LegalDocumentData,
+} from "../info/legalContent";
+import {
   isConsentComplete,
+  type ConsentKey,
   type ConsentState,
 } from "./signupConsentItems";
+
+// 약관 전문은 회원가입 2단계에서만 필요해 이 파일(지연 로딩)에 둡니다.
+const ITEMS: {
+  key: ConsentKey;
+  label: string;
+  doc?: LegalDocumentData;
+}[] = [
+  { key: "age", label: "만 14세 이상입니다" },
+  { key: "terms", label: "LIT 이용약관 동의", doc: TERMS_DOCUMENT },
+  {
+    key: "privacy",
+    label: "개인정보 수집·이용 동의",
+    doc: SIGNUP_PRIVACY_CONSENT,
+  },
+];
+
 
 function CheckMark() {
   return (

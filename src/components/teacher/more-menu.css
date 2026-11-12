@@ -11,13 +11,13 @@
   border: 0;
   border-radius: 8px;
   background: transparent;
-  color: #aeaeb2;
+  color: var(--color-grey-30);
   cursor: pointer;
 }
 .evaluation-card-actions > .more-menu > .more-menu-trigger:hover,
 .evaluation-card-actions > .more-menu > .more-menu-trigger[aria-expanded="true"] {
   background: var(--color-grey-10);
-  color: #636366;
+  color: var(--color-grey-50);
 }
 .more-menu-trigger svg {
   width: 22px;

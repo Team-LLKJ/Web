@@ -1,7 +1,7 @@
 import { Skeleton } from "../ui/Skeleton";
 import { Button } from "../ui/Button";
 import { Tabs } from "../ui/Tabs";
-import { RichTextEditor } from "./RichTextEditor";
+import { LazyRichTextEditor as RichTextEditor } from "./LazyRichTextEditor";
 import "./assessment-edit-skeleton.css";
 
 export function AssessmentEditSkeleton() {

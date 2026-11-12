@@ -47,18 +47,18 @@
   display: grid;
   place-items: center;
   padding: 0;
-  border: 1px solid #c6c6c6;
-  border-left: 1px solid #c6c6c6;
+  border: 1px solid var(--color-grey-20);
+  border-left: 1px solid var(--color-grey-20);
   border-radius: 0 10.5px 10.5px 0;
-  background: #f4f4f4;
-  color: #636366;
+  background: var(--color-grey-10);
+  color: var(--color-grey-50);
   cursor: pointer;
   transition:
     background-color 150ms,
     color 150ms;
 }
 .students-toggle:hover {
-  color: #363639;
+  color: var(--color-grey-70);
 }
 .students-toggle:focus-visible {
   outline: 2px solid var(--color-primary);

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { lazy, Suspense, useEffect, useRef, useState, type FormEvent } from "react";
 import { ApiError, apiErrorMessage } from "../../api/client";
 import { checkUsernameAvailable, confirmEmailVerification, sendEmailVerification } from "../../api/auth";
 import type { LoginRequest, TeacherSignup } from "../../api/types";
@@ -14,12 +14,16 @@ import {
 } from "../../lib/passwordRules";
 import { TextInput } from "../ui/TextInput";
 import "./auth-email.css";
-import { SignupConsent } from "./SignupConsent";
 import {
   EMPTY_CONSENT,
   isConsentComplete,
   type ConsentState,
 } from "./signupConsentItems";
+
+// 약관 동의(약관 전문 포함)는 회원가입 2단계에서만 불러옵니다.
+const SignupConsent = lazy(() =>
+  import("./SignupConsent").then((module) => ({ default: module.SignupConsent })),
+);
 
 export type AuthFormPayload = LoginRequest | TeacherSignup;
 
@@ -399,6 +403,7 @@ export function AuthForm({ mode, onSubmit }: Props) {
         )}
       </div>
       {signupStep === 2 && (
+        <Suspense fallback={null}>
         <SignupConsent
           value={consent}
           disabled={busy}
@@ -407,6 +412,7 @@ export function AuthForm({ mode, onSubmit }: Props) {
             setNotice("");
           }}
         />
+        </Suspense>
       )}
       <div className="auth-submit">
         <div className="auth-submit-actions">

@@ -8,7 +8,7 @@ export function LandingFooter() {
     <footer className="landing-footer">
       <div className="landing-footer-main">
         <div className="landing-footer-brand">
-          <img src="/lit-logo.png" width="100" height="50" alt="LIT" />
+          <img src="/lit-logo.png" width="100" height="50" alt="LIT" loading="lazy" decoding="async" />
           <p>AI 활용 과정을 근거로 평가합니다</p>
           <small>수행평가를 위한 AI 활용 분석 플랫폼 · Team-LLKJ</small>
         </div>
