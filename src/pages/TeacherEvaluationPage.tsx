@@ -1,3 +1,4 @@
+import { ensureProcessPolicy } from "../lib/processRubric";
 import {
   useCallback,
   useEffect,
@@ -521,6 +522,7 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
     setBusy(true);
     setNotice("");
     try {
+      if (action === "start") await ensureProcessPolicy(evaluationId).catch(() => undefined);
       const next =
         action === "start"
           ? await startEvaluation(evaluationId)

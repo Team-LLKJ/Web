@@ -6,9 +6,11 @@ import { ActivityAnalysis } from "./ActivityAnalysis";
 import { RubricAssessment } from "./RubricAssessment";
 import { AnalysisModal } from "./AnalysisModal";
 import type { Message, Student } from "../../data/grading";
+import type { PurposeType } from "../../api/types";
 import { Tabs } from "../ui/Tabs";
 import { ChatMessage } from "./ChatMessage";
 import { clearEvidenceMark, markEvidence } from "./highlightText";
+import { clearAiSourceMark, markAiSources } from "./authorshipMark";
 type Props = {
   student: Student;
   messages: Message[];
@@ -27,6 +29,10 @@ type Props = {
   /** 답안에 줄을 쳐 보여주는 종류와 바꾸는 동작 */
   authorMark?: "student" | "ai" | "paste" | null;
   onAuthorMark?: (kind: "student" | "ai" | "paste" | null) => void;
+  onSentenceSource?: (sentenceId: string, source: "AI" | "DIRECT") => void;
+  onPurpose?: (conversationId: number, purpose: PurposeType) => void;
+  /** 'AI의 답변을 사용함'을 켰을 때, 답안에서 AI 답변을 사용한 문장(대화창에서 출처를 칠합니다) */
+  aiAnswerSentences?: { text: string; closest?: string | null }[];
 };
 export function ReviewPanel({
   student,
@@ -41,6 +47,9 @@ export function ReviewPanel({
   lockedNotice,
   authorMark,
   onAuthorMark,
+  onSentenceSource,
+  onPurpose,
+  aiAnswerSentences = [],
 }: Props) {
   const [analysisOpen, setAnalysisOpen] = useState(false);
   const [target, setTarget] = useState<{ id: number; quote?: string } | null>(null);
@@ -70,6 +79,26 @@ export function ReviewPanel({
     });
     return () => cancelAnimationFrame(frame);
   }, [target, targetConversation, tab, messages]);
+  // 'AI의 답변을 사용함'을 켠 채 대화창을 보면, 답안이 가져간 AI 문장에도 같은 배경을 칠합니다.
+  const sourceKey = aiAnswerSentences.map((s) => `${s.text}\u0002${s.closest ?? ""}`).join("\u0001");
+  useEffect(() => {
+    if (authorMark !== "ai" || tab !== "AI 대화창" || !sourceKey) return clearAiSourceMark();
+    const apply = (scroll: boolean) => {
+      const bubbles = [...document.querySelectorAll<HTMLElement>(".teacher-chat .message.ai")];
+      const sentences = sourceKey.split("\u0001").map((item) => {
+        const [text, closest] = item.split("\u0002");
+        return { text, closest: closest || null };
+      });
+      const first = markAiSources(bubbles, sentences);
+      if (scroll) first?.scrollIntoView({ block: "center", behavior: "smooth" });
+    };
+    // 마크다운 말풍선은 늦게 그려지므로 잠시 뒤 다시 칠합니다.
+    const timers = [window.setTimeout(() => apply(false), 0), window.setTimeout(() => apply(true), 400)];
+    return () => {
+      timers.forEach((timer) => window.clearTimeout(timer));
+      clearAiSourceMark();
+    };
+  }, [authorMark, tab, sourceKey, messages]);
   // 탭을 옮기거나 화면을 떠나면 형광펜 표시를 지웁니다.
   useEffect(() => clearEvidenceMark, [tab]);
   return (
@@ -121,6 +150,8 @@ export function ReviewPanel({
             review={review}
             authorMark={authorMark}
             onAuthorMark={onAuthorMark}
+            onSentenceSource={onSentenceSource}
+            onPurpose={onPurpose}
             answerChars={student.answers.reduce(
               (sum, answer) => sum + (answer.paragraphs.join("").replace(/\s/g, "").length || 0),
               0,
@@ -141,6 +172,7 @@ export function ReviewPanel({
         <AnalysisModal
           review={review}
           messages={messages}
+          answerTexts={student.answers.map((answer) => answer.paragraphs.join("\n"))}
           onClose={() => setAnalysisOpen(false)}
           onOpenConversation={(id, quote) => {
             setAnalysisOpen(false);

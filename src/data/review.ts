@@ -1,4 +1,4 @@
-import type { AssessmentAnalysis, RubricScores } from "../api/types";
+import type { AnalysisSentence, AssessmentAnalysis, PurposeQuestion, RubricScores } from "../api/types";
 export type UsageMetric = {
   label: string;
   percent: number;
@@ -32,6 +32,10 @@ export type StudentReview = {
   contributionEstimated?: boolean;
   /** 규칙 기반 AI 활용 분석 원본. */
   analysisDetail?: AssessmentAnalysis | null;
+  /** 답안 문장별 출처 판정(서버). 있으면 화면 추정 대신 씁니다. */
+  sentences?: AnalysisSentence[];
+  /** 질문별 용도 판정. 교사 확인이 필요한 질문을 고르는 데 씁니다. */
+  purposeQuestions?: PurposeQuestion[];
 };
 const analysis: Assessment[] = [
   {

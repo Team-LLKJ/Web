@@ -19,8 +19,21 @@ import {
   saveCriterionScore,
   saveRubricScore,
   streamLiveEvents,
+  labelSentence,
+  setQuestionPurpose,
+  saveProcessReview,
+  confirmProcessReview,
 } from "../api/evaluations";
+import {
+  confirmBody,
+  loadProcessRubric,
+  missingCriteria,
+  reviewBody,
+  toRubricScores,
+  type ProcessState,
+} from "../lib/processRubric";
 import type {
+  PurposeType,
   AssessmentAnalysis,
   GradingActivity,
   GradingAnswers,
@@ -85,6 +98,8 @@ function toReview(
     studentContribution: estimated ?? activity?.studentContribution ?? null,
     contributionEstimated: estimated !== null,
     analysisDetail: analysis,
+    sentences: analysis?.sentences ?? [],
+    purposeQuestions: activity?.usageAnalysis?.questions ?? [],
     // 서버가 회색(neutral)으로 내려주는 '미분류' 항목은 화면에서 숨깁니다.
     usage: (activity?.usage ?? [])
       .filter((item) => item.colorKey !== "neutral" && item.name !== "미분류")
@@ -162,6 +177,8 @@ export function useGradingData(evaluationId: string | undefined) {
     review: GradingReview;
     rubric: RubricScores | null;
     analysis: AssessmentAnalysis | null;
+    /** AI 루브릭 판정(과정 채점)과 교사 검토. 있으면 기준별 점수 대신 씁니다. */
+    process: ProcessState | null;
   } | null>(null);
   const [loadingList, setLoadingList] = useState(Boolean(evaluationId));
   const [error, setError] = useState("");
@@ -244,7 +261,7 @@ export function useGradingData(evaluationId: string | undefined) {
     async (participantId: string) => {
       if (!evaluationId || !participantId) return;
       try {
-        const [answers, messages, activity, review, rubric, analysis] = await Promise.all([
+        const [answers, messages, activity, review, rubric, analysis, process] = await Promise.all([
           getGradingAnswers(evaluationId, participantId),
           getGradingConversations(evaluationId, participantId),
           getGradingActivity(evaluationId, participantId),
@@ -252,9 +269,11 @@ export function useGradingData(evaluationId: string | undefined) {
           // 기준별 점수는 실패해도 기존 루브릭 화면으로 대신 보여줍니다.
           getRubricScores(evaluationId, participantId).catch(() => null),
           getAssessmentAnalysis(evaluationId, participantId).catch(() => null),
+          // AI 루브릭 판정이 아직 없거나 실패하면 기존 기준별 점수로 보여줍니다.
+          loadProcessRubric(evaluationId, participantId).catch(() => null),
         ]);
         if (selectedRef.current !== participantId) return;
-        setDetail({ id: participantId, answers, messages, activity, review, rubric, analysis });
+        setDetail({ id: participantId, answers, messages, activity, review, rubric, analysis, process });
         setError("");
       } catch (e) {
         setError(apiErrorMessage(e, "학생 자료를 불러오지 못했습니다."));
@@ -404,8 +423,65 @@ export function useGradingData(evaluationId: string | undefined) {
   const review = toReview(
     current?.review ?? null,
     current?.activity ?? null,
-    current?.rubric ?? null,
+    current?.process ? toRubricScores(current.process) : (current?.rubric ?? null),
     current?.analysis ?? null,
+  );
+
+  // AI 루브릭 판정의 교사 검토를 저장하고 화면 값을 바꿉니다.
+  const saveProcess = useCallback(
+    async (state: ProcessState, body: ReturnType<typeof reviewBody>) => {
+      if (!evaluationId || !selectedId) return null;
+      const saved = await saveProcessReview(evaluationId, selectedId, state.job.id, body);
+      const next = { ...state, review: saved };
+      setDetail((now) => (now && now.id === selectedId ? { ...now, process: next } : now));
+      return next;
+    },
+    [evaluationId, selectedId],
+  );
+  const processError = useCallback(
+    (e: unknown, fallback: string) => {
+      if (e instanceof ApiError && e.code === "PROCESS_REVIEW_VERSION_CONFLICT") {
+        setError("다른 곳에서 먼저 채점이 저장됐어요. 최신 내용을 다시 불러왔습니다.");
+        if (selectedId) void loadDetail(selectedId);
+      } else if (e instanceof ApiError && e.code === "PROCESS_RESULT_STALE") {
+        setError("새 분석 결과가 있어요. 최신 내용을 다시 불러왔습니다.");
+        if (selectedId) void loadDetail(selectedId);
+      } else {
+        setError(apiErrorMessage(e, fallback));
+      }
+    },
+    [selectedId, loadDetail],
+  );
+
+  // 답안 문장 하나의 출처(AI 답변 사용 / 직접 작성)를 교사가 확정합니다.
+  const setSentenceSource = useCallback(
+    async (sentenceId: string, source: "AI" | "DIRECT") => {
+      if (!evaluationId || !selectedId) return;
+      try {
+        const analysis = await labelSentence(evaluationId, selectedId, sentenceId, source);
+        setDetail((now) => (now && now.id === selectedId ? { ...now, analysis } : now));
+        setError("");
+      } catch (e) {
+        setError(apiErrorMessage(e, "문장 출처를 저장하지 못했습니다."));
+      }
+    },
+    [evaluationId, selectedId],
+  );
+
+  // 질문 하나의 AI 사용 용도를 교사가 확정합니다.
+  const setPurpose = useCallback(
+    async (conversationId: number, purpose: PurposeType) => {
+      if (!evaluationId || !selectedId) return;
+      try {
+        await setQuestionPurpose(evaluationId, selectedId, conversationId, purpose);
+        setError("");
+        // 비율 막대도 같이 바뀌므로 활동 자료를 다시 받습니다.
+        void loadDetail(selectedId);
+      } catch (e) {
+        setError(apiErrorMessage(e, "질문 용도를 저장하지 못했습니다."));
+      }
+    },
+    [evaluationId, selectedId, loadDetail],
   );
 
   // 허용 범위 판단처럼 루브릭 응답을 통째로 돌려주는 동작 뒤에 화면 값을 바꿉니다.
@@ -455,6 +531,15 @@ export function useGradingData(evaluationId: string | undefined) {
   // 기준 하나의 교사 점수(level 0~4)를 저장합니다. null이면 그 기준의 교사 점수를 지웁니다.
   const setLevel = useCallback(
     async (criterionId: number, level: number | null) => {
+      if (current?.process) {
+        try {
+          await saveProcess(current.process, reviewBody(current.process, { criterionId, level }));
+          setError("");
+        } catch (e) {
+          processError(e, "점수를 저장하지 못했습니다.");
+        }
+        return;
+      }
       if (!evaluationId || !selectedId || !current?.rubric) return;
       const previous = current.rubric;
       setDetail({
@@ -496,12 +581,21 @@ export function useGradingData(evaluationId: string | undefined) {
         );
       }
     },
-    [evaluationId, selectedId, current],
+    [evaluationId, selectedId, current, saveProcess, processError],
   );
 
   // 교사 점수를 바꾸거나 AI가 못 한 기준을 채점한 근거(feedback)를 저장합니다.
   const setFeedback = useCallback(
     async (criterionId: number, feedback: string) => {
+      if (current?.process) {
+        try {
+          await saveProcess(current.process, reviewBody(current.process, { criterionId, reason: feedback }));
+          setError("");
+        } catch (e) {
+          processError(e, "근거를 저장하지 못했습니다.");
+        }
+        return;
+      }
       if (!evaluationId || !selectedId || !current?.rubric) return;
       const target = current.rubric.criteria.find((c) => c.criterionId === criterionId);
       if (!target?.teacher) return;
@@ -516,13 +610,44 @@ export function useGradingData(evaluationId: string | undefined) {
         setError(apiErrorMessage(e, "근거를 저장하지 못했습니다."));
       }
     },
-    [evaluationId, selectedId, current],
+    [evaluationId, selectedId, current, saveProcess, processError],
   );
 
   // 교사가 고르지 않은 기준은 AI 추천 점수로 확정합니다. AI도 채점하지 못한 기준이 있으면
   // 확정하지 않고 그 기준 번호를 돌려줘 직접 채점하게 합니다.
   const confirmGrading = useCallback(async (): Promise<number[]> => {
     if (!evaluationId || !selectedId) return [];
+    if (current?.process) {
+      // AI가 단계를 정하지 못한(판정 엇갈림·자료 부족·보류) 항목은 교사가 먼저 골라야 확정할 수 있어요.
+      const scores = toRubricScores(current.process);
+      const ids = missingCriteria(scores);
+      if (ids.length) {
+        const names = scores.criteria.filter((c) => ids.includes(c.criterionId)).map((c) => c.name);
+        setError(`직접 채점해야 하는 항목이 있어요. ${names.join(", ")}을(를) 먼저 채점해주세요.`);
+        return ids;
+      }
+      try {
+        const reviewed = await saveProcess(current.process, confirmBody(current.process));
+        if (!reviewed?.review) return [];
+        const confirmed = await confirmProcessReview(
+          evaluationId,
+          selectedId,
+          reviewed.job.id,
+          reviewed.review.revision,
+        );
+        setDetail((now) =>
+          now && now.id === selectedId ? { ...now, process: { ...reviewed, review: confirmed } } : now,
+        );
+        setError("");
+      } catch (e) {
+        if (e instanceof ApiError && e.code === "PROCESS_CONFIRMATION_HELD") {
+          setError("보류된 항목이 있어요. 해당 항목을 직접 채점한 뒤 확정해주세요.");
+        } else {
+          processError(e, "채점을 확정하지 못했습니다.");
+        }
+      }
+      return [];
+    }
     const missing = (current?.rubric?.criteria ?? []).filter((c) => !c.teacher && !c.ai);
     if (missing.length) {
       setError(
@@ -544,7 +669,7 @@ export function useGradingData(evaluationId: string | undefined) {
       );
     }
     return [];
-  }, [evaluationId, selectedId, current]);
+  }, [evaluationId, selectedId, current, saveProcess, processError]);
 
   /** 평가를 종료합니다. 성공하면 true, 실패하면 오류를 화면에 띄우고 false를 돌려줍니다. */
   const finishEvaluation = useCallback(async () => {
@@ -585,14 +710,9 @@ export function useGradingData(evaluationId: string | undefined) {
       try {
         let blob: Blob;
         if (format === "hwp") {
-          try {
-            blob = await getGradingReportHwp(evaluationId, selectedId);
-          } catch (e) {
-            // 아직 만든 리포트가 없으면 만들고 다시 받습니다.
-            if (!(e instanceof ApiError && e.status === 404)) throw e;
-            await createGradingReport(evaluationId, selectedId);
-            blob = await getGradingReportHwp(evaluationId, selectedId);
-          }
+          // HWP는 마지막으로 만든 리포트를 내려주므로, 교사가 점수를 고친 뒤에도 최신 채점이 들어가게 매번 새로 만듭니다.
+          await createGradingReport(evaluationId, selectedId);
+          blob = await getGradingReportHwp(evaluationId, selectedId);
         } else {
           blob = await getGradingReportPdf(evaluationId, selectedId);
         }
@@ -640,8 +760,29 @@ export function useGradingData(evaluationId: string | undefined) {
     setLevel,
     setFeedback,
     confirmGrading,
+    setSentenceSource,
+    setPurpose,
     replaceRubric,
     evaluationId: evaluationId ?? "",
+    // 서버 문장별 출처(교사 확정 > 확인 필요는 직접 작성 > 판정)를 문항 번호와 함께 답안 줄 표시에 넘깁니다.
+    authorSentences: (() => {
+      const positions = new Map(
+        (current?.answers.questions ?? []).map((q) => [q.questionId, q.position]),
+      );
+      return (current?.analysis?.sentences ?? []).flatMap((sentence) => {
+        const question = positions.get(sentence.questionId);
+        if (question === undefined) return [];
+        const source = sentence.teacherSource ?? (sentence.needsReview ? "DIRECT" : sentence.source);
+        return [
+          {
+            question,
+            text: sentence.text,
+            kind: source === "AI" ? ("ai" as const) : ("student" as const),
+            closest: sentence.closestAiSentence,
+          },
+        ];
+      });
+    })(),
     questionTitles: Object.fromEntries(
       (current?.answers.questions ?? []).map((q) => [q.questionId, q.title || `문항 ${q.position}`]),
     ) as Record<string, string>,
