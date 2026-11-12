@@ -50,33 +50,143 @@ export function LandingPage() {
     };
   }, []);
 
-  // 스크롤이 멈췄을 때 섹션 맨 위에서 조금 어긋나 있으면(위 섹션이 헤더 아래로 비쳐 보이면)
-  // 가장 가까운 섹션 맨 위로 맞춥니다. CSS 스냅만으로는 트랙패드 관성 스크롤에서 어긋날 때가 있습니다.
   useEffect(() => {
     const page = pageRef.current;
-    if (!page || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!page) return;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sections = Array.from(
+      page.querySelectorAll<HTMLElement>("main > section, .landing-footer"),
+    );
+    const sectionTops = () => {
+      const maxScroll = Math.max(
+        0,
+        document.documentElement.scrollHeight - window.innerHeight,
+      );
+      return sections.map((section) =>
+        Math.min(
+          maxScroll,
+          section.getBoundingClientRect().top + window.scrollY,
+        ),
+      );
+    };
+
+    let frame: number | null = null;
+    const resetKeyboardScroll = () => {
+      if (frame !== null) window.cancelAnimationFrame(frame);
+      frame = null;
+      delete page.dataset.keyboardScrolling;
+    };
+
+    const moveSection = (direction: -1 | 1) => {
+      const start = window.scrollY;
+      const tops = sectionTops();
+      const target =
+        direction === -1
+          ? tops.reverse().find((top) => top < start - 2)
+          : tops.find((top) => top > start + 2);
+      if (target === undefined) return;
+      if (reducedMotion.matches) {
+        window.scrollTo({ top: target, behavior: "instant" });
+        return;
+      }
+
+      // CSS 스냅이 중간 프레임을 다른 섹션으로 끌어당기지 않게 합니다.
+      page.dataset.keyboardScrolling = "";
+      const duration = 440;
+      let startedAt: number | undefined;
+      const animate = (time: number) => {
+        startedAt ??= time;
+        const progress = Math.min((time - startedAt) / duration, 1);
+        const eased = 1 - (1 - progress) ** 3;
+        window.scrollTo({
+          top: start + (target - start) * eased,
+          behavior: "instant",
+        });
+        if (progress < 1) {
+          frame = window.requestAnimationFrame(animate);
+        } else {
+          resetKeyboardScroll();
+        }
+      };
+      frame = window.requestAnimationFrame(animate);
+    };
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.code !== "Space") {
+        if (
+          [
+            "ArrowUp",
+            "ArrowDown",
+            "PageUp",
+            "PageDown",
+            "Home",
+            "End",
+          ].includes(event.code)
+        ) {
+          resetKeyboardScroll();
+        }
+        return;
+      }
+      if (
+        event.defaultPrevented ||
+        event.altKey ||
+        event.ctrlKey ||
+        event.metaKey ||
+        document.querySelector("dialog[open]") ||
+        (event.target instanceof Element &&
+          event.target.closest(
+            'button, a, input, textarea, select, [contenteditable], [role="button"]',
+          ))
+      ) {
+        return;
+      }
+      event.preventDefault();
+      if (event.repeat || frame !== null) return;
+      moveSection(event.shiftKey ? -1 : 1);
+    };
+
+    // 트랙패드가 섹션 경계 근처에서 멈추면 같은 기준으로 위치를 맞춥니다.
     let timer = 0;
     const settle = () => {
-      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-      // 맨 아래(푸터)에서는 맞추지 않습니다.
-      if (window.scrollY >= maxScroll - 2) return;
-      const tops = Array.from(
-        page.querySelectorAll<HTMLElement>(".landing-hero, .landing-features, .landing-steps, .landing-criteria"),
-      ).map((section) => section.getBoundingClientRect().top + window.scrollY);
-      let nearest = tops[0] ?? 0;
-      for (const top of tops) if (Math.abs(top - window.scrollY) < Math.abs(nearest - window.scrollY)) nearest = top;
-      const gap = Math.abs(nearest - window.scrollY);
-      if (gap > 1 && gap < window.innerHeight * 0.3) window.scrollTo({ top: nearest, behavior: "smooth" });
+      const scrollY = window.scrollY;
+      if (frame !== null || reducedMotion.matches) return;
+      const maxScroll =
+        document.documentElement.scrollHeight - window.innerHeight;
+      if (scrollY >= maxScroll - 2) return;
+      const nearest = sectionTops().reduce(
+        (closest, top) =>
+          Math.abs(top - scrollY) < Math.abs(closest - scrollY) ? top : closest,
+        Infinity,
+      );
+      const gap = Math.abs(nearest - scrollY);
+      if (gap > 2 && gap < window.innerHeight * 0.3) {
+        window.scrollTo({ top: nearest, behavior: "smooth" });
+      }
     };
     const onScroll = () => {
       window.clearTimeout(timer);
       timer = window.setTimeout(settle, 160);
     };
     const supportsScrollEnd = "onscrollend" in window;
+    const interruptEvents = [
+      "wheel",
+      "touchstart",
+      "pointerdown",
+      "resize",
+    ] as const;
+    window.addEventListener("keydown", onKeyDown);
+    for (const name of interruptEvents) {
+      window.addEventListener(name, resetKeyboardScroll, { passive: true });
+    }
     if (supportsScrollEnd) window.addEventListener("scrollend", settle);
     else window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
+      resetKeyboardScroll();
       window.clearTimeout(timer);
+      window.removeEventListener("keydown", onKeyDown);
+      for (const name of interruptEvents) {
+        window.removeEventListener(name, resetKeyboardScroll);
+      }
       window.removeEventListener("scrollend", settle);
       window.removeEventListener("scroll", onScroll);
     };

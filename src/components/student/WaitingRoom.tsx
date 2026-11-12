@@ -1,4 +1,4 @@
-import { Button } from "../ui/Button";
+import { StudentLeaveButton } from "./StudentLeaveButton";
 export function WaitingRoom({
   nickname,
   onLeave,
@@ -10,17 +10,7 @@ export function WaitingRoom({
 }) {
   return (
     <main className="student-join waiting-room">
-      <Button
-        variant="white-danger"
-        size="small"
-        className="waiting-leave"
-        onClick={onLeave}
-        icon={
-          <img className="back-icon" src="/student-assets/back.svg" alt="" />
-        }
-      >
-        나가기
-      </Button>
+      <StudentLeaveButton onLeave={onLeave} />
       <div className="waiting-content" role="status">
         <img
           className="waiting-loader"

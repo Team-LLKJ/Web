@@ -6,6 +6,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { ApiError, apiErrorMessage } from "../api/client";
 import { expelParticipant, extendEvaluation, getEvaluationQr, getParticipants } from "../api/evaluations";
 import type { Participant } from "../api/types";
+import { EvaluationStartedScreen } from "../components/teacher/EvaluationStartedScreen";
 import { TeacherHeader } from "../components/teacher/TeacherHeader";
 import { Toast } from "../components/teacher/Toast";
 import { EvaluationControls } from "../components/ui/EvaluationControls";
@@ -92,6 +93,7 @@ export function TeacherClassLobbyPage() {
   const [extendMinutes, setExtendMinutes] = useState(0);
   const [extending, setExtending] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [startedEvaluationId, setStartedEvaluationId] = useState("");
   const running = session?.state === "IN_PROGRESS";
   // 대기실을 열면(시작 전인데 PIN이 있음) 학생이 미리 들어와 기다릴 수 있습니다.
   const lobbyOpen = Boolean(session?.lobbyOpen);
@@ -191,6 +193,16 @@ export function TeacherClassLobbyPage() {
     };
   }, [live, sessionId]);
 
+  if (startedEvaluationId && startedEvaluationId === sessionId) {
+    return (
+      <EvaluationStartedScreen
+        evaluationId={startedEvaluationId}
+        folderId={folderId}
+        title={folder?.title}
+        className={session?.className}
+      />
+    );
+  }
   if (loading) return <PageLoading layout="lobby" />;
 
   if (!folder || !session) {
@@ -253,8 +265,7 @@ export function TeacherClassLobbyPage() {
       }
       setSession(next);
       setStarting(false);
-      // 시작하면 대기실에 남지 않고 바로 채점 현황 화면으로 이동합니다.
-      navigate(`/teacher/grading/${encodeURIComponent(next.id)}`, { state: { folderId } });
+      setStartedEvaluationId(sessionId);
     } catch (caught) {
       const message = apiErrorMessage(caught, "평가를 시작하지 못했습니다.");
       setError(message);
@@ -310,14 +321,9 @@ export function TeacherClassLobbyPage() {
     <main className="teacher-page">
       <TeacherHeader>
         {running ? (
-          <>
-            <Button
-              variant="secondary"
-              onClick={openGrading}
-            >
-              학생 현황 보기
-            </Button>
-          </>
+          <Button variant="secondary" onClick={openGrading}>
+            학생 현황 보기
+          </Button>
         ) : ended ? (
           <>
             <Link
@@ -330,6 +336,7 @@ export function TeacherClassLobbyPage() {
           </>
         ) : lobbyOpen ? (
           <Button
+            loading={busy}
             onClick={() => {
               setError("");
               requestStart();
@@ -385,6 +392,11 @@ export function TeacherClassLobbyPage() {
             {live ? (
               <>
                 <div>
+                  {running && (
+                    <p className="teacher-join-hint" role="status">
+                      평가가 시작됐어요. 이 화면에서 참여자를 확인할 수 있어요.
+                    </p>
+                  )}
                   <p className="teacher-join-label">참여 PIN</p>
                   <p className="teacher-lobby-pin">{session.pin ?? "------"}</p>
                   <p className="teacher-join-hint">
