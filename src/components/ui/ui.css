@@ -1400,3 +1400,8 @@
   font-size: calc(var(--font-text-lg) * var(--ui-scale, 0.75) * 0.75);
   line-height: calc(var(--line-text-lg) * var(--ui-scale, 0.75) * 0.75);
 }
+
+/* 창을 열 때 포커스가 창 자체에 가므로 따로 테두리를 그리지 않습니다. */
+.modal:focus {
+  outline: none;
+}
