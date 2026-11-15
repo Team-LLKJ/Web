@@ -47,3 +47,10 @@
     min-height: 44px;
   }
 }
+
+/* 로딩 화면의 입력칸도 실제 입력칸(44px 입력 + 안쪽 여백)과 같은 높이로 */
+@media (min-width: 601px) and (max-width: 1100px) {
+  :root:root:root .assessment-edit-skeleton .text-input--box {
+    min-height: 66px;
+  }
+}

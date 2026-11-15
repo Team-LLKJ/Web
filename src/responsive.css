@@ -1526,3 +1526,82 @@
     min-height: 40px;
   }
 }
+
+/* 대기실: 시작 버튼이 비활성인 이유를 터치 화면에서도 보이게 합니다(마우스를 올려야만 보이던 안내). */
+.teacher-start-hint {
+  margin: 10px 0 0;
+  color: var(--color-grey-50);
+  font-size: var(--font-text-sm);
+}
+@media (max-width: 1100px) {
+  :root:root .teacher-start-hint {
+    margin-top: 8px;
+    font-size: 13px;
+    text-align: center;
+  }
+}
+
+/* 서식 바 글자 크기 ± 버튼: 손가락으로 누를 수 있게 키웁니다. */
+@media (max-width: 1100px) {
+  :root:root:root .ribbon-compact .ribbon-font-size button {
+    width: 32px;
+    height: 34px;
+  }
+  :root:root:root .ribbon-compact .ribbon-font-size button .editor-tool-icon {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+/* PIN 입력칸: 좁은 화면에서 칸 사이 간격을 줄여 칸이 얇아 보이지 않게 합니다. */
+@media (max-width: 600px) {
+  :root:root .pin-input {
+    gap: 8px;
+    height: 56px;
+  }
+  :root:root .pin-input input {
+    height: 56px;
+    padding: 0;
+  }
+}
+
+/* ───── 학생 풀이(폰·태블릿): 작성 화면과 AI 대화창을 옆으로 넘겨 봅니다 ───── */
+.student-pane-tabs {
+  display: none;
+}
+@media (max-width: 1100px) {
+  :root:root .student-pane-tabs {
+    display: block;
+    padding: 8px 10px 0;
+  }
+  :root:root .student-solving.compact-workspace > .student-solving-body {
+    display: flex;
+    flex-direction: row;
+    height: calc(100dvh - 61px - 56px);
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+  :root:root .student-solving.compact-workspace > .student-solving-body::-webkit-scrollbar {
+    display: none;
+  }
+  :root:root .student-solving.compact-workspace > .student-solving-body > .student-writing,
+  :root:root .student-solving.compact-workspace > .student-solving-body > .workspace-sidebar {
+    flex: 0 0 100%;
+    width: 100%;
+    min-width: 0;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+  :root:root .student-solving.compact-workspace > .student-solving-body > .student-writing {
+    overflow-y: auto;
+  }
+  :root:root .student-solving.compact-workspace > .student-solving-body > .student-sidebar-divider {
+    display: none;
+  }
+  :root:root .student-solving.compact-workspace .student-chat-expand {
+    display: none;
+  }
+}

@@ -18,15 +18,8 @@ export function RequireAuth({
   const location = useLocation();
   if (loading)
     return <PageLoading layout={getLoadingLayout(location.pathname)} />;
-  // 로그인 후 원래 보던 페이지로 돌아오게 로그인 화면에 주소를 넘깁니다.
-  if (!user)
-    return (
-      <Navigate
-        to={paths.login}
-        replace
-        state={{ from: `${location.pathname}${location.search}`, notice: "로그인이 필요해요." }}
-      />
-    );
+  // 로그인하지 않았으면 로그아웃됐을 때와 같이 처음 화면으로 보냅니다.
+  if (!user) return <Navigate to={paths.home} replace />;
   if (user.role !== role)
     return <Navigate to={homePathFor(user.role)} replace />;
   return (

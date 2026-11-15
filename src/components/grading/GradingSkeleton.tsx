@@ -1,3 +1,4 @@
+import { readStudentsWidth } from "./sidebarWidth";
 import { Skeleton, SkeletonStatus } from "../ui/Skeleton";
 import { Icon } from "../ui/Icon";
 import { TextInput } from "../ui/TextInput";
@@ -7,8 +8,11 @@ import { ChatHistorySkeleton } from "./ChatHistorySkeleton";
 // 실제 채점 화면과 같은 컨테이너·크기를 써서 로딩 → 실제 화면 전환 시 레이아웃이 움직이지 않게 한다.
 export function StudentSidebarSkeleton() {
   return (
-    <aside className="students" aria-label="학생 목록">
-      <SkeletonStatus label="학생 목록을 불러오고 있습니다.">
+    <aside className={`students${readStudentsWidth() === 0 ? " collapsed" : ""}`} aria-label="학생 목록">
+      <span className="sr-only" role="status">
+        학생 목록을 불러오고 있습니다.
+      </span>
+      <>
         <div className="student-filter" aria-hidden="true">
           <TextInput
             variant="search"
@@ -31,11 +35,17 @@ export function StudentSidebarSkeleton() {
                 <Skeleton style={{ width: 25, height: 25, borderRadius: 25 }} />
                 <Skeleton style={{ width: 56, height: 22 }} />
               </span>
-              <Skeleton style={{ width: 55, height: 27, borderRadius: 10 }} />
+              <Skeleton style={{ width: 55, height: 25, borderRadius: 10 }} />
             </div>
           ))}
         </div>
-      </SkeletonStatus>
+      </>
+      {/* 실제 화면의 목록 접기 버튼 자리 */}
+      <span className="students-toggle" aria-hidden="true">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M10 4 6 8l4 4" />
+        </svg>
+      </span>
     </aside>
   );
 }

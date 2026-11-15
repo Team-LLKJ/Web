@@ -4,6 +4,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type UIEvent,
 } from "react";
 import { htmlToPlainText } from "../lib/guidelinesText";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -78,7 +79,10 @@ import {
   type ConnectionState,
 } from "../lib/studentConnection";
 import { Skeleton, SkeletonStatus } from "../components/ui/Skeleton";
+import { Icon } from "../components/ui/Icon";
+import { Button } from "../components/ui/Button";
 import { Tabs } from "../components/ui/Tabs";
+import { useMediaQuery } from "../hooks/useMediaQuery";
 import { addedMinutes, toEndInfo, type EndInfo } from "../lib/remainingTime";
 import "../components/student/student.css";
 
@@ -178,6 +182,26 @@ export function StudentFlow({ route }: { route: string }) {
   const [aiBusy, setAiBusy] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [chatExpanded, setChatExpanded] = useState(false);
+  // 폰·태블릿에서는 작성 화면과 AI 대화창을 옆으로 넘겨 봅니다(위쪽 탭으로도 전환).
+  const phone = useMediaQuery("(max-width: 1100px)");
+  const [pane, setPane] = useState<"answer" | "chat">("answer");
+  const solvingRef = useRef<HTMLDivElement>(null);
+  function showPane(next: "answer" | "chat") {
+    setPane(next);
+    const body = solvingRef.current?.querySelector<HTMLElement>(
+      ".student-solving-body",
+    );
+    body?.scrollTo({
+      left: next === "chat" ? body.clientWidth : 0,
+      behavior: "smooth",
+    });
+  }
+  function followPane(event: UIEvent<HTMLDivElement>) {
+    const body = event.target as HTMLElement;
+    if (!body.classList.contains("student-solving-body")) return;
+    const next = body.scrollLeft > body.clientWidth / 2 ? "chat" : "answer";
+    setPane((current) => (current === next ? current : next));
+  }
   const [connection, setConnection] = useState<ConnectionState>("online");
   const connectionLost = useRef(false);
   const [reloadKey, setReloadKey] = useState(0);
@@ -1195,18 +1219,32 @@ export function StudentFlow({ route }: { route: string }) {
         className="student-solving compact-workspace student-workspace-skeleton"
         label="평가 문항을 불러오고 있습니다."
       >
-        <header
-          className="header student-header student-workspace-skeleton-header"
-          aria-hidden="true"
-        >
-          <Skeleton className="student-workspace-skeleton-logo" />
+        {/* 실제 학생 화면 헤더와 같은 구조·클래스로 그려 로딩이 끝나도 위치가 바뀌지 않게 합니다. */}
+        <header className="header student-header" aria-hidden="true">
+          <span className="lit-logo-link">
+            <img src="/lit-logo.png" width="100" height="50" alt="" />
+          </span>
           <nav>
-            <Skeleton className="student-workspace-skeleton-icon-button" />
-            <Skeleton className="student-workspace-skeleton-icon-button" />
-            <Skeleton className="student-workspace-skeleton-header-button" />
-            <Skeleton className="student-workspace-skeleton-header-button" />
+            <span className="icon-button">
+              <Icon name="settings" />
+            </span>
+            <Button disabled>제출하기</Button>
           </nav>
         </header>
+        {phone && (
+          <div className="student-pane-tabs" aria-hidden="true">
+            <Tabs
+              label="화면 전환"
+              variant="segment"
+              value="answer"
+              items={[
+                { value: "answer", label: "작성" },
+                { value: "chat", label: "AI 대화창" },
+              ]}
+              onChange={() => undefined}
+            />
+          </div>
+        )}
         <div
           className="student-solving-body student-workspace-skeleton-body"
           style={
@@ -1308,8 +1346,10 @@ export function StudentFlow({ route }: { route: string }) {
 
   return (
     <div
+      ref={solvingRef}
       className="student-solving compact-workspace"
       onCopy={(event) => event.preventDefault()}
+      onScrollCapture={followPane}
     >
       <StudentHeader
         submitted={workspace.status === "SUBMITTED"}
@@ -1319,6 +1359,20 @@ export function StudentFlow({ route }: { route: string }) {
         onPolicy={() => setDialog("policy")}
         endInfo={endInfo}
       />
+      {phone && (
+        <div className="student-pane-tabs">
+          <Tabs
+            label="화면 전환"
+            variant="segment"
+            value={pane}
+            items={[
+              { value: "answer" as const, label: "작성" },
+              { value: "chat" as const, label: "AI 대화창" },
+            ]}
+            onChange={showPane}
+          />
+        </div>
+      )}
       <StudentWorkspace
         sidebarExpanded={chatExpanded}
         editor={
