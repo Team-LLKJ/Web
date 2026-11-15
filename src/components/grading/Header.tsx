@@ -2,10 +2,11 @@ import { Link } from "react-router-dom";
 import { HeaderUtilities } from "../ui/HeaderDialogs";
 export function Header({
   ended,
-  previousPath,
+  exitPath,
 }: {
   ended: boolean;
-  previousPath: string;
+  /** 나가기: 이 반이 속한 수행평가 화면 */
+  exitPath: string;
 }) {
   return (
     <header className="header">
@@ -17,13 +18,7 @@ export function Header({
         {ended && (
           <>
             <Link
-              to={previousPath}
-              className="button button--secondary neutral button--small grading-end-nav"
-            >
-              이전
-            </Link>
-            <Link
-              to="/teacher/evaluations"
+              to={exitPath}
               className="button button--secondary neutral button--small grading-end-nav"
             >
               나가기

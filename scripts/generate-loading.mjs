@@ -26,6 +26,7 @@ try {
     "results",
     "grading",
     "neutral",
+    "plain",
   ];
   const templates = layouts
     .map(

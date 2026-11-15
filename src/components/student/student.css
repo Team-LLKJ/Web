@@ -713,12 +713,6 @@
 .student-policy-copy strong {
   color: var(--color-primary-dark);
 }
-.student-policy-copy .student-policy-unavailable {
-  padding: 9px;
-  border-radius: 6px;
-  color: var(--color-danger-dark);
-  background: var(--color-danger-soft);
-}
 .student-print-protection {
   display: none;
 }

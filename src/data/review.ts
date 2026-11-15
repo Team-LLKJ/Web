@@ -1,4 +1,4 @@
-import type { AnalysisSentence, AssessmentAnalysis, PurposeQuestion, RubricScores } from "../api/types";
+import type { AiDisclosure, AnalysisSentence, AssessmentAnalysis, PurposeQuestion, RubricScores } from "../api/types";
 export type UsageMetric = {
   label: string;
   percent: number;
@@ -36,6 +36,10 @@ export type StudentReview = {
   sentences?: AnalysisSentence[];
   /** 질문별 용도 판정. 교사 확인이 필요한 질문을 고르는 데 씁니다. */
   purposeQuestions?: PurposeQuestion[];
+  /** 서버가 자동으로 만든 AI 활용 기록(사용한 도구·활용 부분·이유). */
+  aiDisclosure?: AiDisclosure | null;
+  /** 루브릭 대신 보여줄 안내: 제출 전(WRITING) · AI 채점 중(GRADING) */
+  rubricPending?: "WRITING" | "GRADING" | null;
 };
 const analysis: Assessment[] = [
   {
@@ -95,18 +99,6 @@ const analysis: Assessment[] = [
     evidence: [
       "“배식 동선을 분리하거나 추가 배식 공간을 마련할 필요가 있다.”",
       "“학생의 선택권을 보장하면서 자연스럽게 잔반을 줄일 수 있는 환경을 만드는 것이 중요하다.”",
-    ],
-  },
-  {
-    id: "analysis-5",
-    criterion: "AI 활용 과정의 투명성",
-    score: 20,
-    maxScore: 20,
-    feedback:
-      "학생은 AI에 입력한 주요 질문과 AI로부터 얻은 정보를 구체적으로 설명하였다. 또한 AI의 제안 중 최종 답안에 반영한 내용과 제외한 내용을 구분하고, 각각의 선택 이유를 제시하였다. 이를 통해 AI 활용 과정과 최종 결과물의 관계를 비교적 명확하게 확인할 수 있다. 다만 사용한 AI 도구의 명칭과 전체 대화 기록의 제출 여부는 별도로 확인할 필요가 있다.",
-    evidence: [
-      "“AI는 추가 배식으로 인한 대기 시간 증가와 배식 인력의 부담을 문제점으로 설명하였다.”",
-      "“AI가 제안한 잔반 줄이기 포스터 제작은 최종 해결 방안에서 제외하였다.”",
     ],
   },
 ];

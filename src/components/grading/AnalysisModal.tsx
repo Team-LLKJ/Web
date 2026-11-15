@@ -46,6 +46,17 @@ function classify(input: string[]) {
     credits: reasons.filter((r) => !isDeduction(r)).map((r) => r.text),
   };
 }
+// AI 루브릭 판정에서 교사에게 넘긴 이유별 안내
+const REASON_TEXT: Record<string, string> = {
+  DISAGREEMENT: "AI 판정이 서로 달라 추천 단계를 비워 뒀어요. 루브릭 탭의 참고 판정을 보고 직접 채점해주세요.",
+  INSUFFICIENT_DATA: "AI 대화가 너무 적어 판단하지 않았어요. 직접 채점해주세요.",
+  NO_AI_USE: "학생이 AI를 사용하지 않아 AI가 판단하지 않았어요. 답안을 보고 스스로 생각한 정도를 직접 채점해주세요.",
+  PROMPT_INJECTION: "학생 글에 채점 지시로 보이는 문장이 있어 AI가 판단하지 않았어요. 답안을 확인하고 직접 채점해주세요.",
+  NO_VALID_VOTES: "AI가 든 근거를 학생 기록에서 확인하지 못해 판단을 보류했어요. 참고 판정을 보고 직접 채점해주세요.",
+  GEMINI_CALL_FAILED: "AI 채점 연결이 실패해 이 기준은 판단하지 못했어요. 직접 채점해주세요.",
+  SAVE_ERROR: "AI 활용 설명을 저장하는 중 오류가 있어 판단을 보류했어요. 대화 기록을 확인하고 직접 채점해주세요.",
+};
+
 /** AI가 추천하지 않은 기준: 직접 채점에 참고할 자료를 함께 보여줍니다. */
 function ManualNote({ review, criterion }: { review: StudentReview; criterion: string | null }) {
   if (criterion === "CONTRIBUTION") {
@@ -101,6 +112,9 @@ function withCues(text: string, cues: string[]) {
   );
 }
 
+// 가점·감점은 화면에서 잘한 점·아쉬운 점으로 보여줍니다.
+const KIND_LABEL: Record<"가점" | "감점", string> = { 가점: "잘한 점", 감점: "아쉬운 점" };
+
 // 말풍선 미리보기에서 마크다운 기호를 걷어냅니다.
 const plain = (text: string) => text.replace(/```\w*\n?/g, "").replace(/\*\*/g, "");
 export function AnalysisModal({
@@ -138,7 +152,7 @@ export function AnalysisModal({
               return (
                 <div className="question-effects">
                   <span className="evidence-caption">
-                    {kind === "가점" ? "가점의 근거가 된 질문" : "감점의 원인이 된 질문"}
+                    {kind === "가점" ? "잘한 점의 근거가 된 질문" : "아쉬운 점의 근거가 된 질문"}
                   </span>
                   {list.map((effect) => (
                     <button
@@ -214,7 +228,7 @@ export function AnalysisModal({
                           <span className="question-effect-result">
                             {used.length
                               ? `이 대화의 AI 답변이 답안 문장 ${used.length}개에 쓰였어요. 예: “${used[0]}”${
-                                  hasUsedPartsDeduction ? " 학생이 이 활용 부분을 따로 밝히지 않아 감점과 연결돼요." : ""
+                                  hasUsedPartsDeduction ? " 학생이 이 활용 부분을 따로 밝히지 않아 아쉬운 점과 연결돼요." : ""
                                 }`
                               : "이 대화의 AI 답변은 답안에 그대로 쓰이지 않았어요."}
                           </span>
@@ -251,7 +265,12 @@ export function AnalysisModal({
             <section className="analysis-card" key={item.criterionId}>
               <h3 className="analysis-card-head">
                 <span>
-                  {item.name} ({item.teacher ? fmt(item.teacher.score) : "미채점"}/
+                  {item.name} (
+                  {(() => {
+                    // 채점 화면과 같은 점수를 보여줍니다(AI 판정 채점은 현재 점수, 그 외에는 교사 점수).
+                    const shown = rubric.process ? (item.currentScore ?? null) : (item.teacher?.score ?? null);
+                    return shown === null ? "미채점" : fmt(shown);
+                  })()}/
                   {fmt(item.maxScore)}점)
                 </span>
                 {item.ai && (
@@ -269,7 +288,7 @@ export function AnalysisModal({
                       if (!list.length) return null;
                       return (
                         <div className="analysis-group" key={kind}>
-                          <span className={`analysis-tag ${kind === "감점" ? "is-deduction" : "is-credit"}`}>{kind}</span>
+                          <span className={`analysis-tag ${kind === "감점" ? "is-deduction" : "is-credit"}`}>{KIND_LABEL[kind]}</span>
                           <ul className="analysis-reason-list">
                             {list.map((reason, index) => (
                               <li key={index}>
@@ -315,7 +334,7 @@ export function AnalysisModal({
                         .map((group) => (
                           <div className="analysis-group" key={group.kind}>
                             <span className={`analysis-tag ${group.kind === "감점" ? "is-deduction" : "is-credit"}`}>
-                              {group.kind}
+                              {KIND_LABEL[group.kind]}
                             </span>
                             <ul className="analysis-reason-list">
                               {group.list.map((reason) => (
@@ -330,7 +349,11 @@ export function AnalysisModal({
                         ));
                     })()
                   ) : (
-                    <ManualNote review={review} criterion={criterionKey(item.indicator) ?? criterionKey(item.name)} />
+                    item.reviewReason && REASON_TEXT[item.reviewReason] ? (
+                      <p>{REASON_TEXT[item.reviewReason]}</p>
+                    ) : (
+                      <ManualNote review={review} criterion={criterionKey(item.indicator) ?? criterionKey(item.name)} />
+                    )
                   )}
                   {!effects.length && !isTransparency && evidenceList("판단에 참고한 대화")}
                   {item.teacher?.feedback && <p>교사 의견: {item.teacher.feedback}</p>}

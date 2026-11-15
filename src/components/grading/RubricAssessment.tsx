@@ -12,28 +12,76 @@ const levels = ["매우 못함", "못함", "보통", "잘함", "매우 잘함"];
 const voteLabel = (value: number | "NA" | "HOLD" | null) =>
   typeof value === "number" ? (levels[value] ?? "-") : value === "NA" ? "해당 없음" : value === "HOLD" ? "보류" : "무효";
 
+const HAIKU_ERROR: Record<string, string> = {
+  NOT_CONFIGURED: "Haiku 확인이 설정되지 않음",
+  NO_VERIFIED_EVIDENCE: "확인된 근거가 없어 Haiku 확인 안 함",
+};
+
+/** 회차별 판정: 무효 회차는 원래 낸 단계도 함께 보여줍니다(인용을 원문에서 찾지 못해 버린 답). */
+function votesText(item: RubricScoreCriterion) {
+  return (item.votes ?? [])
+    .map((vote, index) => {
+      const raw = item.rawVotes?.[index];
+      return vote === null && raw !== null && raw !== undefined ? `무효(원래 ${voteLabel(raw)})` : voteLabel(vote);
+    })
+    .join(" · ");
+}
+
 /** AI 루브릭 판정 항목의 안내: 해당 없음, 직접 입력 필요(이유별), 보류, AI 추천 근거 */
 function ProcessNote({ item }: { item: RubricScoreCriterion }) {
   if (item.status === "NOT_APPLICABLE") {
     return <p className="rubric-ai-note is-empty">AI를 사용하지 않아 해당 없는 항목이에요. 배점은 다른 항목에 나눠졌어요.</p>;
   }
+  if (!item.teacher && item.reviewReason === "NO_AI_USE") {
+    return (
+      <p className="rubric-ai-note is-empty">
+        학생이 AI를 사용하지 않아 AI가 판단하지 않았어요. 답안을 보고 스스로 생각한 정도를 직접 채점해주세요.
+      </p>
+    );
+  }
+  if (!item.teacher && item.reviewReason === "PROMPT_INJECTION") {
+    return (
+      <p className="rubric-ai-note is-empty">
+        학생 글에 채점 지시로 보이는 문장이 있어 AI가 판단하지 않았어요. 답안을 확인하고 직접 채점해주세요.
+        {item.injectionText && <span className="rubric-ai-quote">“{item.injectionText}”</span>}
+      </p>
+    );
+  }
+  if (!item.teacher && item.reviewReason === "SAVE_ERROR") {
+    return (
+      <p className="rubric-ai-note is-empty">
+        AI 활용 설명을 저장하는 중 오류가 있어 판단을 보류했어요. 대화 기록을 확인하고 직접 채점해주세요.
+      </p>
+    );
+  }
   if (item.needsReview) {
-    const votes = (item.votes ?? []).map(voteLabel);
+    const votes = votesText(item);
     return (
       <>
         <p className="rubric-ai-note is-empty">
           {item.reviewReason === "INSUFFICIENT_DATA"
             ? "판단할 내용이 적어 직접 입력이 필요해요."
-            : "AI 판정이 엇갈려 직접 입력이 필요해요."}
+            : item.reviewReason === "NO_VALID_VOTES"
+              ? "AI가 든 근거를 학생 기록에서 확인하지 못해 직접 입력이 필요해요."
+              : item.reviewReason === "GEMINI_CALL_FAILED"
+                ? "AI 채점 연결이 실패해 판단하지 못했어요. 직접 채점해주세요."
+                : "AI 판정이 엇갈려 직접 입력이 필요해요."}
         </p>
-        {item.reviewReason !== "INSUFFICIENT_DATA" && votes.length > 0 && (
+        {item.reviewReason !== "INSUFFICIENT_DATA" && item.reviewReason !== "GEMINI_CALL_FAILED" && votes && (
           <p className="rubric-ai-note">
-            참고: Gemini {votes.join(" · ")}
-            {item.haikuLevel !== null && item.haikuLevel !== undefined && ` / Haiku ${voteLabel(item.haikuLevel)}`}
+            참고: Gemini {votes}
+            {item.haikuLevel !== null && item.haikuLevel !== undefined
+              ? ` / Haiku ${voteLabel(item.haikuLevel)}`
+              : item.haikuError
+                ? ` / ${HAIKU_ERROR[item.haikuError] ?? "Haiku 확인 실패"}`
+                : ""}
           </p>
         )}
       </>
     );
+  }
+  if (item.status === "HOLD" && !item.teacher && item.reviewReason === "GEMINI_CALL_FAILED") {
+    return <p className="rubric-ai-note is-empty">AI 채점 연결이 실패해 판단하지 못했어요. 직접 채점해주세요.</p>;
   }
   if (item.status === "HOLD" && !item.teacher) {
     return <p className="rubric-ai-note is-empty">AI가 판단을 보류한 항목이에요. 직접 채점해주세요.</p>;
@@ -42,12 +90,21 @@ function ProcessNote({ item }: { item: RubricScoreCriterion }) {
     return (
       <p className="rubric-ai-note">
         <strong>AI 추천 {levels[item.ai.level]}</strong>
-        {item.unmetNextLevel ? ` · 위 단계가 아닌 이유: ${item.unmetNextLevel}` : ""}
+        {item.ai.level < 4 && item.unmetNextLevel && !/^(없음|해당 없음|-)\.?$/.test(item.unmetNextLevel.trim())
+          ? ` · 위 단계가 아닌 이유: ${item.unmetNextLevel}`
+          : ""}
+        {item.reviewReason === "HAIKU_DECIDED" && (
+          <span className="rubric-ai-quote">
+            판정이 엇갈려 Haiku 기준으로 정했어요 (참고: Gemini {votesText(item)}
+            {item.haikuLevel !== null && item.haikuLevel !== undefined ? ` / Haiku ${voteLabel(item.haikuLevel)}` : ""})
+          </span>
+        )}
       </p>
     );
   }
   return null;
 }
+
 export function RubricAssessment({
   review,
   onScore,
@@ -69,8 +126,30 @@ export function RubricAssessment({
   // 근거 입력 중인 글(저장 전). 칸에서 벗어날 때 서버에 저장합니다.
   const [drafts, setDrafts] = useState<Record<number, string>>({});
   const rubric = review.rubric;
+  if (review.rubricPending) {
+    const grading = review.rubricPending === "GRADING";
+    return (
+      <div className="review-cards">
+        <section className="review-card rubric-card">
+          <div className="criteria-list">
+            <div className="rubric-head">
+              <h3>평가 기준별 루브릭</h3>
+              <span className="rubric-status">{grading ? "AI 채점 중" : "제출 전"}</span>
+            </div>
+            <p className="rubric-ai-note is-empty">
+              {grading
+                ? "AI가 기준별로 채점하고 있어요. 보통 1~2분 안에 끝나고, 끝나면 이 화면에 바로 나와요."
+                : "학생이 답안을 제출하면 AI가 기준별로 채점해 이곳에 보여줘요."}
+            </p>
+          </div>
+        </section>
+      </div>
+    );
+  }
   if (rubric && onLevel) {
     const confirmed = rubric.status === "CONFIRMED";
+    // 확정 전이라도 AI 채점은 끝났고 교사 판단만 남은 항목이 있으면 "확인 필요"로 보여줍니다.
+    const waiting = rubric.criteria.some((c) => !c.teacher && (c.needsReview || c.status === "HOLD"));
     const fmt = (value: number) => (Number.isInteger(value) ? String(value) : value.toFixed(1));
     return (
       <div className="review-cards">
@@ -84,8 +163,8 @@ export function RubricAssessment({
           <div className="criteria-list">
             <div className="rubric-head">
               <h3>평가 기준별 루브릭</h3>
-              <span className={`rubric-status${confirmed ? " is-confirmed" : ""}`}>
-                {confirmed ? "채점 확정됨" : "채점 중"}
+              <span className={`rubric-status${confirmed ? " is-confirmed" : waiting ? " is-warning" : ""}`}>
+                {confirmed ? "채점 확정됨" : waiting ? "확인 필요" : "채점 중"}
               </span>
             </div>
             {rubric.criteria.length ? (

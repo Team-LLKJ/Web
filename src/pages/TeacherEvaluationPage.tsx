@@ -309,6 +309,31 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
       setQuestions((current) => moveQuestion(current, key, toIndex)),
   };
 
+  // 수정 화면에서 저장하지 않은 변경이 있으면 닫거나 취소할 때 한 번 더 물어봅니다.
+  const editSnapshot = JSON.stringify([
+    title,
+    evaluationGuidelines,
+    aiPolicy,
+    criteria,
+    antiCheat,
+    expiresHours,
+    expiresMinutes,
+    questions.map((question) => [question.content, question.minChars, question.maxChars]),
+  ]);
+  const [editBaseline, setEditBaseline] = useState<string | null>(null);
+  if (editFolderId && !loading && editBaseline === null) setEditBaseline(editSnapshot);
+  const editDirty =
+    Boolean(editFolderId) && editBaseline !== null && editBaseline !== editSnapshot;
+  useEffect(() => {
+    if (!editDirty) return;
+    const warn = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [editDirty]);
+
   function validateExpiry() {
     if (
       !Number.isInteger(expiresInMinutes) ||
@@ -317,7 +342,6 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
       Number(expiresMinutes) > 59
     ) {
       setExpiresError("1분 ~ 24시간 사이로 입력해주세요. (분은 0~59)");
-      setNotice("1분 ~ 24시간 사이로 입력해주세요. (분은 0~59)");
       return false;
     }
     setExpiresError("");
@@ -329,15 +353,14 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
     window.scrollTo({ top: 0, behavior: "smooth" });
     if (!title.trim() || title.trim().length > 100) {
       setTitleError("제목을 입력해주세요. (100자 이내)");
-      setNotice("제목을 입력해주세요. (100자 이내)");
+      setCreateStep("details");
       return;
     }
     setTitleError("");
     setGuidelinesError("");
-    if (!folderMode && !validateExpiry()) return;
+    if (!validateExpiry()) return;
     if (!htmlToPlainText(evaluationGuidelines).trim()) {
       setGuidelinesError("평가 내용을 입력해주세요.");
-      setNotice("평가 내용을 입력해주세요.");
       return;
     }
     setCreateStep("settings");
@@ -358,7 +381,7 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
     setNotice("");
     if (!title.trim() || title.trim().length > 100) {
       setTitleError("제목을 입력해주세요. (100자 이내)");
-      setNotice("제목을 입력해주세요. (100자 이내)");
+      setCreateStep("details");
       return;
     }
     setTitleError("");
@@ -373,7 +396,6 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
     }
     if (!htmlToPlainText(evaluationGuidelines).trim()) {
       setGuidelinesError("평가 내용을 입력해주세요.");
-      setNotice("평가 내용을 입력해주세요.");
       setCreateStep("details");
       return;
     }
@@ -487,11 +509,6 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
         expiresInMinutes,
         ...(guidelines ? { guidelines } : {}),
       });
-      // 부정행위 설정·평가 항목은 아직 API 필드가 없어 평가 기준 메모처럼 이 기기에만 저장합니다.
-      localStorage.setItem(
-        `lit:evaluation-settings:${created.id}`,
-        JSON.stringify({ antiCheat, criteria }),
-      );
       const config = { aiPolicy, questions: questions.map(toQuestionInput) };
       try {
         await configureEvaluation(created.id, config);
@@ -543,7 +560,6 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
     return (
       <EvaluationStartedScreen
         evaluationId={startedEvaluationId}
-        title={evaluation?.title}
       />
     );
   }
@@ -713,6 +729,7 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
                           onChange={(h, m) => {
                             setExpiresHours(String(h));
                             setExpiresMinutes(String(m));
+                            setExpiresError("");
                           }}
                         />
                       </div>
@@ -908,9 +925,10 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
                     variant="secondary"
                     type="button"
                     disabled={busy}
-                    onClick={() =>
-                      navigate(`/teacher/folders/${encodeURIComponent(editFolderId)}`)
-                    }
+                    onClick={() => {
+                      if (editDirty && !window.confirm("저장하지 않은 변경 내용이 사라져요. 나갈까요?")) return;
+                      navigate(`/teacher/folders/${encodeURIComponent(editFolderId)}`);
+                    }}
                   >
                     취소
                   </Button>
@@ -992,7 +1010,7 @@ export function TeacherEvaluationPage({ folderMode = false }: { folderMode?: boo
         ) : (
           <section className="teacher-card">
             <p>평가 정보를 불러오지 못했습니다.</p>
-            <Link to="/teacher/evaluations/new">새 평가 만들기</Link>
+            <Link to="/teacher/folders/new">새 수행평가 만들기</Link>
           </section>
         )}
       </div>

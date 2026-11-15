@@ -1,5 +1,5 @@
 import { EmptyState } from "../ui/EmptyState";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "../student/student.css";
 import type { StudentReview } from "../../data/review";
 import { ActivityAnalysis } from "./ActivityAnalysis";
@@ -80,20 +80,30 @@ export function ReviewPanel({
     return () => cancelAnimationFrame(frame);
   }, [target, targetConversation, tab, messages]);
   // 'AI의 답변을 사용함'을 켠 채 대화창을 보면, 답안이 가져간 AI 문장에도 같은 배경을 칠합니다.
+  // 대화창을 직접 움직이지 않고, 칠한 말풍선으로 가는 이동 버튼만 둡니다.
   const sourceKey = aiAnswerSentences.map((s) => `${s.text}\u0002${s.closest ?? ""}`).join("\u0001");
+  const sourceBubbles = useRef<HTMLElement[]>([]);
+  const [sourceCount, setSourceCount] = useState(0);
+  const [sourceIndex, setSourceIndex] = useState(-1);
   useEffect(() => {
-    if (authorMark !== "ai" || tab !== "AI 대화창" || !sourceKey) return clearAiSourceMark();
-    const apply = (scroll: boolean) => {
+    if (authorMark !== "ai" || tab !== "AI 대화창" || !sourceKey) {
+      sourceBubbles.current = [];
+      return clearAiSourceMark();
+    }
+    const apply = () => {
       const bubbles = [...document.querySelectorAll<HTMLElement>(".teacher-chat .message.ai")];
       const sentences = sourceKey.split("\u0001").map((item) => {
         const [text, closest] = item.split("\u0002");
         return { text, closest: closest || null };
       });
-      const first = markAiSources(bubbles, sentences);
-      if (scroll) first?.scrollIntoView({ block: "center", behavior: "smooth" });
+      const marked = markAiSources(bubbles, sentences);
+      // 칠한 말풍선이 바뀌면 이동 순서를 처음부터 다시 셉니다.
+      if (marked.length !== sourceBubbles.current.length) setSourceIndex(-1);
+      sourceBubbles.current = marked;
+      setSourceCount(marked.length);
     };
     // 마크다운 말풍선은 늦게 그려지므로 잠시 뒤 다시 칠합니다.
-    const timers = [window.setTimeout(() => apply(false), 0), window.setTimeout(() => apply(true), 400)];
+    const timers = [window.setTimeout(apply, 0), window.setTimeout(apply, 400)];
     return () => {
       timers.forEach((timer) => window.clearTimeout(timer));
       clearAiSourceMark();
@@ -133,6 +143,28 @@ export function ReviewPanel({
               ))
             ) : (
               <EmptyState size="inline" icon="chat" title="기록된 AI 대화가 없어요" />
+            )}
+            {authorMark === "ai" && sourceKey && sourceCount > 0 && (
+              <div className="ai-source-jump">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const next = (sourceIndex + 1) % sourceBubbles.current.length;
+                    sourceBubbles.current[next]?.scrollIntoView({ block: "center", behavior: "smooth" });
+                    setSourceIndex(next);
+                  }}
+                  aria-label={`답안에 쓰인 AI 답변 보기${sourceCount > 1 ? ` ${sourceIndex < 0 ? 1 : ((sourceIndex + 1) % sourceCount) + 1}/${sourceCount}` : ""}`}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="m9 11-6 6v3h9l3-3" />
+                    <path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4" />
+                  </svg>
+                  <span className="ai-source-jump-label" aria-hidden="true">
+                    답안에 쓰인 AI 답변 보기
+                    {sourceCount > 1 && ` ${sourceIndex < 0 ? 1 : ((sourceIndex + 1) % sourceCount) + 1}/${sourceCount}`}
+                  </span>
+                </button>
+              </div>
             )}
           </div>
         ) : lockedNotice && tab === "활동" ? (

@@ -67,36 +67,45 @@ export function getParticipantToken(evaluationId?: string) {
   return saved.participantToken;
 }
 
-// 제출 완료 화면에서 본인 리포트를 받을 때만 쓰는 정보. 탭을 닫으면 사라집니다.
-const REPORT_KEY = "lit:student:report";
-export type ReportCredentials = { evaluationId: string; participantToken: string; title: string; nickname: string };
+// 제출 완료 화면에 보여줄 이름과 평가 제목. 제출 뒤에는 토큰을 남기지 않습니다(학생은 제출 후 평가와 기록을 볼 수 없음).
+const SUBMITTED_KEY = "lit:student:submitted";
+export type SubmittedInfo = {
+  title: string;
+  nickname: string;
+  /** 학생이 직접 제출하지 않고 평가가 끝나서(교사 종료·시간 종료) 나온 경우 */
+  ended?: boolean;
+  /** 평가가 끝났을 때 답안 제출까지 확인됐는지 */
+  submitted?: boolean;
+};
 
-export function saveReportCredentials(value: ReportCredentials) {
+export function saveSubmittedInfo(value: SubmittedInfo) {
   try {
-    sessionStorage.setItem(REPORT_KEY, JSON.stringify(value));
+    sessionStorage.setItem(SUBMITTED_KEY, JSON.stringify(value));
   } catch {
-    // The report download is optional.
+    // 완료 화면 안내용이라 저장에 실패해도 괜찮습니다.
   }
 }
 
-export function readReportCredentials(): ReportCredentials | null {
+export function readSubmittedInfo(): SubmittedInfo | null {
   try {
-    const value = JSON.parse(sessionStorage.getItem(REPORT_KEY) || "null");
-    if (!value || typeof value.evaluationId !== "string" || typeof value.participantToken !== "string") return null;
+    const value = JSON.parse(sessionStorage.getItem(SUBMITTED_KEY) || "null");
+    if (!value || typeof value !== "object") return null;
     return {
-      evaluationId: value.evaluationId,
-      participantToken: value.participantToken,
       title: typeof value.title === "string" ? value.title : "",
       nickname: typeof value.nickname === "string" ? value.nickname : "",
+      ended: value.ended === true,
+      submitted: value.submitted !== false,
     };
   } catch {
     return null;
   }
 }
 
-export function clearReportCredentials() {
+export function clearSubmittedInfo() {
   try {
-    sessionStorage.removeItem(REPORT_KEY);
+    sessionStorage.removeItem(SUBMITTED_KEY);
+    // 예전 버전이 남긴 리포트용 토큰도 지웁니다.
+    sessionStorage.removeItem("lit:student:report");
   } catch {
     // Ignore disabled browser storage.
   }

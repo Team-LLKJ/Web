@@ -1,0 +1,49 @@
+/* ───── 태블릿(601~1100px) ─────
+   화면 구성은 모바일과 같은 앱 형식(responsive.css의 1100px 이하 규칙)을 그대로 쓰고,
+   여기서는 태블릿에서 더 편하게 만드는 터치 설정만 더합니다. */
+@media (min-width: 601px) and (max-width: 1100px) {
+  :root:root body {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+  :root:root button,
+  :root:root a,
+  :root:root [role="tab"] {
+    touch-action: manipulation;
+  }
+  :root:root button:not(.selectable),
+  :root:root .header,
+  :root:root .segment-tabs-wrap {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* 누르는 곳은 모두 44px 이상 */
+  :root:root .header .button,
+  :root:root .teacher-page-content .button,
+  :root:root .student-join .button,
+  :root:root .auth-form .button,
+  :root:root .more-menu-trigger,
+  :root:root .folder-back,
+  :root:root .auth-forgot-link,
+  :root:root .auth-footer a {
+    min-height: 44px;
+  }
+  :root:root .more-menu-trigger {
+    min-width: 44px;
+  }
+  :root:root .text-input input,
+  :root:root .text-input textarea,
+  :root:root select {
+    min-height: 44px;
+  }
+  :root:root .auth-form .auth-input-action {
+    flex-basis: 44px;
+    width: 44px;
+    height: 44px;
+    margin: -10px -10px -10px 0;
+  }
+  :root:root .auth-form .auth-inline-action {
+    min-height: 44px;
+  }
+}

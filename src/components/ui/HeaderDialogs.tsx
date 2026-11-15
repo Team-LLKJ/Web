@@ -151,7 +151,10 @@ function HeaderPopover({
   useEffect(() => {
     if (!open) return;
     const onPointer = (event: MouseEvent) => {
-      if (!ref.current?.contains(event.target as Node)) setOpen(false);
+      const target = event.target as Element;
+      // 팝업에서 띄운 확인 창(로그아웃 등)을 누를 때는 팝업을 닫지 않습니다.
+      if (target.closest?.("dialog")) return;
+      if (!ref.current?.contains(target)) setOpen(false);
     };
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") setOpen(false);
@@ -382,10 +385,17 @@ function SettingsPopover() {
 }
 
 /** 헤더 오른쪽의 알림·설정 버튼. 모달 대신 아이콘 아래 팝업으로 열립니다. */
-export function HeaderUtilities({ onSettings }: { onSettings?: () => void }) {
+export function HeaderUtilities({
+  onSettings,
+  notifications = true,
+}: {
+  onSettings?: () => void;
+  /** 학생 화면처럼 선생님 알림을 보여주면 안 되는 곳에서는 끕니다. */
+  notifications?: boolean;
+}) {
   return (
     <>
-      <NotificationsPopover />
+      {notifications && <NotificationsPopover />}
       {onSettings ? (
         <IconButton label="설정" onClick={onSettings}>
           <Icon name="settings" />

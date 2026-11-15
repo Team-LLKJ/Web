@@ -25,6 +25,12 @@ export function Modal({
   useEffect(() => {
     const dialog = ref.current;
     dialog?.showModal();
+    // 브라우저는 처음 나오는 닫기(X) 버튼에 포커스를 줘서, 바로 입력하거나 Enter를 누르면 창이 닫힙니다.
+    // 입력칸이 있으면 그 칸에 포커스를 둡니다.
+    const field = dialog?.querySelector<HTMLElement>(
+      '[autofocus], input:not([type="hidden"]):not([disabled]), textarea:not([disabled]), [contenteditable="true"]',
+    );
+    field?.focus();
     return () => dialog?.close();
   }, []);
   return (

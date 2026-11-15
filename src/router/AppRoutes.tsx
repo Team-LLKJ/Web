@@ -1,7 +1,7 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useLayoutEffect } from "react";
 import { LandingPage } from "../pages/LandingPage";
 import { LoginPage } from "../pages/LoginPage";
-import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation, useNavigationType } from "react-router-dom";
 import { NotFoundPage } from "../pages/NotFoundPage";
 import { paths } from "./paths";
 import { PageLoading } from "../components/ui/PageLoading";
@@ -10,8 +10,6 @@ import { RequireAuth } from "./RequireAuth";
 
 // 화면별로 코드를 나눠, 처음 열 때 필요한 화면만 받습니다.
 const TeacherEvaluationPage = lazy(() => import("../pages/TeacherEvaluationPage").then((m) => ({ default: m.TeacherEvaluationPage })));
-const TeacherEvaluationEditPage = lazy(() => import("../pages/TeacherEvaluationEditPage").then((m) => ({ default: m.TeacherEvaluationEditPage })));
-const TeacherResultsPage = lazy(() => import("../pages/TeacherResultsPage").then((m) => ({ default: m.TeacherResultsPage })));
 const TeacherFoldersPage = lazy(() => import("../pages/TeacherFoldersPage").then((m) => ({ default: m.TeacherFoldersPage })));
 const TeacherClassLobbyPage = lazy(() => import("../pages/TeacherClassLobbyPage").then((m) => ({ default: m.TeacherClassLobbyPage })));
 const TeacherFolderDetailPage = lazy(() => import("../pages/TeacherFolderDetailPage").then((m) => ({ default: m.TeacherFolderDetailPage })));
@@ -29,13 +27,24 @@ const TermsPage = lazy(() => import("../pages/InfoPages").then((m) => ({ default
 function RouteFallback() {
   const { pathname } = useLocation();
   const layout = getLoadingLayout(pathname);
-  // 선생님 화면은 해당 화면의 스켈레톤을, 그 밖의 화면은 빈 화면을 잠깐 보여줍니다.
-  return pathname.startsWith("/teacher") ? <PageLoading layout={layout} /> : null;
+  // 선생님 화면은 해당 화면의 스켈레톤을, 그 밖의 화면은 로고와 카드 모양을 보여줘 빈 화면이 되지 않게 합니다.
+  return <PageLoading layout={layout} />;
+}
+
+// 새 페이지로 이동하면 맨 위에서 보여줍니다(뒤로 가기는 브라우저가 이전 위치를 되살리게 둡니다).
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  const navigationType = useNavigationType();
+  useLayoutEffect(() => {
+    if (navigationType !== "POP") window.scrollTo(0, 0);
+  }, [pathname, navigationType]);
+  return null;
 }
 
 export function AppRoutes() {
   return (
     <Suspense fallback={<RouteFallback />}>
+    <ScrollToTop />
     <Routes>
       <Route path={paths.home} element={<LandingPage />} />
       <Route path={paths.login} element={<LoginPage />} />
@@ -65,11 +74,7 @@ export function AppRoutes() {
       <Route path={paths.folders} element={<RequireAuth role="TEACHER"><TeacherFoldersPage /></RequireAuth>} />
       <Route path={paths.folder} element={<RequireAuth role="TEACHER"><TeacherFolderDetailPage /></RequireAuth>} />
       <Route path={paths.evaluations} element={<Navigate to={paths.folders} replace />} />
-      <Route path={paths.evaluationCreate} element={<RequireAuth role="TEACHER"><TeacherEvaluationPage /></RequireAuth>} />
-      <Route path={paths.results} element={<RequireAuth role="TEACHER"><TeacherResultsPage /></RequireAuth>} />
-      <Route path={paths.evaluationEdit} element={<RequireAuth role="TEACHER"><TeacherEvaluationEditPage /></RequireAuth>} />
-      <Route path={paths.evaluation} element={<RequireAuth role="TEACHER"><TeacherEvaluationPage /></RequireAuth>} />
-      <Route path={paths.grading} element={<TeacherGradingPage />} />
+      <Route path={paths.grading} element={<RequireAuth role="TEACHER"><TeacherGradingPage /></RequireAuth>} />
       <Route
         path={`${paths.grading}/:evaluationId`}
         element={

@@ -14,6 +14,9 @@ export function AuthLayout({
   return (
     <main className="auth-scene">
       <div className="auth-stack">
+        <Link to="/" className="auth-mobile-logo" aria-label="LIT 처음 화면으로 이동">
+          <img src="/lit-logo.png" width="80" height="40" alt="LIT" />
+        </Link>
         <div className="auth-card">
           <AuthBrandPanel mode={mode} />
           {children}

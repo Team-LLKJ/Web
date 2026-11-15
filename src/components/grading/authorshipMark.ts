@@ -133,20 +133,24 @@ export function clearAiSourceMark() {
 /**
  * 대화창의 AI 말풍선에서, 답안이 가져간 것으로 보이는 문장에 배경을 칠합니다.
  * closest(서버가 고른 가장 가까운 AI 문장)가 있으면 그 문장을, 없으면 답안 문장과 가장 많이 겹치는 AI 문장을 찾습니다.
- * 칠한 첫 말풍선을 돌려줍니다.
+ * 칠한 말풍선들을 화면 순서대로 돌려줍니다.
  */
 export function markAiSources(
   bubbles: HTMLElement[],
   sentences: { text: string; closest?: string | null }[],
-): HTMLElement | null {
+): HTMLElement[] {
   const reg = registry();
   const Ctor = (window as unknown as { Highlight?: new (...ranges: Range[]) => unknown }).Highlight;
   clearAiSourceMark();
-  if (!reg || !Ctor || !sentences.length) return null;
+  if (!reg || !Ctor || !sentences.length) return [];
   type Piece = { bubble: HTMLElement; text: string; range: () => Range | null };
   const pieces: Piece[] = [];
   for (const bubble of bubbles) {
-    const walker = document.createTreeWalker(bubble, NodeFilter.SHOW_TEXT);
+    // 말풍선 위의 작성자 이름("AI")은 칠하지 않도록 본문 글자만 봅니다.
+    const walker = document.createTreeWalker(bubble, NodeFilter.SHOW_TEXT, {
+      acceptNode: (node) =>
+        node.parentElement?.closest(".message-author") ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT,
+    });
     const nodes: { node: Text; start: number }[] = [];
     let full = "";
     for (let node = walker.nextNode(); node; node = walker.nextNode()) {
@@ -212,5 +216,6 @@ export function markAiSources(
   }
   const ranges = [...picked].map((piece) => piece.range()).filter((range): range is Range => range !== null);
   if (ranges.length) reg.set(SOURCE, new Ctor(...ranges));
-  return [...picked][0]?.bubble ?? null;
+  const marked = new Set([...picked].map((piece) => piece.bubble));
+  return bubbles.filter((bubble) => marked.has(bubble));
 }

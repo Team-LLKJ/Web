@@ -45,6 +45,8 @@ import { ShareDialog } from "../components/teacher/ShareDialog";
 const ANTI_CHEAT_LABEL: Record<string, string> = {
   TAB_LEAVE: "창/탭 이탈 감지",
   PRINT_BLOCK: "프린트 금지",
+  FULLSCREEN_LEAVE: "전체 화면 이탈 감지",
+  DEVTOOLS: "개발자 도구 감지",
 };
 
 export function TeacherFolderDetailPage() {
@@ -447,7 +449,7 @@ export function TeacherFolderDetailPage() {
                 onSaveAll={() => setBulkTarget(session)}
                 onOpen={() =>
                   navigate(
-                    session.state === "ENDED"
+                    session.state === "ENDED" || session.state === "IN_PROGRESS"
                       ? `/teacher/grading/${encodeURIComponent(session.id)}`
                       : `/teacher/folders/${encodeURIComponent(folder.id)}/classes/${encodeURIComponent(session.id)}`,
                     { state: { folderId: folder.id } },

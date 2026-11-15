@@ -115,7 +115,7 @@ export function ActivityAnalysis({
                   />
                 </div>
                 <span className="usage-level" data-level={metric.level || undefined}>
-                  {metric.percent}%{metric.level ? ` · ${metric.level}` : ""}
+                  {metric.percent}%
                 </span>
               </div>
             ))
@@ -125,6 +125,34 @@ export function ActivityAnalysis({
         </div>
         <PurposeReviewList questions={review.purposeQuestions ?? []} onPurpose={onPurpose} />
       </section>
+      )}
+      {!warningsOnly && (
+        <section className="review-card disclosure-card">
+          <h3>AI 활용 기록</h3>
+          {review.aiDisclosure ? (
+            <dl className="disclosure-list">
+              {[
+                ["사용한 도구", review.aiDisclosure.tools],
+                ["활용 부분", review.aiDisclosure.usedParts],
+                ["이유", review.aiDisclosure.reason],
+              ].map(([label, value]) => (
+                <div className="disclosure-item" key={label}>
+                  <dt>{label}</dt>
+                  <dd>
+                    {value?.trim()
+                      ? value
+                          .split("\n")
+                          .filter((line) => line.trim())
+                          .map((line, index) => <p key={index}>{line}</p>)
+                      : <p className="disclosure-empty">기록이 없어요</p>}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          ) : (
+            <EmptyState size="inline" icon="doc" title="AI 활용 기록이 아직 없어요" />
+          )}
+        </section>
       )}
       <section className="review-card warnings-card">
         <h3>경고</h3>

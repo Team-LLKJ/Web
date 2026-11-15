@@ -76,8 +76,16 @@ export function TeacherFoldersPage() {
             items={tabItems}
             onChange={(next) => setParams(next === "shared" ? { tab: "shared" } : {})}
           />
-          <Link className="button button--primary primary" to="/teacher/folders/new">
-            수행평가 만들기
+          <Link
+            className="button button--primary primary folder-create-button"
+            to="/teacher/folders/new"
+            aria-label="수행평가 만들기"
+          >
+            {/* 모바일에서는 + 아이콘만 보여 줍니다. */}
+            <svg className="folder-create-plus" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            <span className="folder-create-label">수행평가 만들기</span>
           </Link>
         </div>
         {folders === null ? (

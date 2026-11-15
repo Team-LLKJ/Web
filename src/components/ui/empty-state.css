@@ -120,3 +120,18 @@
 .empty-state--page {
   min-height: calc(100dvh - 180px);
 }
+
+/* 안내만 있는 화면: 머리글·제목을 뺀 남은 높이 안에서 가운데에 두어 스크롤이 생기지 않게 합니다. */
+.teacher-page-content:has(> .empty-state--page) {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  min-height: calc(100dvh - 61px);
+  padding-bottom: 32px;
+}
+.teacher-page-content > .empty-state--page {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}

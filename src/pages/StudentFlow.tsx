@@ -48,7 +48,7 @@ import {
   clearSession,
   getParticipantToken,
   getReconnectCredentials,
-  saveReportCredentials,
+  saveSubmittedInfo,
   saveParticipantCredentials,
   type StudentSession,
 } from "../data/studentSession";
@@ -137,11 +137,17 @@ const RESTORED_BANNER_MS = 2500;
 const pause = (duration: number) =>
   new Promise((resolve) => window.setTimeout(resolve, duration));
 
+// AI 정책 확인은 학생(참가자)마다 따로 기록합니다. 반 단위로 기록하면 같은 기기의 다음 학생이 정책을 못 봅니다.
+// (서버에 확인 기록 API가 생기면 그쪽으로 옮깁니다.)
+const policyAcceptedKey = (session: StudentSession) =>
+  `lit:policy-accepted:${session.evaluationId}:${session.participantId || session.nickname}`;
+
 export function StudentFlow({ route }: { route: string }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
   const [session, setSession] = useState<StudentSession>(() => readSession());
+  const policyKey = policyAcceptedKey(session);
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [questions, setQuestions] = useState<ApiQuestion[]>([]);
   const [questionId, setQuestionId] = useState("");
@@ -191,6 +197,8 @@ export function StudentFlow({ route }: { route: string }) {
   const serverReadOnly = workspace?.readOnly ?? false;
   const readOnly = serverReadOnly || timeUp;
   const forceEndRef = useRef<() => Promise<void>>(async () => undefined);
+  // 제출을 마쳐 참가 정보를 지운 뒤에는 '참가 정보 없음' 감시가 입장 화면으로 보내지 않게 합니다.
+  const submittedRef = useRef(false);
   const endHandled = useRef(false);
   const questionIdRef = useRef("");
   const lastEventAt = useRef(0);
@@ -212,17 +220,22 @@ export function StudentFlow({ route }: { route: string }) {
 
   const redirectForParticipantAuthError = useCallback(
     (error: unknown) => {
+      // 제출 뒤 평가에서 나가 토큰이 막힌 요청은 완료 화면으로 가는 중이므로 무시합니다.
+      if (submittedRef.current) return true;
+      const expelled = error instanceof ApiError && error.code === "PARTICIPANT_EXPELLED";
       if (
         !(error instanceof ApiError) ||
-        (error.status !== 401 && !error.code.startsWith("PARTICIPANT_TOKEN"))
+        (error.status !== 401 && !error.code.startsWith("PARTICIPANT_TOKEN") && !expelled)
       )
         return false;
       clearSession();
       setSession(emptySession);
-      setNotice(
-        "참가 인증 정보가 만료되었습니다. 같은 주소에서 PIN과 닉네임으로 다시 참가해주세요.",
-      );
-      navigate("/student/join", { replace: true });
+      const message = expelled
+        ? "선생님이 이 평가의 참여를 종료했어요. 다시 참여하려면 선생님께 말씀해주세요."
+        : "참가 인증 정보가 만료되었습니다. 같은 주소에서 PIN과 닉네임으로 다시 참가해주세요.";
+      setNotice(message);
+      // 화면이 바뀌면서 안내가 사라지지 않게 이동할 때 함께 넘깁니다.
+      navigate("/student/join", { replace: true, state: { notice: message } });
       return true;
     },
     [navigate],
@@ -276,6 +289,7 @@ export function StudentFlow({ route }: { route: string }) {
   }, [isWaiting, isSolving, isJoinPage, session.evaluationId]);
 
   useEffect(() => {
+    if (submittedRef.current) return;
     if (
       (isWaiting || isSolving) &&
       (!session.evaluationId || !getParticipantToken(session.evaluationId))
@@ -287,8 +301,10 @@ export function StudentFlow({ route }: { route: string }) {
       }
       clearSession();
       setSession(emptySession);
-      navigate("/student/join", { replace: true });
+      // 만료·종료 안내가 이미 정해졌다면 이동하면서 잃지 않게 함께 넘깁니다.
+      navigate("/student/join", { replace: true, state: notice ? { notice } : undefined });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isWaiting, isSolving, session.evaluationId, navigate]);
 
   useEffect(() => {
@@ -390,9 +406,7 @@ export function StudentFlow({ route }: { route: string }) {
         if (!active) return;
         if (
           !loaded.readOnly &&
-          sessionStorage.getItem(
-            `lit:policy-accepted:${session.evaluationId}`,
-          ) !== "true"
+          sessionStorage.getItem(policyKey) !== "true"
         ) {
           setDialog("policy");
         }
@@ -501,6 +515,7 @@ export function StudentFlow({ route }: { route: string }) {
   }, [
     isSolving,
     session.evaluationId,
+    policyKey,
     redirectForParticipantAuthError,
     markConnectionLost,
     reloadKey,
@@ -852,14 +867,18 @@ export function StudentFlow({ route }: { route: string }) {
         // 서버가 이미 종료 처리했거나 제출할 수 없는 상태면 그대로 내보낸다.
       }
     }
-    setNotice(
-      submitted
-        ? "제한시간이 종료되어 답안이 제출되었습니다."
-        : "제한시간이 종료되어 평가에서 나왔습니다. 저장된 답안까지만 반영됩니다.",
-    );
+    // 교사가 종료했든 시간이 끝났든 완료 화면에서 안내합니다(직접 제출한 경우와 같은 흐름).
+    submittedRef.current = true;
+    saveSubmittedInfo({
+      title: session.evaluationTitle,
+      nickname: session.nickname,
+      ended: true,
+      submitted,
+    });
     clearSession();
     setSession(emptySession);
-    navigate("/student/join", { replace: true });
+    setDialog("");
+    navigate("/student/done", { replace: true });
   }
   useEffect(() => {
     forceEndRef.current = forceEnd;
@@ -1012,22 +1031,13 @@ export function StudentFlow({ route }: { route: string }) {
       } catch {
         /* 이미 제출됐으므로 나가기 기록 실패는 무시합니다. */
       }
-      // 제출 완료 화면에서 본인 리포트를 받을 수 있게 토큰만 따로 남겨 두고 참가 정보는 지웁니다.
-      const submittedToken = getParticipantToken(session.evaluationId);
-      if (submittedToken)
-        saveReportCredentials({
-          evaluationId: session.evaluationId,
-          participantToken: submittedToken,
-          title: session.evaluationTitle,
-          nickname: session.nickname,
-        });
+      // 제출 완료 화면에 이름과 평가 제목만 남기고 참가 정보(토큰)는 모두 지웁니다.
+      submittedRef.current = true;
+      saveSubmittedInfo({ title: session.evaluationTitle, nickname: session.nickname });
       clearSession();
       setSession(emptySession);
       setDialog("");
-      navigate(submittedToken ? "/student/done" : "/", {
-        replace: true,
-        state: submittedToken ? undefined : { notice: "답안을 제출했어요. 수고했어요!" },
-      });
+      navigate("/student/done", { replace: true });
     } catch (error) {
       if (error instanceof ApiError && error.code === "REVIEW_CHANGED") {
         try {
@@ -1054,23 +1064,16 @@ export function StudentFlow({ route }: { route: string }) {
 
   async function leave() {
     setDialog("");
-    try {
-      if (session.evaluationId) await leaveEvaluation(session.evaluationId);
-      clearSession();
-      setSession(emptySession);
-      navigate("/", { replace: true });
-    } catch (error) {
-      setNotice(apiErrorMessage(error, "평가에서 나가지 못했습니다."));
-      setDialog("notice");
-    }
+    // 서버에 나간다고 알리지 못해도(내보내졌거나 연결이 끊겨도) 학생은 화면에서 나갈 수 있어야 합니다.
+    if (session.evaluationId) await leaveEvaluation(session.evaluationId).catch(() => undefined);
+    clearSession();
+    setSession(emptySession);
+    navigate("/", { replace: true });
   }
 
   function closeDialog() {
     if (dialog === "policy" && session.evaluationId) {
-      sessionStorage.setItem(
-        `lit:policy-accepted:${session.evaluationId}`,
-        "true",
-      );
+      sessionStorage.setItem(policyKey, "true");
     }
     setDialog("");
   }
@@ -1087,12 +1090,25 @@ export function StudentFlow({ route }: { route: string }) {
           onLeave={() => setDialog("leave")}
           notice={notice}
         />
+        {/* 대기 화면에도 나가기 확인 창이 떠야 합니다. */}
+        <StudentDialogs
+          kind={dialog}
+          notice={notice}
+          preview={preview}
+          aiPolicy={workspace?.aiPolicy ?? null}
+          submitting={submitting}
+          error={dialogError}
+          onClose={closeDialog}
+          onLeave={() => void leave()}
+          onSubmit={() => void submitFinalAnswer()}
+        />
       </>
     );
   }
 
   if (!isSolving) {
     const queryPin = new URLSearchParams(location.search).get("pin") ?? "";
+    const routeNotice = (location.state as { notice?: string } | null)?.notice ?? "";
     return (
       <main className="student-join">
         {route === "/student/nickname" ? (
@@ -1153,9 +1169,9 @@ export function StudentFlow({ route }: { route: string }) {
             }}
           />
         )}
-        {notice && (
+        {(notice || routeNotice) && (
           <p className="student-flow-notice" role="status">
-            {notice}
+            {notice || routeNotice}
           </p>
         )}
         <StudentDialogs

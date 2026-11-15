@@ -1057,15 +1057,6 @@
 .teacher-delete-section .button {
   flex-shrink: 0;
 }
-.evaluation-delete-modal .delete-evaluation-error {
-  margin: 16px 0 0;
-  padding: 12px;
-  border-radius: 8px;
-  background: var(--color-danger-soft);
-  color: var(--color-danger-dark);
-  font-size: calc(14px + var(--font-bump));
-  line-height: 1.6;
-}
 @media (max-width: 760px) {
   .teacher-delete-section {
     align-items: flex-start;
@@ -2906,4 +2897,12 @@
 .teacher-lobby-expel:hover {
   background: var(--color-grey-20);
   color: var(--color-grey-90);
+}
+
+/* 대기실: 낮은 데스크톱 화면에서도 스크롤 없이 한 화면에 들어오게 여백을 줄입니다. */
+@media (min-width: 601px) and (max-height: 800px) {
+  .teacher-page:has(.teacher-lobby) > .teacher-page-content {
+    padding-top: 32px;
+    padding-bottom: 24px;
+  }
 }

@@ -3,6 +3,10 @@ import { Button } from "../ui/Button";
 import { Dropdown } from "../ui/Dropdown";
 import { PURPOSE_LABELS } from "./purposeLabels";
 
+// AI 답변은 마크다운이라 굵게(**)·기울임(*)·코드(`) 기호가 그대로 보이지 않게 지웁니다.
+const plainAiText = (text: string) =>
+  text.replace(/\*\*(.+?)\*\*/g, "$1").replace(/__(.+?)__/g, "$1").replace(/`([^`]+)`/g, "$1").replace(/(^|\s)\*(\S.*?\S|\S)\*/g, "$1$2");
+
 const PURPOSE_OPTIONS = (["UNDERSTAND", "PLAN", "REVIEW", "EDIT", "DRAFT", "OTHER"] as const).map((value) => ({
   value,
   label: PURPOSE_LABELS[value],
@@ -28,8 +32,11 @@ export function SentenceReviewList({
         {pending.map((sentence) => (
           <li key={sentence.id}>
             <q>{sentence.text}</q>
+            {sentence.pasted && (
+              <p className="analysis-review-ref">긴 붙여넣기와 겹치는 문장이에요. 다른 곳(외부 AI 등)에서 가져왔을 수 있어요.</p>
+            )}
             {sentence.closestAiSentence && (
-              <p className="analysis-review-ref">비슷한 AI 답변: {sentence.closestAiSentence}</p>
+              <p className="analysis-review-ref">비슷한 AI 답변: {plainAiText(sentence.closestAiSentence)}</p>
             )}
             {onSource && (
               <div className="analysis-review-actions">

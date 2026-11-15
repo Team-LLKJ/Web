@@ -7,7 +7,7 @@ export function CriteriaSection() {
         <h2>
           AI 활용 과정을
           <br />
-          <span>5가지 기준</span>으로
+          <span>4가지 기준</span>으로
           <br />
           평가해요
         </h2>
