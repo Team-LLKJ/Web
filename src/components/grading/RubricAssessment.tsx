@@ -8,25 +8,6 @@ import { ReviewSummary } from "./ReviewSummary";
 import "./rubric-ai.css";
 const levels = ["매우 못함", "못함", "보통", "잘함", "매우 잘함"];
 
-// 참고용 판정 단계 이름(무효 회차는 근거가 원문에 없어 버린 답입니다).
-const voteLabel = (value: number | "NA" | "HOLD" | null) =>
-  typeof value === "number" ? (levels[value] ?? "-") : value === "NA" ? "해당 없음" : value === "HOLD" ? "보류" : "무효";
-
-const HAIKU_ERROR: Record<string, string> = {
-  NOT_CONFIGURED: "Haiku 확인이 설정되지 않음",
-  NO_VERIFIED_EVIDENCE: "확인된 근거가 없어 Haiku 확인 안 함",
-};
-
-/** 회차별 판정: 무효 회차는 원래 낸 단계도 함께 보여줍니다(인용을 원문에서 찾지 못해 버린 답). */
-function votesText(item: RubricScoreCriterion) {
-  return (item.votes ?? [])
-    .map((vote, index) => {
-      const raw = item.rawVotes?.[index];
-      return vote === null && raw !== null && raw !== undefined ? `무효(원래 ${voteLabel(raw)})` : voteLabel(vote);
-    })
-    .join(" · ");
-}
-
 /** AI 루브릭 판정 항목의 안내: 해당 없음, 직접 입력 필요(이유별), 보류, AI 추천 근거 */
 function ProcessNote({ item }: { item: RubricScoreCriterion }) {
   if (item.status === "NOT_APPLICABLE") {
@@ -55,7 +36,6 @@ function ProcessNote({ item }: { item: RubricScoreCriterion }) {
     );
   }
   if (item.needsReview) {
-    const votes = votesText(item);
     return (
       <>
         <p className="rubric-ai-note is-empty">
@@ -67,16 +47,6 @@ function ProcessNote({ item }: { item: RubricScoreCriterion }) {
                 ? "AI 채점 연결이 실패해 판단하지 못했어요. 직접 채점해주세요."
                 : "AI 판정이 엇갈려 직접 입력이 필요해요."}
         </p>
-        {item.reviewReason !== "INSUFFICIENT_DATA" && item.reviewReason !== "GEMINI_CALL_FAILED" && votes && (
-          <p className="rubric-ai-note">
-            참고: Gemini {votes}
-            {item.haikuLevel !== null && item.haikuLevel !== undefined
-              ? ` / Haiku ${voteLabel(item.haikuLevel)}`
-              : item.haikuError
-                ? ` / ${HAIKU_ERROR[item.haikuError] ?? "Haiku 확인 실패"}`
-                : ""}
-          </p>
-        )}
       </>
     );
   }
@@ -95,8 +65,7 @@ function ProcessNote({ item }: { item: RubricScoreCriterion }) {
           : ""}
         {item.reviewReason === "HAIKU_DECIDED" && (
           <span className="rubric-ai-quote">
-            판정이 엇갈려 Haiku 기준으로 정했어요 (참고: Gemini {votesText(item)}
-            {item.haikuLevel !== null && item.haikuLevel !== undefined ? ` / Haiku ${voteLabel(item.haikuLevel)}` : ""})
+            판정이 엇갈려 보조 검증 기준으로 정했어요
           </span>
         )}
       </p>

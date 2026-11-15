@@ -1570,14 +1570,48 @@
   display: none;
 }
 @media (max-width: 1100px) {
+  /* 전환 막대: 화면 아래에 고정. 본문이 이 높이만큼 짧아져 입력창과 겹치지 않습니다. */
   :root:root .student-pane-tabs {
-    display: block;
-    padding: 8px 10px 0;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 30;
+    display: flex;
+    justify-content: center;
+    padding: 8px 14px calc(8px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--color-grey-20);
+    background: var(--color-white);
+  }
+  :root:root .student-pane-switch {
+    display: flex;
+    gap: 2px;
+    width: 100%;
+    max-width: 360px;
+    padding: 3px;
+    border-radius: 12px;
+    background: var(--color-grey-10);
+  }
+  :root:root .student-pane-switch button {
+    flex: 1;
+    height: 40px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--color-grey-60);
+    font: inherit;
+    font-size: 14px;
+    font-weight: var(--weight-semibold);
+  }
+  :root:root .student-pane-switch button[aria-pressed="true"] {
+    background: var(--color-primary);
+    color: var(--color-white);
   }
   :root:root .student-solving.compact-workspace > .student-solving-body {
     display: flex;
     flex-direction: row;
-    height: calc(100dvh - 61px - 56px);
+    height: calc(100dvh - 61px - 61px - env(safe-area-inset-bottom, 0px));
     overflow-x: auto;
     overflow-y: hidden;
     scroll-snap-type: x mandatory;
@@ -1603,5 +1637,39 @@
   }
   :root:root .student-solving.compact-workspace .student-chat-expand {
     display: none;
+  }
+}
+
+/* 학생 풀이 헤더(폰·태블릿): 남은 시간을 또렷하게, 간격을 다른 헤더와 맞춥니다. */
+@media (max-width: 1100px) {
+  :root:root:root .header.student-header {
+    padding-inline: 14px 10px;
+    gap: 10px;
+  }
+  :root:root:root .header.student-header .lit-logo-link img {
+    width: 60px;
+  }
+  :root:root:root .header.student-header nav {
+    gap: 8px;
+  }
+  :root:root:root .header.student-header .remaining-time {
+    font-size: var(--font-text-sm);
+    font-weight: var(--weight-semibold);
+  }
+  :root:root:root .header.student-header nav .button {
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: var(--weight-semibold);
+  }
+}
+
+/* 터치 화면(iOS 사파리 등): 글자 크기가 16px보다 작은 입력칸을 누르면 화면이 확대돼 버리므로 16px 이상으로 맞춥니다. */
+@media (max-width: 1100px) and (pointer: coarse) {
+  :root:root:root input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  :root:root:root textarea,
+  :root:root:root select,
+  :root:root:root .tiptap.ProseMirror,
+  :root:root:root .student-answer-content.tiptap {
+    font-size: 16px;
   }
 }

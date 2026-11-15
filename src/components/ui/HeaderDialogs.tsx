@@ -1,5 +1,6 @@
 import { EmptyState } from "./EmptyState";
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../auth/useAuth";
 import { paths } from "../../router/paths";
@@ -295,7 +296,9 @@ function NotificationsPopover() {
         </ul>
       )}
     </HeaderPopover>
-    {clearOpen && (
+    {clearOpen &&
+      // 헤더 안에 그리면 헤더용 버튼 스타일이 입혀져 버튼이 글자처럼 보이므로 body에 그립니다.
+      createPortal(
       <Modal
         title="알림을 모두 삭제할까요?"
         onClose={() => {
@@ -314,7 +317,8 @@ function NotificationsPopover() {
       >
         <p>읽은 알림까지 모두 지워지고, 지운 알림은 되돌릴 수 없어요.</p>
         {clearError && <p role="alert">{clearError}</p>}
-      </Modal>
+      </Modal>,
+      document.body,
     )}
     </>
   );

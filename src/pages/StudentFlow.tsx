@@ -1233,16 +1233,14 @@ export function StudentFlow({ route }: { route: string }) {
         </header>
         {phone && (
           <div className="student-pane-tabs" aria-hidden="true">
-            <Tabs
-              label="화면 전환"
-              variant="segment"
-              value="answer"
-              items={[
-                { value: "answer", label: "작성" },
-                { value: "chat", label: "AI 대화창" },
-              ]}
-              onChange={() => undefined}
-            />
+            <div className="student-pane-switch">
+              <button type="button" aria-pressed="true" tabIndex={-1}>
+                작성
+              </button>
+              <button type="button" aria-pressed="false" tabIndex={-1}>
+                AI 대화창
+              </button>
+            </div>
           </div>
         )}
         <div
@@ -1359,20 +1357,6 @@ export function StudentFlow({ route }: { route: string }) {
         onPolicy={() => setDialog("policy")}
         endInfo={endInfo}
       />
-      {phone && (
-        <div className="student-pane-tabs">
-          <Tabs
-            label="화면 전환"
-            variant="segment"
-            value={pane}
-            items={[
-              { value: "answer" as const, label: "작성" },
-              { value: "chat" as const, label: "AI 대화창" },
-            ]}
-            onChange={showPane}
-          />
-        </div>
-      )}
       <StudentWorkspace
         sidebarExpanded={chatExpanded}
         editor={
@@ -1435,6 +1419,26 @@ export function StudentFlow({ route }: { route: string }) {
           />
         }
       />
+      {phone && (
+        <div className="student-pane-tabs" role="group" aria-label="화면 전환">
+          <div className="student-pane-switch">
+            <button
+              type="button"
+              aria-pressed={pane === "answer"}
+              onClick={() => showPane("answer")}
+            >
+              작성
+            </button>
+            <button
+              type="button"
+              aria-pressed={pane === "chat"}
+              onClick={() => showPane("chat")}
+            >
+              AI 대화창
+            </button>
+          </div>
+        </div>
+      )}
       <ConnectionBanner
         state={connection}
         offlineMessage={
