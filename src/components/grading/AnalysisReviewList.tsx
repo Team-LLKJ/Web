@@ -73,16 +73,9 @@ export function PurposeReviewList({
       <p className="analysis-review-hint">AI 판정이 엇갈린 질문이에요. 용도를 정하면 비율에 반영돼요.</p>
       <ul>
         {pending.map((question) => {
-          const votes = question.votes
-            .map((vote) => PURPOSE_LABELS[vote as PurposeType] ?? vote)
-            .join(" · ");
           return (
             <li key={question.conversationId}>
               <q>{question.quote}</q>
-              <p className="analysis-review-ref">
-                참고: Gemini {votes || "-"}
-                {question.haikuPurpose && ` / Haiku ${PURPOSE_LABELS[question.haikuPurpose]}`}
-              </p>
               {onPurpose && (
                 <div className="analysis-review-actions">
                   <Dropdown
