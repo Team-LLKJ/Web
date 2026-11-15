@@ -30,12 +30,14 @@ export function Modal({
     const field = dialog?.querySelector<HTMLElement>(
       '[autofocus], input:not([type="hidden"]):not([disabled]), textarea:not([disabled]), [contenteditable="true"]',
     );
-    field?.focus();
+    // 입력칸이 없으면 창 자체에 포커스를 둬서, 닫기(X) 버튼에 포커스 테두리가 뜨지 않게 합니다.
+    (field ?? dialog)?.focus();
     return () => dialog?.close();
   }, []);
   return (
     <dialog
       ref={ref}
+      tabIndex={-1}
       className={`modal${size === "medium" ? "" : ` modal--${size}`} ${className}`}
       aria-label={title}
       onCancel={(e) => {
