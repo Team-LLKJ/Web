@@ -16,6 +16,7 @@ import {
   getParticipants,
   getAssessmentAnalysis,
   getRubricScores,
+  getTeacherAiDisclosure,
   saveCriterionScore,
   saveRubricScore,
   streamLiveEvents,
@@ -34,6 +35,7 @@ import {
 } from "../lib/processRubric";
 import type {
   PurposeType,
+  AiDisclosure,
   AssessmentAnalysis,
   GradingActivity,
   GradingAnswers,
@@ -48,6 +50,8 @@ import type { Assessment, StudentReview } from "../data/review";
 import { htmlToPlainText } from "../lib/guidelinesText";
 
 const POLL_MS = 2000;
+/** 응답 없이 이보다 오래 걸린 갱신 요청은 멈춘 것으로 보고 다음 요청을 보냅니다. */
+const STUCK_MS = 20_000;
 const AVATAR_COLORS = ["#ffd4d3", "#d6e9ff", "#d9f2dc", "#fff0c2", "#e5dcff", "#ffe0f0"];
 const USAGE_COLORS = ["#0059bc", "#007bff", "#52a6ff", "#9bc9ff"];
 
@@ -90,24 +94,27 @@ function toReview(
   activity: GradingActivity | null,
   rubric: RubricScores | null = null,
   analysis: AssessmentAnalysis | null = null,
+  aiDisclosure: AiDisclosure | null = null,
 ): StudentReview {
   // 활동 카드의 기여도는 항상 null이라, AI 활용 분석의 문장 유사도 추정값을 대신 씁니다.
   const estimated = analysis?.contribution?.direct ?? null;
   return {
     rubric,
+    aiDisclosure,
     studentContribution: estimated ?? activity?.studentContribution ?? null,
     contributionEstimated: estimated !== null,
     analysisDetail: analysis,
     sentences: analysis?.sentences ?? [],
     purposeQuestions: activity?.usageAnalysis?.questions ?? [],
-    // 서버가 회색(neutral)으로 내려주는 '미분류' 항목은 화면에서 숨깁니다.
-    usage: (activity?.usage ?? [])
-      .filter((item) => item.colorKey !== "neutral" && item.name !== "미분류")
-      .map((item, index) => ({
+    // 기타·판단 보류(neutral)도 전체 질문 비율에 들어가므로 회색으로 맨 아래에 보여줍니다.
+    usage: [
+      ...(activity?.usage ?? []).filter((item) => item.colorKey !== "neutral"),
+      ...(activity?.usage ?? []).filter((item) => item.colorKey === "neutral"),
+    ].map((item, index) => ({
       label: item.name,
       percent: Math.round(item.percentage),
       level: item.level,
-      color: USAGE_COLORS[index % USAGE_COLORS.length],
+      color: item.colorKey === "neutral" ? "var(--color-grey-30)" : USAGE_COLORS[index % USAGE_COLORS.length],
     })),
     warnings: (activity?.warnings ?? []).map((item) => ({
       id: String(item.eventId),
@@ -179,11 +186,16 @@ export function useGradingData(evaluationId: string | undefined) {
     analysis: AssessmentAnalysis | null;
     /** AI 루브릭 판정(과정 채점)과 교사 검토. 있으면 기준별 점수 대신 씁니다. */
     process: ProcessState | null;
+    /** 끝난 판정은 없고 AI 판정이 진행 중이면 true */
+    processPending: boolean;
+    aiDisclosure: AiDisclosure | null;
   } | null>(null);
   const [loadingList, setLoadingList] = useState(Boolean(evaluationId));
   const [error, setError] = useState("");
   const [ended, setEnded] = useState(false);
   const selectedRef = useRef("");
+  // AI 판정이 진행 중이면 평가가 끝난 뒤에도 결과가 나올 때까지 학생 자료를 계속 갱신합니다.
+  const pendingRef = useRef(false);
   const endedRef = useRef(false);
   const [endInfo, setEndInfo] = useState<EndInfo | null>(null);
   const lastEndsAtRef = useRef<number | null>(null);
@@ -230,7 +242,7 @@ export function useGradingData(evaluationId: string | undefined) {
           showWarningBadge(student.participantId);
           fresh.push({
             key: `warn-${student.participantId}-${Date.now()}`,
-            message: `${student.nickname} 학생에게서 부정행위가 감지됐어요.`,
+            message: `${student.nickname} 학생에게 창 이탈·캡처 경고가 기록됐어요.`,
             tone: "error",
           });
         }
@@ -261,7 +273,7 @@ export function useGradingData(evaluationId: string | undefined) {
     async (participantId: string) => {
       if (!evaluationId || !participantId) return;
       try {
-        const [answers, messages, activity, review, rubric, analysis, process] = await Promise.all([
+        const [answers, messages, activity, review, rubric, analysis, processResult, aiDisclosure] = await Promise.all([
           getGradingAnswers(evaluationId, participantId),
           getGradingConversations(evaluationId, participantId),
           getGradingActivity(evaluationId, participantId),
@@ -270,10 +282,24 @@ export function useGradingData(evaluationId: string | undefined) {
           getRubricScores(evaluationId, participantId).catch(() => null),
           getAssessmentAnalysis(evaluationId, participantId).catch(() => null),
           // AI 루브릭 판정이 아직 없거나 실패하면 기존 기준별 점수로 보여줍니다.
-          loadProcessRubric(evaluationId, participantId).catch(() => null),
+          loadProcessRubric(evaluationId, participantId).catch(() => ({ state: null, pending: false })),
+          // AI 활용 기록은 없어도 나머지 화면은 그대로 보여줍니다.
+          getTeacherAiDisclosure(evaluationId, participantId).catch(() => null),
         ]);
         if (selectedRef.current !== participantId) return;
-        setDetail({ id: participantId, answers, messages, activity, review, rubric, analysis, process });
+        pendingRef.current = processResult.pending;
+        setDetail({
+          id: participantId,
+          answers,
+          messages,
+          activity,
+          review,
+          rubric,
+          analysis,
+          process: processResult.state,
+          processPending: processResult.pending,
+          aiDisclosure,
+        });
         setError("");
       } catch (e) {
         setError(apiErrorMessage(e, "학생 자료를 불러오지 못했습니다."));
@@ -291,12 +317,15 @@ export function useGradingData(evaluationId: string | undefined) {
       .then((e) => setEnded(e.state === "ENDED" || e.state === "EXPIRED"))
       .catch(() => undefined);
     // 이전 요청이 끝나기 전에는 다시 요청하지 않고, 탭이 보일 때만 갱신합니다.
-    let busy = false;
+    // 서버 재시작 등으로 응답이 오지 않는 요청이 있으면 갱신이 영영 멈추므로, 오래 걸리면 다음 요청을 보냅니다.
+    let busySince = 0;
     const tick = () => {
-      if (busy || document.visibilityState !== "visible") return;
-      busy = true;
+      const stuck = busySince && Date.now() - busySince > STUCK_MS;
+      if ((busySince && !stuck) || document.visibilityState !== "visible") return;
+      const started = Date.now();
+      busySince = started;
       void loadList().finally(() => {
-        busy = false;
+        if (busySince === started) busySince = 0;
       });
     };
     // 실시간(SSE)이 연결돼 있으면 목록 조회는 가끔만 하고, 이벤트가 오면 바로 갱신합니다.
@@ -351,12 +380,15 @@ export function useGradingData(evaluationId: string | undefined) {
     void loadDetail(selectedId);
     // 작성 중인 학생은 답안·대화가 바뀌므로 주기적으로 갱신합니다.
     // 평가가 끝나면 답안·대화가 더 바뀌지 않으므로 갱신하지 않습니다.
-    let busy = false;
+    let busySince = 0;
     const tick = () => {
-      if (busy || endedRef.current || document.visibilityState !== "visible") return;
-      busy = true;
+      const stuck = busySince && Date.now() - busySince > STUCK_MS;
+      if ((busySince && !stuck) || (endedRef.current && !pendingRef.current) || document.visibilityState !== "visible")
+        return;
+      const started = Date.now();
+      busySince = started;
       void loadDetail(selectedId).finally(() => {
-        busy = false;
+        if (busySince === started) busySince = 0;
       });
     };
     const timer = window.setInterval(tick, POLL_MS);
@@ -420,21 +452,56 @@ export function useGradingData(evaluationId: string | undefined) {
     minChars: q.minChars,
     maxChars: q.maxChars,
   }));
-  const review = toReview(
-    current?.review ?? null,
-    current?.activity ?? null,
-    current?.process ? toRubricScores(current.process) : (current?.rubric ?? null),
-    current?.analysis ?? null,
+  // 제출 전이거나 AI가 채점 중이면 예전 루브릭 대신 안내를 보여줍니다.
+  const selectedItem = list.find((item) => item.participantId === selectedId);
+  const selectedSubmitted = Boolean(
+    selectedItem && (selectedItem.submissionStatus === "SUBMITTED" || selectedItem.submittedAt),
   );
+  const rubricPending =
+    current && !current.process
+      ? current.processPending
+        ? ("GRADING" as const)
+        : !selectedSubmitted
+          ? ("WRITING" as const)
+          : null
+      : null;
+  const review = {
+    ...toReview(
+      current?.review ?? null,
+      current?.activity ?? null,
+      current?.process ? toRubricScores(current.process) : rubricPending ? null : (current?.rubric ?? null),
+      current?.analysis ?? null,
+      current?.aiDisclosure ?? null,
+    ),
+    rubricPending,
+  };
 
   // AI 루브릭 판정의 교사 검토를 저장하고 화면 값을 바꿉니다.
+  // 검토 저장은 하나씩 차례로 보냅니다. 근거 입력칸에서 바로 '채점 확정'을 누르면 근거 저장과
+  // 확정 저장이 같은 revision으로 동시에 나가 한쪽이 충돌(409)하고 근거가 사라지기 때문입니다.
+  // 본문은 보내기 직전의 최신 상태로 만듭니다.
+  const processRef = useRef<ProcessState | null>(null);
+  const processQueue = useRef<Promise<unknown>>(Promise.resolve());
+  const processKey = detail?.process ? `${detail.id}:${detail.process.job.id}:${detail.process.review?.revision ?? 0}` : "";
+  useEffect(() => {
+    processRef.current = detail?.process ?? null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [processKey]);
   const saveProcess = useCallback(
-    async (state: ProcessState, body: ReturnType<typeof reviewBody>) => {
-      if (!evaluationId || !selectedId) return null;
-      const saved = await saveProcessReview(evaluationId, selectedId, state.job.id, body);
-      const next = { ...state, review: saved };
-      setDetail((now) => (now && now.id === selectedId ? { ...now, process: next } : now));
-      return next;
+    (makeBody: (state: ProcessState) => ReturnType<typeof reviewBody>) => {
+      const run = processQueue.current
+        .catch(() => undefined)
+        .then(async () => {
+          const state = processRef.current;
+          if (!evaluationId || !selectedId || !state) return null;
+          const saved = await saveProcessReview(evaluationId, selectedId, state.job.id, makeBody(state));
+          const next = { ...state, review: saved };
+          processRef.current = next;
+          setDetail((now) => (now && now.id === selectedId ? { ...now, process: next } : now));
+          return next;
+        });
+      processQueue.current = run;
+      return run;
     },
     [evaluationId, selectedId],
   );
@@ -461,6 +528,10 @@ export function useGradingData(evaluationId: string | undefined) {
         const analysis = await labelSentence(evaluationId, selectedId, sentenceId, source);
         setDetail((now) => (now && now.id === selectedId ? { ...now, analysis } : now));
         setError("");
+        // 문장 출처를 바꾸면 서버가 AI 활용 기록의 '이유'도 다시 만들어 함께 받아옵니다.
+        const aiDisclosure = await getTeacherAiDisclosure(evaluationId, selectedId).catch(() => null);
+        if (aiDisclosure)
+          setDetail((now) => (now && now.id === selectedId ? { ...now, aiDisclosure } : now));
       } catch (e) {
         setError(apiErrorMessage(e, "문장 출처를 저장하지 못했습니다."));
       }
@@ -533,7 +604,7 @@ export function useGradingData(evaluationId: string | undefined) {
     async (criterionId: number, level: number | null) => {
       if (current?.process) {
         try {
-          await saveProcess(current.process, reviewBody(current.process, { criterionId, level }));
+          await saveProcess((state) => reviewBody(state, { criterionId, level }));
           setError("");
         } catch (e) {
           processError(e, "점수를 저장하지 못했습니다.");
@@ -589,7 +660,7 @@ export function useGradingData(evaluationId: string | undefined) {
     async (criterionId: number, feedback: string) => {
       if (current?.process) {
         try {
-          await saveProcess(current.process, reviewBody(current.process, { criterionId, reason: feedback }));
+          await saveProcess((state) => reviewBody(state, { criterionId, reason: feedback }));
           setError("");
         } catch (e) {
           processError(e, "근거를 저장하지 못했습니다.");
@@ -627,7 +698,7 @@ export function useGradingData(evaluationId: string | undefined) {
         return ids;
       }
       try {
-        const reviewed = await saveProcess(current.process, confirmBody(current.process));
+        const reviewed = await saveProcess((state) => confirmBody(state));
         if (!reviewed?.review) return [];
         const confirmed = await confirmProcessReview(
           evaluationId,

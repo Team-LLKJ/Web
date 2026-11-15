@@ -14,6 +14,7 @@ import {
   type Student,
 } from "../data/grading";
 import { useGradingData } from "../hooks/useGradingData";
+import { getEvaluation } from "../api/evaluations";
 import { Toast } from "../components/teacher/Toast";
 import { Button } from "../components/ui/Button";
 import { Modal } from "../components/ui/Modal";
@@ -39,12 +40,23 @@ function TeacherGradingPage() {
   const { evaluationId } = useParams();
   const live = useGradingData(evaluationId);
   const isLive = Boolean(evaluationId);
-  const folderId = typeof state?.folderId === "string" ? state.folderId : "";
-  const previousPath = evaluationId
-    ? folderId
-      ? `/teacher/folders/${encodeURIComponent(folderId)}/classes/${encodeURIComponent(evaluationId)}`
-      : `/teacher/evaluations/${encodeURIComponent(evaluationId)}`
-    : "/views";
+  const stateFolderId = typeof state?.folderId === "string" ? state.folderId : "";
+  // 반 화면을 거치지 않고 들어왔으면(새로고침·주소 직접 입력) 평가 정보에서 수행평가 id를 찾습니다.
+  const [loadedFolderId, setLoadedFolderId] = useState("");
+  useEffect(() => {
+    if (!evaluationId || stateFolderId) return;
+    let active = true;
+    getEvaluation(evaluationId)
+      .then((evaluation) => {
+        if (active && evaluation.assessmentId) setLoadedFolderId(evaluation.assessmentId);
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, [evaluationId, stateFolderId]);
+  const folderId = stateFolderId || loadedFolderId;
+  const folderPath = folderId ? `/teacher/folders/${encodeURIComponent(folderId)}` : "/teacher/folders";
   const [query, setQuery] = useState("");
   const [studentsWidth, setStudentsWidth] = useState(readStudentsWidth);
   const [selected, setSelected] = useState(0);
@@ -136,7 +148,7 @@ function TeacherGradingPage() {
   if (!student && !showLoading) {
     return (
       <div className="app-shell grading-workspace">
-        <Header ended={ended} previousPath={previousPath} />
+        <Header ended={ended} exitPath={folderPath} />
         <div className="workspace teacher-workspace">
           {live.error ? (
             <EmptyState
@@ -178,7 +190,7 @@ function TeacherGradingPage() {
   };
   return (
     <div className="app-shell grading-workspace">
-      <Header ended={ended} previousPath={previousPath} />
+      <Header ended={ended} exitPath={folderPath} />
       {notice ? (
         <Toast message={notice.message} tone={notice.tone} onClose={() => setNotice(null)} />
       ) : null}
@@ -385,7 +397,7 @@ function TeacherGradingPage() {
                 </Button>
               )}
               {dialog === "채점 화면에서 나가시겠습니까?" && (
-                <Button variant="primary" onClick={() => navigate(isLive ? "/teacher/evaluations" : "/views")}>
+                <Button variant="primary" onClick={() => navigate(folderPath)}>
                   나가기
                 </Button>
               )}

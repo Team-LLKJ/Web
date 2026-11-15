@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/useAuth";
 import { paths } from "../../router/paths";
@@ -59,7 +60,9 @@ export function LogoutButton({
           로그아웃
         </Button>
       )}
-      {confirming && (
+      {confirming &&
+        // 헤더 안의 버튼 스타일(회색 알약 등)이 확인 창 버튼에 번지지 않도록 body에 그립니다.
+        createPortal(
         <Modal
           title="로그아웃할까요?"
           onClose={() => {
@@ -77,8 +80,9 @@ export function LogoutButton({
           }
         >
           <p>다시 이용하려면 로그인해야 해요.</p>
-        </Modal>
-      )}
+        </Modal>,
+          document.body,
+        )}
     </>
   );
 }

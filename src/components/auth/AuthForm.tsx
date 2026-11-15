@@ -43,7 +43,7 @@ function loginErrorMessage(error: unknown) {
         return "로그인 시도가 제한되었습니다. 잠시 후 다시 시도해주세요.";
     }
     if ([502, 503, 504].includes(error.status)) {
-      return "로그인 서버에 연결할 수 없습니다. 서버 주소와 실행 상태를 확인해주세요.";
+      return "서버에 연결할 수 없어요. 잠시 후 다시 시도해주세요.";
     }
   }
   return apiErrorMessage(error, "로그인에 실패했습니다.");
@@ -299,7 +299,7 @@ export function AuthForm({ mode, onSubmit }: Props) {
           label="아이디"
           floatingLabel
           variant="under-bar"
-          placeholder="아이디"
+          placeholder={isLogin ? "아이디" : "영문·숫자·밑줄 4~30자"}
           autoComplete="username"
           autoCapitalize="none"
           autoCorrect="off"
@@ -357,7 +357,7 @@ export function AuthForm({ mode, onSubmit }: Props) {
               <button
                 type="button"
                 className={`auth-inline-action${emailVerified ? " is-verified" : ""}`}
-                disabled={busy || emailBusy !== null || emailVerified || resendIn > 0 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())}
+                disabled={busy || emailBusy !== null || emailVerified || resendIn > 0}
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => void sendCode()}
               >
@@ -422,7 +422,7 @@ export function AuthForm({ mode, onSubmit }: Props) {
             className={isLogin ? "auth-login-button" : ""}
             disabled={
               signupStep === 1
-                ? !username.trim() || !password || !emailVerified
+                ? !username.trim() || !password
                 : signupStep === 2
                   ? consentMissing || !name.trim()
                   : false

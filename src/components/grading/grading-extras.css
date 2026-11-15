@@ -543,3 +543,95 @@
 .review-summary-check {
   color: var(--color-grey-60);
 }
+
+/* 대화창: 답안이 가져간 AI 답변으로 이동하는 버튼 (스크롤해도 아래에 떠 있음) */
+.ai-source-jump {
+  position: sticky;
+  bottom: 12px;
+  z-index: 3;
+  display: flex;
+  justify-content: flex-end;
+  padding-right: 4px;
+  pointer-events: none;
+}
+.ai-source-jump button {
+  pointer-events: auto;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--color-primary-light);
+  border-radius: 50%;
+  background: var(--color-primary-background);
+  color: var(--color-primary-dark);
+  cursor: pointer;
+}
+.ai-source-jump button:hover,
+.ai-source-jump button:focus-visible {
+  background: var(--color-primary-soft);
+}
+/* 마우스를 올리거나 키보드로 고르면 왼쪽에 설명이 보입니다. */
+.ai-source-jump-label {
+  position: absolute;
+  right: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 6px 10px;
+  border: 1px solid var(--color-grey-20);
+  border-radius: 8px;
+  background: var(--color-white);
+  color: var(--color-grey-80);
+  font-size: 0.85em;
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease;
+}
+.ai-source-jump button:hover .ai-source-jump-label,
+.ai-source-jump button:focus-visible .ai-source-jump-label {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* 채점 지시 문장(프롬프트 조작) 안내 */
+.review-summary-alert {
+  margin: 0 0 12px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+.rubric-ai-quote {
+  display: block;
+  margin-top: 4px;
+  color: var(--color-grey-70);
+}
+
+.disclosure-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+.disclosure-item dt {
+  font-weight: var(--weight-medium);
+  color: var(--color-grey-90);
+  margin-bottom: 4px;
+}
+.disclosure-item dd {
+  margin: 0;
+}
+.disclosure-item dd p {
+  margin: 0;
+  line-height: 1.5;
+  color: var(--color-grey-90);
+}
+.disclosure-item dd p + p {
+  margin-top: 2px;
+}
+:root .disclosure-item .disclosure-empty {
+  color: var(--color-grey-30);
+}

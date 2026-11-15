@@ -97,7 +97,7 @@ export function PrintReport({
                 <tr key={metric.label}>
                   <th>{metric.label}</th>
                   <td>
-                    {metric.percent}% ({metric.level})
+                    {metric.percent}%
                   </td>
                 </tr>
               ))}

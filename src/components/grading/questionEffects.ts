@@ -68,14 +68,14 @@ const EFFECT: Record<CriterionKey, Partial<Record<PurposeType, { kind: "가점" 
     UNDERSTAND: { kind: "가점", text: "이 평가는 개념 설명과 풀이 방향 힌트를 허용해요. 내용을 이해하려는 질문은 그 범위 안이라 목적에 맞는 활용이에요." },
     PLAN: { kind: "가점", text: "답을 받지 않고 쓸 방향만 도움받은 질문이라, 힌트 범위 안의 목적에 맞는 활용이에요." },
     REVIEW: { kind: "가점", text: "AI 답변을 그대로 쓰지 않고 맞는지 확인하는 데 썼기 때문에 목적에 맞는 활용이에요." },
-    DRAFT: { kind: "감점", text: "답안을 대신 쓰게 하는 것은 허용된 활용 목적(힌트·개념 설명)을 벗어나 감점 요인이에요." },
+    DRAFT: { kind: "감점", text: "답안을 대신 쓰게 하는 것은 허용된 활용 목적(힌트·개념 설명)을 벗어나 아쉬운 점이에요." },
   },
   SELF_DIRECTION: {
     DRAFT: { kind: "감점", text: "스스로 생각을 정리하기 전에 답안 작성을 AI에게 맡긴 것으로 보여요." },
   },
   CRITICAL_REVIEW: {
-    REVIEW: { kind: "가점", text: "AI 답변을 그대로 믿지 않고 사실과 근거를 확인하려 한 점이 가점 요인이에요." },
-    DRAFT: { kind: "감점", text: "AI가 써 준 내용을 검토 없이 받으려는 요청이라 감점 요인이에요." },
+    REVIEW: { kind: "가점", text: "AI 답변을 그대로 믿지 않고 사실과 근거를 확인하려 한 점이 잘한 점이에요." },
+    DRAFT: { kind: "감점", text: "AI가 써 준 내용을 검토 없이 받으려는 요청이라 아쉬운 점이에요." },
   },
   CONTRIBUTION: {},
   TRANSPARENCY: {},
@@ -112,14 +112,16 @@ export function questionEffects(criterion: string, questions: PurposeQuestion[])
   return questions
     .map((q) => {
       const purpose = q.teacherPurpose ?? q.purpose;
-      const effect = purpose === "UNDECIDED" ? undefined : EFFECT[key][purpose];
+      // 답안을 써 달라고 했지만 AI가 거절했고 답안에도 쓰이지 않았으면 감점하지 않습니다(서버 판정과 같음).
+      const refused = purpose === "DRAFT" && q.aiComplied === false;
+      const effect = purpose === "UNDECIDED" || refused ? undefined : EFFECT[key][purpose];
       return {
         conversationId: q.conversationId,
         quote: q.quote,
         cues: purpose === "UNDECIDED" ? [] : findCues(q.quote, purpose),
         verdict: verdictOf(q),
         purposeLabel: PURPOSE_LABELS[purpose],
-        why: WHY[purpose],
+        why: refused ? `${WHY[purpose]} AI가 거절해 답안에는 쓰이지 않았어요.` : WHY[purpose],
         kind: effect?.kind ?? null,
         effect: effect?.text ?? null,
       };

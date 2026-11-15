@@ -5,7 +5,7 @@ import type { UserRole } from "../api/types";
 import { PageLoading } from "../components/ui/PageLoading";
 import { getLoadingLayout } from "../components/ui/loadingLayout";
 import { ConsentGate } from "../components/auth/ConsentGate";
-import { homePathFor } from "./paths";
+import { homePathFor, paths } from "./paths";
 
 export function RequireAuth({
   children,
@@ -18,7 +18,15 @@ export function RequireAuth({
   const location = useLocation();
   if (loading)
     return <PageLoading layout={getLoadingLayout(location.pathname)} />;
-  if (!user) return <Navigate to="/" replace state={{ from: location }} />;
+  // 로그인 후 원래 보던 페이지로 돌아오게 로그인 화면에 주소를 넘깁니다.
+  if (!user)
+    return (
+      <Navigate
+        to={paths.login}
+        replace
+        state={{ from: `${location.pathname}${location.search}`, notice: "로그인이 필요해요." }}
+      />
+    );
   if (user.role !== role)
     return <Navigate to={homePathFor(user.role)} replace />;
   return (

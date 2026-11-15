@@ -2,12 +2,13 @@ import { ensureProcessPolicy } from "../lib/processRubric";
 import { ClassParticipantsSkeleton } from "../components/teacher/ClassParticipantsSkeleton";
 import { Skeleton } from "../components/ui/Skeleton";
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useMediaQuery } from "../hooks/useMediaQuery";
 import { EmptyState } from "../components/ui/EmptyState";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
+import { EvaluationStartedScreen } from "../components/teacher/EvaluationStartedScreen";
 import { ApiError, apiErrorMessage } from "../api/client";
 import { expelParticipant, extendEvaluation, getEvaluationQr, getParticipants } from "../api/evaluations";
 import type { Participant } from "../api/types";
-import { EvaluationStartedScreen } from "../components/teacher/EvaluationStartedScreen";
 import { TeacherHeader } from "../components/teacher/TeacherHeader";
 import { Toast } from "../components/teacher/Toast";
 import { EvaluationControls } from "../components/ui/EvaluationControls";
@@ -58,12 +59,16 @@ export function TeacherClassLobbyPage() {
   const peopleSnapshot =
     peopleResult?.sessionId === sessionId ? peopleResult : null;
   const people = peopleSnapshot?.items ?? [];
+  // 서버는 지금 연결된(30초 안에 응답한) 학생이 있어야 시작을 허락합니다.
+  const connectedCount = people.filter((person) => person.presence !== "DISCONNECTED").length;
   const [qrResult, setQrResult] = useState<{
     sessionId: string;
     url: string;
   } | null>(null);
   const qrUrl = qrResult?.sessionId === sessionId ? qrResult.url : "";
   const [qrOpen, setQrOpen] = useState(false);
+  // 모바일에서는 QR을 처음부터 크게 보여 주므로 따로 확대하지 않습니다.
+  const phone = useMediaQuery("(max-width: 1100px)");
   const [starting, setStarting] = useState(false);
   const [ending, setEnding] = useState(false);
   const [hours, setHours] = useState("1");
@@ -94,7 +99,8 @@ export function TeacherClassLobbyPage() {
   const [extendMinutes, setExtendMinutes] = useState(0);
   const [extending, setExtending] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [startedEvaluationId, setStartedEvaluationId] = useState("");
+  // 방금 이 화면에서 시작한 반: 화면 공유를 끄고 학생 현황으로 넘어갈 수 있게 시작 안내 화면을 먼저 보여줍니다.
+  const [startedHere, setStartedHere] = useState(false);
   const running = session?.state === "IN_PROGRESS";
   // 대기실을 열면(시작 전인데 PIN이 있음) 학생이 미리 들어와 기다릴 수 있습니다.
   const lobbyOpen = Boolean(session?.lobbyOpen);
@@ -194,16 +200,6 @@ export function TeacherClassLobbyPage() {
     };
   }, [live, sessionId]);
 
-  if (startedEvaluationId && startedEvaluationId === sessionId) {
-    return (
-      <EvaluationStartedScreen
-        evaluationId={startedEvaluationId}
-        folderId={folderId}
-        title={folder?.title}
-        className={session?.className}
-      />
-    );
-  }
   if (loading) return <PageLoading layout="lobby" />;
 
   if (!folder || !session) {
@@ -230,6 +226,25 @@ export function TeacherClassLobbyPage() {
     );
   }
 
+  if (startedHere && session.state === "IN_PROGRESS") {
+    return (
+      <EvaluationStartedScreen
+        evaluationId={session.id}
+        folderId={folderId}
+      />
+    );
+  }
+  // 대기실은 시작 전에만 씁니다. 평가 중이거나 끝난 반은 바로 학생 현황(채점) 화면으로 보냅니다.
+  if (session.state === "IN_PROGRESS" || session.state === "ENDED") {
+    return (
+      <Navigate
+        to={`/teacher/grading/${encodeURIComponent(session.id)}`}
+        replace
+        state={{ folderId }}
+      />
+    );
+  }
+
   async function start(event: FormEvent) {
     event.preventDefault();
     const total = Number(hours || 0) * 60 + Number(minutes || 0);
@@ -247,6 +262,11 @@ export function TeacherClassLobbyPage() {
 
   // 평가를 만들 때 정한 풀이 시간이 있으면 바로 시작하고, 없을 때만 시간을 묻습니다.
   function requestStart() {
+    // 대기실에 학생이 한 명도 없으면 시작하지 않습니다.
+    if (lobbyOpen && connectedCount === 0) {
+      setNotice("접속한 학생이 한 명 이상 대기실에 있어야 평가를 시작할 수 있어요.");
+      return;
+    }
     const preset = folder?.durationMinutes;
     if (preset && preset >= 1 && preset <= 1440) void startWith(preset);
     else setStarting(true);
@@ -269,9 +289,12 @@ export function TeacherClassLobbyPage() {
       }
       setSession(next);
       setStarting(false);
-      setStartedEvaluationId(sessionId);
+      setStartedHere(true);
     } catch (caught) {
-      const message = apiErrorMessage(caught, "평가를 시작하지 못했습니다.");
+      const message =
+        caught instanceof ApiError && caught.code === "NO_PARTICIPANTS"
+          ? "접속한 학생이 한 명 이상 있어야 평가를 시작할 수 있어요."
+          : apiErrorMessage(caught, "평가를 시작하지 못했습니다.");
       setError(message);
       setNotice(message);
     } finally {
@@ -317,7 +340,9 @@ export function TeacherClassLobbyPage() {
     }
   }
 
-  const ended = session.state === "ENDED";
+  // 평가 중·종료된 반은 위에서 채점 화면으로 보내지만, 화면 분기는 그대로 둡니다.
+  const sessionState: string = session.state;
+  const ended = sessionState === "ENDED";
   const openGrading = () =>
     navigate(`/teacher/grading/${encodeURIComponent(session.id)}`, { state: { folderId } });
 
@@ -341,6 +366,8 @@ export function TeacherClassLobbyPage() {
         ) : lobbyOpen ? (
           <Button
             loading={busy}
+            disabled={connectedCount === 0}
+            title={connectedCount === 0 ? "접속한 학생이 한 명 이상 있어야 시작할 수 있어요" : undefined}
             onClick={() => {
               setError("");
               requestStart();
@@ -411,7 +438,13 @@ export function TeacherClassLobbyPage() {
                 </div>
                 <div className="teacher-join-qr">
                   {qrLoading ? (
-                    <Skeleton className="teacher-lobby-qr" />
+                    <Skeleton className="teacher-lobby-qr teacher-lobby-qr--large" />
+                  ) : qrUrl && phone ? (
+                    <img
+                      className="teacher-lobby-qr teacher-lobby-qr--large"
+                      src={qrUrl}
+                      alt="학생 참가용 QR 코드"
+                    />
                   ) : qrUrl ? (
                     <button
                       type="button"
@@ -516,7 +549,7 @@ export function TeacherClassLobbyPage() {
           </button>
         </div>
       </div>
-      {qrOpen && qrUrl && (
+      {qrOpen && qrUrl && !phone && (
         <Modal
           title="참여 QR 코드"
           className="teacher-qr-modal"

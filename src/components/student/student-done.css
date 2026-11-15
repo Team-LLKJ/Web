@@ -31,25 +31,6 @@
   color: var(--color-grey-90);
   font-weight: var(--weight-semibold);
 }
-.student-done-report {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  width: 100%;
-  padding: 16px;
-  border: 1px solid var(--color-grey-20);
-  border-radius: 12px;
-}
-.student-done-report > p {
-  margin: 0;
-  color: var(--color-grey-60);
-  font-size: var(--font-text-sm);
-}
-.student-done-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
 .student-done-card > .button {
   width: 100%;
 }

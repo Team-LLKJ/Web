@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   getCurrentUser,
   login as loginRequest,
@@ -6,13 +7,46 @@ import {
   signupStudent as signupStudentRequest,
   signupTeacher as signupTeacherRequest,
 } from "../api/auth";
-import { clearTokens, hasStoredSession } from "../api/client";
+import { clearTokens, hasStoredSession, onSessionLost } from "../api/client";
+import { paths } from "../router/paths";
 import type { LoginRequest, StudentSignup, TeacherSignup, User } from "../api/types";
 import { AuthContext } from "./AuthContext";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const pathRef = useRef("");
+  const userRef = useRef<User | null>(null);
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
+  const { pathname } = useLocation();
+  useEffect(() => {
+    pathRef.current = pathname;
+  }, [pathname]);
+
+  // 로그인이 풀리면(만료·다른 탭에서 로그아웃·서버 재시작) 처음 화면으로 보냅니다.
+  useEffect(() => {
+    const lost = () => {
+      if (userRef.current && /^\/(teacher|settings|notifications)/.test(pathRef.current)) {
+        navigate(paths.home, { replace: true });
+      }
+      setUser(null);
+    };
+    const offClient = onSessionLost(lost);
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === "lit:auth:refresh-token" && event.newValue === null) {
+        clearTokens();
+        lost();
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => {
+      offClient();
+      window.removeEventListener("storage", onStorage);
+    };
+  }, [navigate]);
 
   const reloadUser = useCallback(async () => {
     if (!hasStoredSession()) {

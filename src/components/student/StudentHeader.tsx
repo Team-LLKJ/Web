@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import { useScrolled } from "../../hooks/useScrolled";
 import { Button } from "../ui/Button";
 import { HeaderUtilities } from "../ui/HeaderDialogs";
@@ -23,16 +22,14 @@ export function StudentHeader({
   const scrolled = useScrolled();
   return (
     <header className={`header student-header${scrolled ? " is-scrolled" : ""}`}>
-      <Link
-        to="/views"
-        className="lit-logo-link"
-        aria-label="LIT 화면 목록으로 이동"
-      >
+      {/* 풀이 중에는 로고를 눌러 평가를 벗어나지 않게 링크를 두지 않습니다. */}
+      <span className="lit-logo-link">
         <img src="/lit-logo.png" width="100" height="50" alt="LIT" />
-      </Link>
+      </span>
       <nav aria-label="학생 평가 도구">
         {!submitted && <RemainingTime info={endInfo} />}
-        <HeaderUtilities onSettings={onPolicy} />
+        {/* 같은 기기에 선생님이 로그인해 있어도 학생에게 선생님 알림이 보이지 않게 합니다. */}
+        <HeaderUtilities onSettings={onPolicy} notifications={false} />
         <Button onClick={onSubmit} disabled={submitted || disabledSubmit}>
           {submitted ? "제출 완료" : "제출하기"}
         </Button>

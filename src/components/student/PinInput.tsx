@@ -11,7 +11,15 @@ export function PinInput({
   const inputs = useRef<(HTMLInputElement | null)[]>([]);
   const digits = Array.from({ length: 6 }, (_, i) => value[i]?.trim() || "");
   function update(index: number, text: string) {
-    const digit = text.replace(/\D/g, "").slice(-1);
+    // 이미 숫자가 있는 칸에 입력하면 커서 위치에 따라 "07"이나 "70"이 되므로, 기존 숫자가 아닌 쪽을 새 숫자로 씁니다.
+    const typed = text.replace(/\D/g, "");
+    const previous = digits[index];
+    const digit =
+      typed.length > 1 && previous
+        ? typed[0] === previous
+          ? typed.slice(-1)
+          : typed[0]
+        : typed.slice(-1);
     const next = [...digits];
     next[index] = digit;
     onChange(
@@ -40,6 +48,12 @@ export function PinInput({
             onChange={(e) => update(index, e.target.value)}
             onFocus={(e) => e.target.select()}
             onKeyDown={(e) => {
+              // 숫자 키는 칸에 무엇이 있든 그 숫자로 바꿉니다.
+              if (/^\d$/.test(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                e.preventDefault();
+                update(index, e.key);
+                return;
+              }
               if (e.key === "Backspace" && !digit && index > 0) {
                 e.preventDefault();
                 inputs.current[index - 1]?.focus();

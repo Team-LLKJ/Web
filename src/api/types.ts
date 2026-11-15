@@ -68,6 +68,9 @@ export type Evaluation = {
   expiresAt: string;
   joinUrl?: string;
   qrUrl?: string;
+  /** 이 반이 속한 수행평가(폴더) id */
+  assessmentId?: string;
+  className?: string;
 };
 
 export type TeacherEvaluationSummary = {
@@ -327,6 +330,8 @@ export type PurposeQuestion = {
   needsReview: boolean;
   teacherPurpose: PurposeType | null;
   method: string;
+  /** 답안 생성(DRAFT) 요청에 AI가 실제로 답안을 써 줬는지. 거절했으면 false, DRAFT가 아니면 null */
+  aiComplied?: boolean | null;
 };
 export type PurposeUsageView = {
   method: string;
@@ -398,7 +403,13 @@ export type RubricScoreCriterion = {
   /** 지금 반영된 점수(교사 수정 포함). 없으면 미채점 */
   currentScore?: number | null;
   /** 교사 직접 입력이 필요한 이유 */
-  reviewReason?: "DISAGREEMENT" | "INSUFFICIENT_DATA" | null;
+  reviewReason?: "DISAGREEMENT" | "INSUFFICIENT_DATA" | "NO_AI_USE" | "SAVE_ERROR" | "PROMPT_INJECTION" | "HAIKU_DECIDED" | "NO_VALID_VOTES" | "GEMINI_CALL_FAILED" | null;
+  /** 판정이 엇갈렸는데 Haiku 판정이 없는 이유 */
+  haikuError?: string | null;
+  /** 채점 지시로 보여 AI 판정을 멈춘 학생 문장(PROMPT_INJECTION) */
+  injectionText?: string | null;
+  /** 무효 처리된 회차가 원래 낸 단계(0~4로 바꾼 값). votes와 같은 순서 */
+  rawVotes?: (number | "NA" | "HOLD" | null)[];
   needsReview?: boolean;
   /** 참고용 판정: Gemini 회차별 단계와 Haiku 단계(0~4로 바꾼 값, 무효는 null) */
   votes?: (number | "NA" | "HOLD" | null)[];
@@ -487,6 +498,10 @@ export type AnalysisSentence = {
   /** 교사가 확정한 출처 */
   teacherSource: "AI" | "DIRECT" | null;
   closestAiSentence: string | null;
+  /** 긴 붙여넣기 구간과 겹치는 문장(다른 AI에서 가져왔을 수 있어 교사 확인 대상) */
+  pasted?: boolean;
+  /** 이 문장을 처음 만든 학생 대화 id(학생이 쓴 문장일 때). */
+  studentFirstConversationId?: number | null;
   /** 이 문장이 가져온 AI 답변의 대화 번호 */
   conversationId?: number | null;
   start: number;
@@ -505,12 +520,15 @@ export type AiDisclosure = {
   editable: boolean;
   /** 제출 전 PENDING, 완료 READY, 실패 FAILED. */
   status?: "PENDING" | "READY" | "FAILED";
-  source?: "SYSTEM_GENERATED" | string;
+  /** SYSTEM_GENERATED 자동 기록 · STUDENT_REPORTED 학생이 직접 쓴 설명 */
+  source?: "SYSTEM_GENERATED" | "STUDENT_REPORTED" | string;
   errorCode?: string | null;
   failureReason?: string | null;
   /** 판단 근거가 된 대화 id. */
   conversationIds?: number[];
   evidence?: unknown[];
+  /** 교사용 조회: 학생이 직접 쓴 설명(없으면 null) */
+  studentDisclosure?: { tools: string; usedParts: string; reason: string } | null;
 };
 
 export type ApiMessage = { message: string };

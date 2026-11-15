@@ -17,6 +17,12 @@ import {
 } from "../api/evaluations";
 import type { RubricScoreCriterion, RubricScores } from "../api/types";
 
+/** 서버가 injectionText를 따로 주기 전까지, 이유 문장 끝의 따옴표 안에서 잡힌 문장을 꺼냅니다. */
+function injectionFromReason(reason: string | undefined) {
+  const match = reason?.match(/"([^"]+)"\s*$/);
+  return match ? match[1] : null;
+}
+
 export type ProcessState = { job: ProcessJob; review: ProcessReview | null };
 
 const ORDER: ProcessCriterion[] = [
@@ -33,11 +39,12 @@ const NAMES: Record<ProcessCriterion, string> = {
   CONTRIBUTION: "최종 답안에 대한 학생의 기여",
   TRANSPARENCY: "AI 활용 과정의 투명성",
 };
+// 투명성은 2026-11-14에 기준에서 뺐습니다(서비스가 AI 사용을 모두 기록하므로). 이전 판정 결과를 보여줄 때만 씁니다.
 const MAX: Record<ProcessCriterion, number> = {
-  PURPOSE: 15,
-  SELF_DIRECTION: 25,
+  PURPOSE: 20,
+  SELF_DIRECTION: 30,
   CRITICAL_REVIEW: 20,
-  CONTRIBUTION: 25,
+  CONTRIBUTION: 30,
   TRANSPARENCY: 15,
 };
 /** 교사가 근거를 적지 않았을 때 보내는 사유(서버가 빈 사유를 받지 않습니다). */
@@ -50,11 +57,14 @@ const criterionOf = (criterionId: number) => ORDER[criterionId - 1];
 const studentCells = (cells: ProcessCell[] | undefined) =>
   (cells ?? []).filter((cell) => cell.questionId === null || cell.questionId === undefined);
 
-/** 가장 최근에 끝난 AI 루브릭 판정과 교사 검토를 불러옵니다. 판정이 없으면 null입니다. */
+/**
+ * 가장 최근에 끝난 AI 루브릭 판정과 교사 검토를 불러옵니다. 판정이 없으면 state는 null입니다.
+ * 끝난 판정은 없고 진행 중인 판정만 있으면 pending이 true입니다(화면에 'AI 채점 중'을 보여줍니다).
+ */
 export async function loadProcessRubric(
   evaluationId: string,
   participantId: string,
-): Promise<ProcessState | null> {
+): Promise<{ state: ProcessState | null; pending: boolean }> {
   const jobs = await listProcessRuns(evaluationId, participantId);
   const job = jobs
     .filter(
@@ -64,14 +74,15 @@ export async function loadProcessRubric(
         studentCells(item.result.cells).length > 0,
     )
     .sort((a, b) => b.version - a.version)[0];
-  if (!job) return null;
+  const pending = jobs.some((item) => item.status === "PENDING" || item.status === "RUNNING");
+  if (!job) return { state: null, pending };
   let review: ProcessReview | null = null;
   try {
     review = await getProcessReview(evaluationId, participantId, job.id);
   } catch (e) {
     if (!(e instanceof ApiError && e.status === 404)) throw e;
   }
-  return { job, review };
+  return { state: { job, review }, pending: false };
 }
 
 const reasonOf = (reason: ProcessBehaviorReason) => ({
@@ -124,6 +135,10 @@ export function toRubricScores(state: ProcessState): RubricScores {
       needsReview: Boolean(ai.judge?.needsReview) && !override,
       votes: ai.judge?.votes?.map(toScreenLevel),
       haikuLevel: toScreenLevel(ai.judge?.haikuLevel),
+      haikuError: ai.judge?.haikuError ?? null,
+      injectionText:
+        ai.judge?.reviewReason === "PROMPT_INJECTION" ? (ai.judge.injectionText ?? injectionFromReason(ai.reason)) : null,
+      rawVotes: ai.judge?.runs?.map((run) => toScreenLevel(run.rawLevel)),
       unmetNextLevel: ai.unmetNextLevel ?? null,
       reasons: [
         ...(ai.details?.credits ?? []).map((r) => ({ kind: "가점" as const, ...reasonOf(r) })),

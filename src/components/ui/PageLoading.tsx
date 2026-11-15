@@ -1,4 +1,4 @@
-import { SkeletonStatus } from "./Skeleton";
+import { Skeleton, SkeletonStatus } from "./Skeleton";
 import { Icon } from "./Icon";
 import { FolderListSkeleton } from "../teacher/FolderListSkeleton";
 import { TeacherScreenSkeleton } from "../teacher/TeacherScreenSkeleton";
@@ -9,6 +9,20 @@ export function PageLoading({
 }: {
   layout?: LoadingLayout;
 }) {
+  // 선생님 화면이 아니면 선생님 도구(알림·설정) 없이 로고와 가운데 카드만 보여줍니다.
+  if (layout === "plain")
+    return (
+      <div className="page-loading page-loading--plain" aria-busy="true">
+        <header className="header page-loading-real-header">
+          <span className="lit-logo-link">
+            <img src="/lit-logo.png" width="100" height="50" alt="LIT" />
+          </span>
+        </header>
+        <SkeletonStatus className="page-loading-plain-body" label="화면을 불러오고 있습니다.">
+          <Skeleton className="page-loading-plain-card" />
+        </SkeletonStatus>
+      </div>
+    );
   return (
     <div
       className={`page-loading teacher-page screen-loading--${layout}${layout === "grading" ? " grading-workspace" : ""}`}

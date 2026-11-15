@@ -748,3 +748,26 @@ h3 {
     display: none;
   }
 }
+
+/* 모바일·태블릿: 머리글과 목록의 작은 버튼도 손가락으로 누르기 편하게 */
+@media (max-width: 820px) {
+  .lit-logo-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+  .more-menu-trigger {
+    min-width: 40px;
+    min-height: 40px;
+  }
+  .teacher-header .button,
+  .teacher-page > .button--small,
+  .teacher-page .button--small {
+    min-height: 40px;
+  }
+  .folder-back {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+  }
+}

@@ -45,11 +45,6 @@ export const evaluationCriteria = [
     description:
       "AI의 답변을 그대로 사용하는 것이 아니라, 자신의 해석과 판단을 반영하여 최종 결과물을 완성했는지 평가해요.",
   },
-  {
-    title: "AI 활용 과정의 투명성",
-    description:
-      "AI에 입력한 질문과 활용 내용을 명확하게 기록하고, AI의 도움을 받은 부분을 적절하게 공개했는지 평가해요.",
-  },
 ];
 export const landingSteps = [
   {

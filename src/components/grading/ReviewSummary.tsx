@@ -27,7 +27,11 @@ export function ReviewSummary({ review }: { review: StudentReview }) {
     if (purpose === "UNDECIDED") continue;
     const quote = cite(q.quote);
     const goodLine = GOOD[purpose]?.(quote);
-    const badLine = BAD[purpose]?.(quote);
+    // AI가 거절해 답안에 쓰이지 않은 대리 작성 요청은 사실만 짧게 적습니다.
+    const badLine =
+      purpose === "DRAFT" && q.aiComplied === false
+        ? `${quote}처럼 답안을 대신 써 달라고 요청했지만, AI가 거절해 답안에는 쓰이지 않았어요.`
+        : BAD[purpose]?.(quote);
     if (goodLine) good.push(goodLine);
     if (badLine) bad.push(badLine);
   }
@@ -53,16 +57,33 @@ export function ReviewSummary({ review }: { review: StudentReview }) {
   if (compliance === "CHECK") checks.push("허용 범위를 넘었는지");
   const unsureSentences = sentences.filter((s) => s.needsReview && !s.teacherSource).length;
   const unsurePurposes = questions.filter((q) => q.needsReview && !q.teacherPurpose).length;
-  const manualCriteria = (review.rubric?.criteria ?? []).filter((c) => c.needsReview).length;
+  const manualCriteria = (review.rubric?.criteria ?? []).filter(
+    (c) => !c.teacher && (c.needsReview || c.status === "HOLD"),
+  ).length;
   if (unsureSentences) checks.push(`출처가 애매한 문장 ${unsureSentences}개`);
   if (unsurePurposes) checks.push(`용도가 애매한 질문 ${unsurePurposes}개`);
   if (manualCriteria) checks.push(`직접 채점할 루브릭 항목 ${manualCriteria}개`);
 
+  // 채점 지시로 보이는 문장이 있으면 다른 내용보다 먼저 알립니다.
+  const injection = (review.rubric?.criteria ?? []).find((c) => c.reviewReason === "PROMPT_INJECTION");
+  const alert = injection ? (
+    <p className="review-summary-alert">
+      학생 글에 채점 지시로 보이는 문장이 있어 AI가 루브릭을 채점하지 않았어요.
+      {injection.injectionText && <> 잡힌 문장: “{injection.injectionText}”</>} 답안과 대화를 확인하고 직접 채점해주세요.
+    </p>
+  ) : null;
+
   if (!good.length && !bad.length && !checks.length) {
-    return <p>{review.analysisDetail?.summary?.trim() || review.summary}</p>;
+    return (
+      <>
+        {alert}
+        <p>{review.analysisDetail?.summary?.trim() || review.summary}</p>
+      </>
+    );
   }
   return (
     <div className="review-summary">
+      {alert}
       {good.length > 0 && (
         <div>
           <h4 className="review-summary-good">잘한 점</h4>

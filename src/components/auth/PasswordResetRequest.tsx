@@ -27,6 +27,10 @@ export function PasswordResetRequest() {
     // 포털이어도 React 이벤트는 부모(로그인 폼)로 올라가므로 여기서 막습니다.
     event.stopPropagation();
     const value = email.trim();
+    if (!value) {
+      setError("이메일을 입력해주세요.");
+      return;
+    }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
       setError("올바른 이메일 주소를 입력해주세요.");
       return;

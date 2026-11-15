@@ -1,5 +1,6 @@
 import { apiRequest, readEventStream } from "./client";
 import type {
+  AiDisclosure,
   ApiAnswer,
   ApiMessage,
   ConfigureRequest,
@@ -14,7 +15,6 @@ import type {
   GradingStudentList,
   RubricAdjustment,
   Joined,
-  AiDisclosure,
   AssessmentAnalysis,
   PurposeType,
   PurposeUsageView,
@@ -285,54 +285,6 @@ export function getSubmission(evaluationId: string) {
 }
 
 /** 창 이탈·캡처 단축키 신고. 멱등 키가 없으므로 같은 사건을 자동 재전송하지 마세요. */
-// 학생 본인 리포트. 제출 후 평가에서 나간 뒤에도 기존 참가 토큰으로 받을 수 있습니다(토큰은 헤더로만 보냄).
-const myReportRequest = (participantToken: string) =>
-  ({ auth: false, participant: true, participantToken }) as const;
-
-export function createMyReport(evaluationId: string, participantToken: string) {
-  return apiRequest<{ id: string; version: number; createdAt: string }>(
-    `/api/evaluations/${idPath(evaluationId)}/reports`,
-    { method: "POST", ...myReportRequest(participantToken) },
-  );
-}
-
-export function getMyReport(evaluationId: string, participantToken: string) {
-  return apiRequest<{ version: number }>(
-    `/api/evaluations/${idPath(evaluationId)}/report`,
-    myReportRequest(participantToken),
-  );
-}
-
-export function getMyReportFile(
-  evaluationId: string,
-  participantToken: string,
-  format: "pdf" | "hwp",
-  version?: number,
-) {
-  const query = new URLSearchParams({ includeConversations: "false" });
-  if (version !== undefined) query.set("version", String(version));
-  return apiRequest<Blob>(
-    `/api/evaluations/${idPath(evaluationId)}/report/${format}?${query}`,
-    {
-      responseType: "blob",
-      accept:
-        format === "pdf" ? "application/pdf, */*" : "application/x-hwp, */*",
-      ...myReportRequest(participantToken),
-    },
-  );
-}
-
-/** 학생 AI 사용 기록 조회. 서버가 제출·종료 시 자동으로 만들며 학생은 수정할 수 없습니다(PUT은 호환용이라 쓰지 않습니다). */
-export function getAiDisclosure(
-  evaluationId: string,
-  participantToken: string,
-) {
-  return apiRequest<AiDisclosure>(
-    `/api/evaluations/${idPath(evaluationId)}/ai-disclosure`,
-    myReportRequest(participantToken),
-  );
-}
-
 export function sendClientEvent(
   evaluationId: string,
   payload: ClientEventRequest,
@@ -382,6 +334,11 @@ export function getGradingConversations(
   return apiRequest<GradingMessage[]>(
     `${studentPath(evaluationId, participantId)}/conversations?${query}`,
   );
+}
+
+/** 서버가 자동으로 만든 학생의 AI 활용 기록(교사 전용). */
+export function getTeacherAiDisclosure(evaluationId: string, participantId: string) {
+  return apiRequest<AiDisclosure>(`${studentPath(evaluationId, participantId)}/ai-disclosure`);
 }
 
 export function getGradingActivity(evaluationId: string, participantId: string) {
@@ -589,12 +546,32 @@ export type ProcessPolicy = {
 export type ProcessCriterion = "PURPOSE" | "SELF_DIRECTION" | "CRITICAL_REVIEW" | "CONTRIBUTION" | "TRANSPARENCY";
 
 /** AI 루브릭 판정 정보(학생 단위 칸에만). votes: Gemini 회차별 단계(1~5, "NA", "HOLD", 무효 null) */
+export type ProcessReviewReason =
+  | "DISAGREEMENT"
+  | "INSUFFICIENT_DATA"
+  | "NO_AI_USE"
+  | "SAVE_ERROR"
+  | "PROMPT_INJECTION"
+  /** 확정된 판정: Gemini 과반과 Haiku가 1단계 차이라 Haiku 단계로 정함(needsReview=false) */
+  | "HAIKU_DECIDED"
+  /** Gemini 근거를 원문에서 확인하지 못해(재판정 후에도 유효 표 0개) 보류. Haiku 단계는 참고값 */
+  | "NO_VALID_VOTES"
+  /** Gemini 호출이 재시도 후에도 실패해 이 기준만 보류 */
+  | "GEMINI_CALL_FAILED";
+
 export type ProcessJudge = {
   votes: (number | "NA" | "HOLD" | null)[];
   haikuLevel: number | "NA" | "HOLD" | null;
   needsReview: boolean;
-  reviewReason: "DISAGREEMENT" | "INSUFFICIENT_DATA" | null;
+  /** DISAGREEMENT 판정 엇갈림 · INSUFFICIENT_DATA 대화 부족 · NO_AI_USE AI 미사용(자기 주도 교사 확인) · SAVE_ERROR 활용 설명 저장 오류(투명성 보류) · PROMPT_INJECTION 학생 글에 채점 지시 문장(전 항목 보류) */
+  reviewReason: ProcessReviewReason | null;
   method: string;
+  /** 판정이 엇갈렸는데 Haiku 판정이 없는 이유: NOT_CONFIGURED | NO_VERIFIED_EVIDENCE | 호출 오류 코드 */
+  haikuError?: string | null;
+  /** 회차별 원래 답: rawLevel은 인용 확인 전 모델이 낸 단계, rejectedQuotes는 원문에서 찾지 못한 인용("src: quote") */
+  runs?: { rawLevel?: number | "NA" | "HOLD" | null; rejectedQuotes?: string[] }[];
+  /** PROMPT_INJECTION일 때 잡힌 채점 지시 문장(백엔드 요청 중, 없으면 reason에서 꺼냅니다) */
+  injectionText?: string | null;
 };
 
 /** 결과 한 칸. 학생 단위(AI 루브릭) 칸은 questionId가 null이고 항목마다 한 칸입니다. */

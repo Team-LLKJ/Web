@@ -637,3 +637,52 @@
 .auth-form .auth-notice--error {
   color: var(--color-danger);
 }
+
+/* ───── 모바일: 손가락으로 누르기 편한 크기 ───── */
+.auth-mobile-logo {
+  display: none;
+}
+@media (max-width: 820px) {
+  .auth-mobile-logo {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  .auth-mobile-logo img {
+    display: block;
+    width: 80px;
+    height: 40px;
+    object-fit: contain;
+  }
+  .auth-form .auth-input-action {
+    flex-basis: 40px;
+    width: 40px;
+    height: 40px;
+    margin: -8px -8px -8px 0;
+  }
+  .auth-form .auth-clear-action {
+    position: relative;
+  }
+  .auth-form .auth-clear-action::after {
+    content: "";
+    position: absolute;
+    inset: -9px;
+  }
+  .auth-form .auth-inline-action {
+    min-height: 40px;
+    padding: 4px 10px;
+  }
+  .auth-reset button,
+  .auth-footer a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 6px;
+  }
+  .auth-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+  }
+}

@@ -87,6 +87,18 @@ export function setTokens(tokens: Tokens) {
   }
 }
 
+// 로그인이 풀렸을 때(만료·다른 탭 로그아웃·서버 재시작) 화면에 알려 처음 화면으로 보냅니다.
+const sessionLostListeners = new Set<() => void>();
+export function onSessionLost(listener: () => void) {
+  sessionLostListeners.add(listener);
+  return () => {
+    sessionLostListeners.delete(listener);
+  };
+}
+function notifySessionLost() {
+  sessionLostListeners.forEach((listener) => listener());
+}
+
 export function clearTokens() {
   accessToken = null;
   if (typeof window !== "undefined") {
@@ -126,36 +138,63 @@ async function readError(
   return new ApiError(response.status, code, message, payload);
 }
 
-async function refreshAccessToken(): Promise<string | null> {
-  if (refreshInFlight) return refreshInFlight;
-  if (typeof window === "undefined") return null;
-  const refreshToken = storageGet(window.localStorage, REFRESH_TOKEN_KEY);
-  if (!refreshToken) return null;
+// 갱신 토큰은 탭끼리 같이 쓰고 서버가 쓸 때마다 새로 바꿔 줍니다.
+// 여러 탭이 동시에 갱신하면 늦은 탭이 이미 바뀐 옛 토큰을 보내 로그아웃되므로,
+// 탭끼리 순서대로 갱신하고 다른 탭이 바꿔 둔 새 토큰이 있으면 그걸로 다시 시도합니다.
+async function requestRefresh(refreshToken: string) {
+  const response = await send(
+    "/api/auth/refresh",
+    {
+      method: "POST",
+      body: { refreshToken },
+      auth: false,
+    },
+    null,
+  );
+  if (response.status < 200 || response.status >= 300) throw await readError(response);
+  return JSON.parse(response.data as string) as Tokens;
+}
 
-  refreshInFlight = (async () => {
+async function refreshWithLatestToken(): Promise<string | null> {
+  let used: string | null = null;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const refreshToken = storageGet(window.localStorage, REFRESH_TOKEN_KEY);
+    if (!refreshToken || refreshToken === used) break;
+    used = refreshToken;
     try {
-      const response = await send(
-        "/api/auth/refresh",
-        {
-          method: "POST",
-          body: { refreshToken },
-          auth: false,
-        },
-        null,
-      );
-      if (response.status < 200 || response.status >= 300) {
-        const error = await readError(response);
-        if (response.status === 401) clearTokens();
-        throw error;
-      }
-      const tokens = JSON.parse(response.data as string) as Tokens;
+      const tokens = await requestRefresh(refreshToken);
       setTokens(tokens);
       return tokens.accessToken;
     } catch (error) {
-      if (error instanceof ApiError && error.status === 401) clearTokens();
-      return null;
+      if (!(error instanceof ApiError && error.status === 401)) return null;
+      // 그사이 다른 탭이 토큰을 바꿨다면 새 토큰으로 한 번 더 시도합니다.
     }
-  })().finally(() => {
+  }
+  // 다른 탭이 이미 새 토큰을 받아 둔 경우는 그 탭의 로그인을 지우지 않습니다.
+  if (storageGet(window.localStorage, REFRESH_TOKEN_KEY) === used) {
+    clearTokens();
+    notifySessionLost();
+  } else accessToken = null;
+  return null;
+}
+
+async function refreshAccessToken(): Promise<string | null> {
+  if (refreshInFlight) return refreshInFlight;
+  if (typeof window === "undefined") return null;
+  if (!storageGet(window.localStorage, REFRESH_TOKEN_KEY)) {
+    if (accessToken) {
+      accessToken = null;
+      notifySessionLost();
+    }
+    return null;
+  }
+
+  const locks = typeof navigator !== "undefined" ? navigator.locks : undefined;
+  refreshInFlight = (
+    locks
+      ? locks.request("lit:auth:refresh", () => refreshWithLatestToken())
+      : refreshWithLatestToken()
+  ).finally(() => {
     refreshInFlight = null;
   });
   return refreshInFlight;
@@ -235,8 +274,8 @@ export async function apiRequest<T>(
     path !== "/api/auth/refresh"
   ) {
     const refreshed = await refreshAccessToken();
+    // 갱신에 실패하면 refreshAccessToken이 필요한 경우에만 로그인 정보를 지웁니다.
     if (refreshed) response = await send(path, options, refreshed);
-    else clearTokens();
   }
   if (response.status < 200 || response.status >= 300) {
     const error = await readError(response);
