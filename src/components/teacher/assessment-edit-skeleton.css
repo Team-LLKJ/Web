@@ -3,6 +3,12 @@
 }
 .assessment-edit-editor {
   position: relative;
+  min-width: 0;
+  max-width: 100%;
+}
+.assessment-edit-skeleton,
+.assessment-edit-skeleton .teacher-create-section {
+  min-width: 0;
 }
 .assessment-edit-lines {
   position: absolute;

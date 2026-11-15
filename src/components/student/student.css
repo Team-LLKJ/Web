@@ -125,27 +125,6 @@
 .student-workspace-skeleton {
   display: block;
 }
-.student-workspace-skeleton-header nav {
-  gap: 15px;
-}
-.student-workspace-skeleton-header .skeleton {
-  flex: 0 0 auto;
-}
-.student-workspace-skeleton-logo {
-  width: 75px;
-  height: 37.5px;
-  border-radius: 7.5px;
-}
-.student-workspace-skeleton-icon-button {
-  width: 22.5px;
-  height: 30px;
-  border-radius: 6px;
-}
-.student-workspace-skeleton-header-button {
-  width: 84px;
-  height: 33px;
-  border-radius: 7.5px;
-}
 .student-workspace-skeleton-body {
   --student-chat-width: 32%;
 }

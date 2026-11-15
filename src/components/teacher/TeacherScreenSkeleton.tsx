@@ -7,6 +7,9 @@ import {
   StudentSidebarSkeleton,
   SubmissionSkeleton,
 } from "../grading/GradingSkeleton";
+import type { CSSProperties } from "react";
+import { readStudentsWidth } from "../grading/sidebarWidth";
+import "../grading/students-resize.css";
 import { Tabs } from "../ui/Tabs";
 import { ChatHistorySkeleton } from "../grading/ChatHistorySkeleton";
 import { StudentWorkspace } from "../student/StudentWorkspace";
@@ -207,7 +210,7 @@ function Lobby() {
             </p>
           </div>
           <div className="teacher-join-qr">
-            <Skeleton className="teacher-lobby-qr" />
+            <Skeleton className="teacher-lobby-qr teacher-lobby-qr--large" />
           </div>
         </section>
         <section className="teacher-card teacher-lobby-people">
@@ -218,6 +221,14 @@ function Lobby() {
           </div>
           <ClassParticipantsSkeleton />
         </section>
+      </div>
+      <div className="teacher-lobby-pager" aria-hidden="true">
+        <button type="button" aria-pressed="true" tabIndex={-1}>
+          PIN
+        </button>
+        <button type="button" aria-pressed="false" tabIndex={-1}>
+          참여자
+        </button>
       </div>
     </>
   );
@@ -324,7 +335,12 @@ function Results() {
 
 function Grading() {
   return (
-    <div className="workspace teacher-workspace" inert>
+    <div
+      className="workspace teacher-workspace"
+      data-mobile-view="list"
+      style={{ "--students-width": `${readStudentsWidth()}px` } as CSSProperties}
+      inert
+    >
       <StudentSidebarSkeleton />
       <StudentWorkspace
         className="teacher-content"

@@ -435,6 +435,11 @@ export function TeacherClassLobbyPage() {
                       ? "QR코드를 스캔하거나 PIN을 입력해 참여하세요"
                       : "QR코드를 스캔하거나 PIN을 입력해 들어와 기다려주세요"}
                   </p>
+                  {lobbyOpen && !running && connectedCount === 0 && (
+                    <p className="teacher-start-hint" role="status">
+                      학생이 한 명 이상 들어오면 평가를 시작할 수 있어요.
+                    </p>
+                  )}
                 </div>
                 <div className="teacher-join-qr">
                   {qrLoading ? (

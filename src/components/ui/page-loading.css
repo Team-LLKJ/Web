@@ -200,3 +200,31 @@ li.skeleton.skeleton-ink {
   height: 200px;
   border-radius: 15px;
 }
+
+/* 대기실: 실제 화면 헤더의 "평가 시작하기" 버튼 자리 */
+.page-loading-header-action {
+  display: inline-block;
+  width: 136px;
+  height: 40px;
+  border-radius: 12px;
+}
+@media (max-width: 1100px) {
+  .page-loading-header-action {
+    width: 85px;
+  }
+  /* PIN은 가운데에, 참여자 카드는 PIN 화면 높이를 넘지 않게 잘라 실제 화면과 같은 높이로 맞춥니다. */
+  .screen-loading--lobby .teacher-lobby-pin > .skeleton {
+    margin-inline: auto;
+  }
+  .screen-loading--lobby .teacher-lobby > .teacher-card {
+    max-height: calc(100dvh - 275px);
+    overflow: hidden;
+  }
+}
+
+/* 대기실 제목: 제목 줄은 h1 글자 크기를 그대로 써서 실제 제목 높이와 맞춥니다. */
+.screen-loading--lobby .lobby-title > .skeleton:first-child {
+  font-size: inherit;
+  line-height: inherit;
+}
+

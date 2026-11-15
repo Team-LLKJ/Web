@@ -40,6 +40,7 @@ export function PageLoading({
           <span className="icon-button" aria-hidden="true">
             <Icon name="settings" />
           </span>
+          {layout === "lobby" && <Skeleton className="page-loading-header-action" />}
         </nav>
       </header>
       <SkeletonStatus
